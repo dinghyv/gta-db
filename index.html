@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GTA百科 - GTA5中文百科全书</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" crossorigin="anonymous" />
+    <style>
+        /* CSS变量系统 - 定义GTA风格的橙色主题 */
+        :root {
+            --gta-bg-dark: #291a0a;
+            --gta-bg-medium: rgba(35, 25, 15, 0.95);
+            --gta-bg-light: rgba(55, 40, 25, 0.7);
+            --gta-primary: #e65100;
+            --gta-primary-glow: rgba(230, 81, 0, 0.7);
+            --gta-secondary: #ff9800;
+            --gta-border: #bf360c;
+            --gta-border-light: #ff7043;
+            --gta-text: #ffffff;
+            --gta-text-secondary: #ffe0b2;
+            --gta-accent: #ffab40;
+            /* 兼容变量映射，供佩里科样式复用（橙色主题） */
+            --bg-darker: var(--gta-bg-medium);
+            --primary-color: var(--gta-primary);
+            --primary-dark: #bf360c;
+            --accent-color: var(--gta-accent);
+            --border-color: var(--gta-border);
+            --text-secondary: var(--gta-text-secondary);
+            --transition: all 0.15s ease;
+            
+            /* 原有的变量保留 */
+            --background-dark: #0a0a0a;
+            --surface-dark: #1a1a1a;
+            --surface-light: #262626;
+            --primary-accent: #00d4ff;
+            --secondary-accent: #ff6b35;
+            --tertiary-accent: #ffcc00;
+            --text-light: #ffffff;
+            --text-muted: #a0a0a0;
+            --text-dim: #666666;
+            --success: #00ff88;
+            --warning: #ffaa00;
+            --danger: #ff4757;
+            --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --gradient-accent: linear-gradient(135deg, #00d4ff 0%, #00ff88 100%);
+            --gradient-secondary: linear-gradient(135deg, #ff6b35 0%, #ffcc00 100%);
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
+            --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.4);
+            --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.5);
+            --shadow-xl: 0 16px 64px rgba(0, 0, 0, 0.6);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background: var(--background-dark);
+            background-image:
+                radial-gradient(circle at 20% 50%, rgba(120, 119, 198, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(0, 212, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 40% 20%, rgba(255, 107, 53, 0.1) 0%, transparent 50%);
+            color: var(--text-light);
+            font-family: 'Segoe UI', 'Impact', 'Arial Black', sans-serif;
+            min-height: 100vh;
+            
+        /* GTA风格导航栏 - 佩里科岛风格蓝色主题 */
+        .gta-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(90deg, rgba(35, 15, 10, 0.7) 0%, rgba(230, 81, 0, 0.7) 100%);
+            border-bottom: 2px solid #ff7043;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+
+        .gta-nav .nav-left {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-grow: 1;
+        }
+
+        .gta-title {
+            font-family: 'Impact', sans-serif;
+            color: white;
+            font-size: 24px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+            margin: 0;
+            display: flex;
+            align-items: center;
+            background: rgba(0,0,0,0.2);
+            padding: 5px 15px;
+            border-radius: 20px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .gta-title i {
+            margin-right: 8px;
+            color: var(--gta-primary);
+        }
+
+        .gta-nav .nav-right {
+            display: flex;
+            gap: 15px;
+        }
+
+        .nav-button {
+            background: rgba(255,255,255,0.1);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.2);
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+
+        .nav-button:hover {
+            background: var(--gta-primary);
+            color: var(--gta-bg-dark);
+            box-shadow: 0 0 15px var(--gta-primary-glow);
+            transform: translateY(-1px);
+            border-color: var(--gta-accent);
+        }
+
+        .nav-button.back-button {
+            background: var(--gta-secondary);
+            border-color: var(--gta-secondary);
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 15px;
+            margin-left: 0;
+            align-items: center;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            font-size: 14px;
+            padding: 5px 10px;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+
+        .nav-links a:hover {
+            background-color: rgba(255,255,255,.1);
+        }
+        
+        .nav-buttons-desktop {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .nav-buttons-mobile {
+            display: none;
+        }
+        
+        .mobile-menu {
+            display: none;
+            position: absolute;
+            top: 56px;
+            right: 12px;
+            background: linear-gradient(90deg, rgba(35,15,10,0.95) 0%, rgba(230,81,0,0.95) 100%);
+            border: 1px solid #ff7043;
+            padding: 10px;
+            border-radius: 8px;
+            z-index: 1100;
+            box-shadow: 0 8px 22px rgba(50,30,20,.5);
+            flex-direction: column;
+            gap: 8px;
+            min-width: 160px;
+            backdrop-filter: blur(6px);
+        }
+        
+        .mobile-menu.show {
+            display: flex;
+        }
+        
+        /* Mobile nav */
+        @media (max-width:768px) {
+            .nav-links {
+                display: none;
+            }
+            .nav-buttons-desktop {
+                display: none;
+            }
+            .nav-buttons-mobile {
+                display: block;
+            }
+            .gta-nav {
+                padding: 8px 12px;
+                flex-wrap: nowrap;
+                align-items: center;
+            }
+            .gta-title {
+                font-size: 18px;
+                padding: 6px 10px;
+                white-space: nowrap;
+            }
+            .mobile-menu .nav-button, .mobile-menu .nav-link {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                background: rgba(255,255,255,.06);
+                color: white;
+                padding: 8px 10px;
+                border-radius: 8px;
+                text-decoration: none;
+                border: none;
+                cursor: pointer;
+            }
+        }
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            /* 允许页面滚动，移动端需能纵向滚动查看内容 */
+            overflow: auto;
+        }
+
+        /* 标题样式 */
+        .header {
+            position: relative;
+            z-index: 999;
+            margin-top: 60px; /* 确保在导航栏下方 */
+            text-align: center;
+            margin-bottom: 50px;
+            position: relative;
+            z-index: 10;
+        }
+
+        .header h1 {
+            font-size: 5rem;
+            font-family: 'Impact', 'Arial Black', sans-serif;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+            position: relative;
+            display: inline-block;
+        }
+
+        .header h1::before {
+            content: attr(data-text);
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--gradient-accent);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            z-index: -1;
+            filter: blur(5px);
+            opacity: 0.8;
+            animation: glowPulse 3s ease-in-out infinite;
+        }
+
+        .header h1 .gta-text {
+            color: var(--tertiary-accent);
+            text-shadow: 3px 3px 0 #000, 5px 5px 8px rgba(255, 204, 0, 0.5);
+        }
+
+        .header h1 .by-text {
+            color: var(--text-light);
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+        }
+
+        .header h1 .author-text {
+            color: var(--primary-accent);
+            text-shadow: 3px 3px 0 #000, 5px 5px 8px rgba(0, 212, 255, 0.5);
+        }
+
+        .header p {
+            font-size: 1.3rem;
+            color: var(--text-muted);
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+            letter-spacing: 1px;
+            margin-top: 15px;
+        }
+
+        /* 区域选择器 */
+        .region-selector {
+            display: flex;
+            gap: 30px;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            z-index: 10;
+            max-width: 1200px;
+            padding: 20px;
+        }
+
+        /* 卡片样式 */
+        .region-card {
+            background: rgba(26, 26, 26, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 35px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            backdrop-filter: blur(20px);
+            min-width: 320px;
+            box-shadow: var(--shadow-lg);
+            position: relative;
+            overflow: hidden;
+            opacity: 0;
+            transform: translateY(50px);
+        }
+
+        .region-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--gradient-accent);
+            opacity: 0.8;
+        }
+
+        .region-card:nth-child(1)::before {
+            background: var(--gradient-accent);
+        }
+
+        .region-card:nth-child(2)::before {
+            background: var(--gradient-secondary);
+        }
+
+        .region-card:nth-child(3)::before {
+            background: linear-gradient(90deg, #667eea, #00d4ff);
+        }
+
+        .region-card:hover {
+            transform: translateY(-15px) scale(1.03);
+            box-shadow: var(--shadow-xl), 0 0 30px rgba(0, 212, 255, 0.3);
+            border-color: var(--primary-accent);
+        }
+
+        .region-card:nth-child(2):hover {
+            box-shadow: var(--shadow-xl), 0 0 30px rgba(255, 107, 53, 0.3);
+            border-color: var(--secondary-accent);
+        }
+
+        .region-card:nth-child(3):hover {
+            box-shadow: var(--shadow-xl), 0 0 30px rgba(102, 126, 234, 0.3);
+            border-color: #667eea;
+        }
+
+        .region-card .icon {
+            font-size: 5rem;
+            margin-bottom: 25px;
+            display: block;
+            transition: transform 0.3s ease;
+        }
+
+        .region-card:hover .icon {
+            transform: scale(1.1) rotate(5deg);
+        }
+
+        .region-card h2 {
+            font-size: 2.2rem;
+            margin-bottom: 15px;
+            font-family: 'Impact', 'Arial Black', sans-serif;
+            letter-spacing: 1px;
+            position: relative;
+        }
+
+        .region-card:nth-child(1) h2 {
+            color: var(--primary-accent);
+            text-shadow: 2px 2px 0 #000, 3px 3px 5px rgba(0, 212, 255, 0.5);
+        }
+
+        .region-card:nth-child(2) h2 {
+            color: var(--secondary-accent);
+            text-shadow: 2px 2px 0 #000, 3px 3px 5px rgba(255, 107, 53, 0.5);
+        }
+
+        .region-card:nth-child(3) h2 {
+            color: var(--tertiary-accent);
+            text-shadow: 2px 2px 0 #000, 3px 3px 5px rgba(255, 204, 0, 0.5);
+        }
+
+        .region-card p {
+            color: var(--text-muted);
+            line-height: 1.6;
+            margin-bottom: 20px;
+            font-size: 1rem;
+        }
+
+        .region-card .features {
+            list-style: none;
+            text-align: left;
+            margin-bottom: 25px;
+            padding-left: 10px;
+        }
+
+        .region-card .features li {
+            color: var(--text-light);
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+            position: relative;
+            padding-left: 20px;
+            transition: transform 0.2s ease;
+        }
+
+        .region-card:hover .features li {
+            transform: translateX(5px);
+        }
+
+        .region-card .features li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: var(--success);
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        /* 按钮样式 */
+        .enter-btn {
+            background: var(--gradient-accent);
+            color: black;
+            border: none;
+            padding: 12px 28px;
+            border-radius: 30px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            font-family: 'Impact', 'Arial Black', sans-serif;
+            letter-spacing: 1px;
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+        }
+
+        .enter-btn:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, #00ff88 0%, #00d4ff 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: -1;
+        }
+
+        .enter-btn:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 10px 25px rgba(0, 212, 255, 0.4);
+        }
+
+        .enter-btn:hover:before {
+            opacity: 1;
+        }
+
+        .region-card:nth-child(2) .enter-btn {
+            background: var(--gradient-secondary);
+        }
+
+        .region-card:nth-child(2) .enter-btn:before {
+            background: linear-gradient(135deg, #ffcc00 0%, #ff6b35 100%);
+        }
+
+        .region-card:nth-child(2) .enter-btn:hover {
+            box-shadow: 0 10px 25px rgba(255, 107, 53, 0.4);
+        }
+
+        .region-card:nth-child(3) .enter-btn {
+            background: linear-gradient(135deg, #667eea 0%, #00d4ff 100%);
+        }
+
+        .region-card:nth-child(3) .enter-btn:before {
+            background: linear-gradient(135deg, #00d4ff 0%, #667eea 100%);
+        }
+
+        .region-card:nth-child(3) .enter-btn:hover {
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        /* 页脚样式 */
+        .footer {
+            /* 固定在视口底部，确保在短内容页面也可见 */
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 15px;
+            text-align: center;
+            color: var(--text-dim);
+            font-size: 0.9rem;
+            z-index: 30;
+            pointer-events: auto;
+            background: rgba(10,10,10,0.35);
+            padding: 6px 12px;
+            backdrop-filter: blur(6px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* 键盘提示（默认左侧竖向排列） */
+        .keyboard-hints {
+            position: absolute;
+            left: 25px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            gap: 12px;
+            flex-direction: column;
+            align-items: flex-start;
+            z-index: 10;
+        }
+
+        .key-hint {
+            background: rgba(26, 26, 26, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .key-hint:hover {
+            background: rgba(26, 26, 26, 0.95);
+            border-color: var(--primary-accent);
+            color: var(--text-light);
+        }
+
+        .key {
+            background: var(--surface-light);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 4px;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.75rem;
+            color: var(--text-light);
+        }
+
+        /* 动画 */
+        @keyframes glowPulse {
+            0%, 100% {
+                opacity: 0.8;
+                filter: blur(5px);
+            }
+            50% {
+                opacity: 1;
+                filter: blur(8px);
+            }
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        /* 背景装饰 */
+        .background-decoration {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: 0;
+            overflow: hidden;
+            /* 不拦截触摸事件，避免覆盖移动端滚动 */
+            pointer-events: none;
+        }
+
+        .decoration-circle {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(100px);
+            opacity: 0.1;
+        }
+
+        .decoration-circle:nth-child(1) {
+            width: 500px;
+            height: 500px;
+            background: var(--primary-accent);
+            top: -250px;
+            right: -150px;
+        }
+
+        .decoration-circle:nth-child(2) {
+            width: 600px;
+            height: 600px;
+            background: var(--secondary-accent);
+            bottom: -300px;
+            left: -200px;
+        }
+
+        .decoration-circle:nth-child(3) {
+            width: 400px;
+            height: 400px;
+            background: var(--tertiary-accent);
+            top: 30%;
+            left: -100px;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 3rem;
+            }
+            
+            .region-selector {
+                flex-direction: column;
+                gap: 25px;
+                padding: 20px;
+            }
+            
+            .region-card {
+                min-width: 280px;
+                padding: 25px;
+            }
+            
+            .region-card .icon {
+                font-size: 4rem;
+            }
+            
+            .region-card h2 {
+                font-size: 1.8rem;
+            }
+            
+            /* 在移动端隐藏键盘提示，避免占用屏幕空间 */
+            .keyboard-hints {
+                display: none;
+            }
+
+            /* 优化移动端卡片与按钮布局 */
+            body {
+                /* 取消垂直居中，允许从顶部开始滚动 */
+                justify-content: flex-start;
+                align-items: stretch;
+                /* 取消 100vh 限制，让内容高度随内容增长，避免视口高度导致的滚动问题 */
+                min-height: auto;
+            }
+
+            .region-selector {
+                padding: 12px;
+                gap: 20px;
+            }
+
+            .region-card {
+                min-width: auto;
+                width: calc(100% - 32px);
+                max-width: 720px;
+                padding: 18px;
+                margin: 0 auto;
+                border-radius: 16px;
+            }
+
+            .enter-btn {
+                width: 100%;
+                padding: 12px 16px;
+            }
+            /* 给页面底部足够空间，避免固定 footer 遮挡最后一部分内容 */
+            .region-selector {
+                padding-bottom: 120px;
+            }
+            /* 移动端：把卡片内的特性列表文字居中显示 */
+            .region-card .features {
+                text-align: center;
+                padding-left: 0;
+            }
+
+            .region-card .features li {
+                padding-left: 0;
+                display: inline-block;
+                margin: 6px 0;
+                text-align: center;
+                position: static;
+            }
+
+            .region-card .features li:before {
+                /* 把勾号改为正常内联显示 */
+                position: static;
+                display: inline-block;
+                margin-right: 8px;
+            }
+            
+            .footer {
+                /* 移动端不固定 footer，只有滑动到页面底部时才显示 */
+                position: static;
+                background: transparent;
+                padding: 12px 0 24px;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- GTA风格导航栏 -->
+    <div class="gta-nav">
+        <div class="nav-left">
+            <h1 class="gta-title">🏙️ GTA 百科</h1>
+            <div class="nav-links">
+                <a href="https://www.antwen.com" target="_blank">安稳</a>
+                <a href="https://share.antwen.com" target="_blank">在线文件</a>
+            </div>
+        </div>
+        <div class="nav-right">
+            <!-- PC端显示 -->
+            <div class="nav-buttons-desktop">
+                <a href="los-santos-map.html" class="nav-button">🏙️ 洛圣都</a>
+                <a href="cayo-perico-map.html" class="nav-button">🏝️ 佩里科岛</a>
+                <a href="vehicles.html" class="nav-button">🚗 车辆数据库</a>
+            </div>
+            <!-- 移动端显示 -->
+            <div class="nav-buttons-mobile">
+                <button class="menu-toggle" id="mobile-menu-toggle">
+                    <i class="fas fa-bars"></i> 更多
+                </button>
+                <div class="mobile-menu" id="mobile-menu">
+                    <a href="los-santos-map.html" class="nav-button">🏙️ 洛圣都</a>
+                    <a href="cayo-perico-map.html" class="nav-button">🏝️ 佩里科岛</a>
+                    <a href="vehicles.html" class="nav-button">🚗 车辆数据库</a>
+                    <a href="https://www.antwen.com" target="_blank" class="nav-link">🔗 安稳</a>
+                    <a href="https://share.antwen.com" target="_blank" class="nav-link">☁️ 在线文件</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- 背景装饰 -->
+    <div class="background-decoration">
+        <div class="decoration-circle"></div>
+        <div class="decoration-circle"></div>
+        <div class="decoration-circle"></div>
+    </div>
+
+    <!-- 页面标题 -->
+    <div class="header">
+        <h1 data-text="GTA地图by安稳Antwen">
+            <span class="gta-text">GTA百科</span>
+            <span class="by-text"> by </span>
+            <span class="author-text">安稳Antwen</span>
+        </h1>
+        <p>实用GTA工具</p>
+    </div>
+
+    <!-- 区域选择器 -->
+    <div class="region-selector">
+        <!-- 洛圣都卡片 -->
+        <div class="region-card" onclick="window.location.href='los-santos-map.html'">
+            <span class="icon">🏙️</span>
+            <h2>洛圣都</h2>
+            <p>探索繁华都市的每一个角落</p>
+            <ul class="features">
+                <li>超过20种物品类型</li>
+                <li>武器厢型车与街头毒贩</li>
+                <li>隐藏包裹和收集品</li>
+                <li>特技跳跃点和挑战</li>
+                <li>实时游戏时间和天气</li>
+            </ul>
+            <button class="enter-btn">进入洛圣都</button>
+        </div>
+
+        <!-- 佩里科岛卡片 -->
+        <div class="region-card" onclick="window.location.href='cayo-perico-map.html'">
+            <span class="icon">🏝️</span>
+            <h2>佩里科岛</h2>
+            <p>发现神秘热带岛屿的秘密</p>
+            <ul class="features">
+                <li>隐藏包裹和宝箱</li>
+                <li>信号干扰器位置</li>
+                <li>警卫制服获取点</li>
+                <li>补给卡车路线</li>
+                <li>抢劫准备物品</li>
+            </ul>
+            <button class="enter-btn">进入佩里科岛</button>
+        </div>
+
+        <!-- 车辆数据库卡片 -->
+        <div class="region-card" onclick="window.location.href='vehicles.html'">
+            <span class="icon">🚗</span>
+            <h2>车辆数据库</h2>
+            <p>浏览完整的GTA在线模式车辆</p>
+            <ul class="features">
+                <li>超过700辆车辆数据</li>
+                <li>详细属性与性能对比</li>
+                <li>按类别和价格筛选</li>
+                <li>收藏夹功能</li>
+                <li>高清车辆图片</li>
+            </ul>
+            <button class="enter-btn">浏览车辆</button>
+        </div>
+    </div>
+
+    <!-- 键盘快捷键提示 -->
+    <div class="keyboard-hints">
+        <div class="key-hint">
+            <span class="key">1</span>
+            <span>洛圣都</span>
+        </div>
+        <div class="key-hint">
+            <span class="key">2</span>
+            <span>佩里科岛</span>
+        </div>
+        <div class="key-hint">
+            <span class="key">3</span>
+            <span>车辆数据库</span>
+        </div>
+    </div>
+
+    <!-- 页脚 -->
+    <div class="footer">
+        <p>© 2025 安稳Antwen | GTA地图工具 | 非官方辅助工具</p>
+    </div>
+
+    <script>
+        // 添加键盘快捷键
+        document.addEventListener('keydown', function(e) {
+            if (e.key === '1') {
+                window.location.href = 'los-santos-map.html';
+            } else if (e.key === '2') {
+                window.location.href = 'cayo-perico-map.html';
+            } else if (e.key === '3') {
+                window.location.href = 'vehicles.html';
+            }
+        });
+
+        // 添加页面加载动画
+        document.addEventListener('DOMContentLoaded', function() {
+            const cards = document.querySelectorAll('.region-card');
+            cards.forEach((card, index) => {
+                setTimeout(() => {
+                    card.style.transition = 'all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, index * 200);
+            });
+        });
+        // 移动菜单切换
+        (function(){
+            const toggle = document.getElementById('mobile-menu-toggle');
+            const menu = document.getElementById('mobile-menu');
+            if (toggle && menu) {
+                toggle.addEventListener('click', () => {
+                    menu.classList.toggle('show');
+                });
+                
+                // 点击页面其他区域关闭菜单
+                document.addEventListener('click', (e) => {
+                    if (!toggle.contains(e.target) && !menu.contains(e.target)) {
+                        menu.classList.remove('show');
+                    }
+                });
+            }
+            
+            // 简单更新时间显示（示例）
+            const t = document.getElementById('game-time-weather');
+            if (t) {
+                const now = new Date();
+                t.textContent = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+            }
+        })();
+    </script>
+</body>
+</html>

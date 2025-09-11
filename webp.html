@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>图片转 WebP</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f0f2f5;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .container {
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 600px;
+            text-align: center;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 25px;
+            font-size: 2em;
+        }
+
+        p {
+            color: #666;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .upload-label {
+            display: inline-block;
+            padding: 12px 25px;
+            background-color: #007bff;
+            color: #fff;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s;
+            font-weight: bold;
+            font-size: 1rem;
+        }
+
+        .upload-label:hover {
+            background-color: #0056b3;
+            transform: translateY(-2px);
+        }
+
+        .quality-container {
+            margin-top: 25px;
+        }
+
+        .quality-container label {
+            font-size: 1rem;
+            color: #555;
+            margin-right: 10px;
+        }
+        
+        #quality {
+            width: 80px;
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            text-align: center;
+        }
+
+        #status {
+            margin-top: 25px;
+            font-size: 1.1em;
+            color: #444;
+            min-height: 25px;
+        }
+
+        #download-link {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 12px 25px;
+            background-color: #28a745;
+            color: #fff;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: background-color 0.3s, transform 0.2s;
+            display: none; /* Initially hidden */
+        }
+
+        #download-link:hover {
+            background-color: #218838;
+            transform: translateY(-2px);
+        }
+
+        .image-preview {
+            max-width: 100%;
+            max-height: 300px;
+            margin-top: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>图片转 WebP 转换器</h1>
+    <p>选择任意一张图片 (JPG, PNG等)，它将自动转换并下载为 WebP 格式。</p>
+    
+    <input type="file" id="imageInput" accept="image/*">
+    <label for="imageInput" class="upload-label">选择图片</label>
+
+    <div class="quality-container">
+        <label for="quality">WebP 质量 (1-100):</label>
+        <input type="number" id="quality" value="85" min="1" max="100">
+    </div>
+
+    <div id="status"></div>
+    <img id="preview" class="image-preview" style="display: none;">
+
+    <a id="download-link" href="#" download="converted.webp">下载 WebP 图片</a>
+</div>
+
+<script>
+    const imageInput = document.getElementById('imageInput');
+    const statusDiv = document.getElementById('status');
+    const downloadLink = document.getElementById('download-link');
+    const previewImage = document.getElementById('preview');
+    const qualityInput = document.getElementById('quality');
+
+    imageInput.addEventListener('change', function(event) {
+        const file = event.target.files[0];
+        if (!file) {
+            return;
+        }
+
+        statusDiv.textContent = '正在转换...';
+        downloadLink.style.display = 'none';
+        previewImage.style.display = 'none';
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const img = new Image();
+            img.onload = function() {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+
+                // Set canvas dimensions
+                canvas.width = img.width;
+                canvas.height = img.height;
+
+                // Draw the image on the canvas
+                ctx.drawImage(img, 0, 0);
+
+                // Get the quality value from the input field, default to 0.85 if invalid
+                const quality = parseFloat(qualityInput.value) / 100 || 0.85;
+
+                // Convert canvas content to WebP data URL
+                try {
+                    const webpDataUrl = canvas.toDataURL('image/webp', quality);
+                    
+                    // Display preview
+                    previewImage.src = webpDataUrl;
+                    previewImage.style.display = 'block';
+
+                    // Prepare download link
+                    downloadLink.href = webpDataUrl;
+                    const fileName = file.name.split('.').slice(0, -1).join('.');
+                    downloadLink.download = `${fileName}.webp`;
+                    downloadLink.style.display = 'inline-block';
+                    
+                    statusDiv.textContent = '转换完成！';
+
+                } catch (error) {
+                    statusDiv.textContent = '转换失败，请检查浏览器是否支持 WebP 格式。';
+                    console.error('WebP conversion failed:', error);
+                }
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    });
+
+    qualityInput.addEventListener('change', function() {
+        // Automatically re-convert when quality changes if an image is already selected
+        if (imageInput.files[0]) {
+            imageInput.dispatchEvent(new Event('change'));
+        }
+    });
+</script>
+
+</body>
+</html>

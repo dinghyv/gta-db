@@ -1,0 +1,4162 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>GTA佩里科岛地图 - 物品位置查找器</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* CSS变量系统 - 统一主题色彩 - 绿色主题 */
+        :root {
+            --primary-color: #2ecc71; /* 主色调：绿色 */
+            --primary-dark: #27ae60; /* 深绿色 */
+            --primary-light: #7dcea0; /* 浅绿色 */
+            --accent-color: #f1c40f; /* 强调色：金色 */
+            --accent-hover: #f39c12; /* 强调色悬停 */
+            --bg-dark: rgba(15, 25, 15, 0.9); /* 深色背景 */
+            --bg-darker: rgba(10, 20, 10, 0.95); /* 更深色背景 */
+            --border-color: #2c3e50; /* 边框颜色 */
+            --text-primary: #ffffff; /* 主要文字颜色 */
+            --text-secondary: #ecf0f1; /* 次要文字颜色 */
+            --error-color: #e74c3c; /* 错误颜色 */
+            --success-color: #2ecc71; /* 成功颜色 */
+            --button-bg: rgba(39, 174, 96, 0.8); /* 按钮背景 */
+            --button-hover: rgba(46, 204, 113, 0.9); /* 按钮悬停 */
+            --shadow: 0 4px 15px rgba(0, 0, 0, 0.7); /* 阴影 */
+            --transition: all 0.3s ease; /* 过渡效果 */
+            --panel-bg: rgba(20, 30, 20, 0.85); /* 面板背景 */
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body, html {
+            height: 100%;
+            overflow: hidden;
+            font-family: 'Arial', sans-serif;
+            background-color: #1a2a1a;
+            /* 禁止移动端缩放 */
+            touch-action: manipulation;
+            -ms-touch-action: manipulation;
+            -webkit-text-size-adjust: 100%;
+        }
+
+        #map-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            background-color: #1a2a1a;
+        }
+
+        /* 标题样式 - GTA风格 */
+        .gta-title {
+            font-family: 'Impact', sans-serif;
+            color: var(--accent-color);
+            font-size: 24px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+            margin: 0;
+            display: flex;
+            align-items: center;
+        }
+
+        .gta-title i {
+            margin-right: 8px;
+            color: var(--primary-color);
+        }
+
+        /* 物品弹窗样式优化 */
+        .secondary-target-popup,
+        .cp-bc-popup {
+            border-radius: 8px !important;
+            box-shadow: var(--shadow) !important;
+        }
+
+        /* 自定义滚动条 */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-dark);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary-color);
+            border-radius: 5px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-light);
+        }
+
+        #map {
+            width: 100%;
+            height: 100%;
+            background-color: #1a2a1a;
+        }
+
+        /* 导航栏样式 - GTA风格 */
+        .gta-nav {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: var(--bg-dark);
+            border-bottom: 2px solid var(--primary-color);
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+
+        .gta-nav .nav-left {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-grow: 1;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 15px;
+            margin-left: 20px;
+        }
+
+        .nav-links a {
+            color: var(--text-primary);
+            text-decoration: none;
+            font-size: 14px;
+            padding: 5px 10px;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+
+        .nav-links a:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .gta-nav .nav-right {
+            display: flex;
+            gap: 15px;
+        }
+
+        .nav-buttons-desktop {
+            display: flex;
+            gap: 15px;
+        }
+
+        /* 移动端样式 */
+        .nav-buttons-mobile {
+            display: none;
+        }
+
+        .menu-toggle {
+            background: none;
+            border: none;
+            color: var(--text-primary);
+            cursor: pointer;
+            padding: 8px 12px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .mobile-menu {
+            display: none;
+            position: absolute;
+            right: 10px;
+            top: 50px;
+            background-color: var(--bg-dark);
+            border-radius: 4px;
+            padding: 10px;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .mobile-menu.show {
+            display: flex;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-primary);
+            text-decoration: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+        }
+
+        .nav-link:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        @media (max-width: 768px) {
+            .nav-buttons-desktop {
+                display: none;
+            }
+            .nav-buttons-mobile {
+                display: block;
+            }
+            .nav-links {
+                display: none;
+            }
+        }
+
+        /* 导航按钮样式 */
+        .nav-button {
+            background: var(--button-bg);
+            color: var(--text-primary);
+            border: 1px solid var(--primary-dark);
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            transition: var(--transition);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+        }
+
+        .nav-button i {
+            margin-right: 5px;
+        }
+
+        .nav-button:hover {
+            background: var(--button-hover);
+            border-color: var(--accent-color);
+            color: var(--accent-color);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow);
+        }
+
+        /* 返回按钮样式 */
+        .back-button {
+            background: var(--error-color);
+            color: var(--text-primary);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            z-index: 1000;
+            transition: background 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+        }
+
+        .back-button i {
+            margin-right: 5px;
+        }
+
+        .back-button:hover {
+            background: #c0392b;
+            transform: translateY(-1px);
+            box-shadow: var(--shadow);
+        }
+
+        /* 左侧控制面板容器 */
+        .side-panel {
+            position: absolute;
+            top: 70px;
+            left: 15px;
+            background: var(--panel-bg);
+            border-radius: 8px;
+            border: 1px solid var(--primary-dark);
+            box-shadow: var(--shadow);
+            z-index: 1000;
+            width: 280px;
+            max-height: calc(100vh - 100px);
+            overflow-y: auto;
+            transition: var(--transition);
+            color: var(--text-primary);
+        }
+
+        .side-panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 15px;
+            border-bottom: 1px solid var(--primary-dark);
+            background: var(--primary-dark);
+            border-radius: 8px 8px 0 0;
+        }
+
+        .side-panel-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: var(--text-primary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .side-panel-toggle {
+            background: transparent;
+            border: none;
+            color: var(--text-primary);
+            cursor: pointer;
+            font-size: 16px;
+            transition: var(--transition);
+        }
+
+        .side-panel-toggle:hover {
+            color: var(--accent-color);
+            transform: scale(1.1);
+        }
+
+        .side-panel-content {
+            padding: 15px;
+        }
+
+        .side-panel-section {
+            margin-bottom: 20px;
+        }
+
+        .side-panel-section-title {
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: var(--accent-color);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* 地图样式选择器 */
+        .map-style-selector {
+            margin-bottom: 15px;
+        }
+
+        .map-style-selector select {
+            width: 100%;
+            background: var(--bg-darker);
+            color: var(--text-primary);
+            border: 1px solid var(--primary-dark);
+            padding: 8px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .map-style-selector select:hover {
+            border-color: var(--primary-color);
+        }
+
+        /* 物品选择器样式 */
+        .item-selector-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .item-checkbox-wrapper {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            width: 100%;
+        }
+
+        .item-checkbox {
+            display: none;
+        }
+
+        .item-checkbox + label {
+            display: flex;
+            align-items: center;
+            padding: 6px 10px;
+            background: var(--bg-darker);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: var(--transition);
+            width: 100%;
+        }
+
+        .item-checkbox + label:before {
+            content: "\f0c8";
+            font-family: "Font Awesome 6 Free";
+            margin-right: 8px;
+            color: var(--text-secondary);
+            transition: var(--transition);
+        }
+
+        .item-checkbox:checked + label {
+            background: var(--primary-dark);
+            border-color: var(--primary-color);
+        }
+
+        .item-checkbox:checked + label:before {
+            content: "\f14a";
+            color: var(--accent-color);
+        }
+
+        .item-checkbox + label:hover {
+            border-color: var(--primary-color);
+            background: rgba(39, 174, 96, 0.3);
+        }
+
+        .item-icon {
+            width: 16px;
+            height: 16px;
+            margin-right: 8px;
+        }
+
+        /* 底部缩放控制 */
+        .zoom-controls {
+            position: absolute;
+            bottom: 30px;
+            right: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            background: var(--panel-bg);
+            padding: 8px;
+            border-radius: 20px;
+            border: 1px solid var(--primary-dark);
+            box-shadow: var(--shadow);
+            z-index: 1000;
+        }
+
+        .zoom-button {
+            background: var(--button-bg);
+            color: var(--text-primary);
+            border: none;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 14px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .zoom-button:hover {
+            background: var(--button-hover);
+            transform: scale(1.1);
+        }
+
+        .zoom-level {
+            display: none;
+        }
+
+        /* 折叠状态的侧边栏 */
+        .side-panel.collapsed {
+            width: 50px;
+            overflow: hidden;
+        }
+
+        .side-panel.collapsed .side-panel-content {
+            display: none;
+        }
+
+        .side-panel.collapsed .side-panel-header {
+            padding: 12px;
+            justify-content: center;
+        }
+
+        .side-panel.collapsed .side-panel-title {
+            display: none;
+        }
+
+        /* 自定义Leaflet控件样式 */
+        .leaflet-control-zoom {
+            display: none; /* 隐藏默认缩放控件 */
+        
+            background: var(--button-hover);
+            border-color: var(--accent-color);
+        }
+
+        /* 导航按钮样式 */
+        .nav-button {
+            background: var(--button-bg);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            transition: var(--transition);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .nav-button:hover {
+            background: var(--button-hover);
+            border-color: var(--accent-color);
+            color: var(--accent-color);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow);
+        }
+
+        /* 返回按钮样式 */
+        /* 返回按钮样式 */
+        .back-button {
+            background: var(--error-color);
+            color: var(--text-primary);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            z-index: 1000;
+            transition: background 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .back-button:hover {
+            background: #c0392b;
+            transform: translateY(-1px);
+            box-shadow: var(--shadow);
+        }
+
+        /* 页面标题 */
+        .page-title {
+            position: absolute;
+            top: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(20, 20, 20, 0.85);
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: 1px solid #444;
+            z-index: 1000;
+            color: #ffcc00;
+            font-size: 20px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        /* 次要目标标记样式 */
+        .secondary-target-marker {
+            position: absolute;
+            transform: translate(-50%, -50%);
+            z-index: 680;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .secondary-target-marker:hover {
+            transform: translate(-50%, -50%) scale(1.2);
+            z-index: 690;
+        }
+
+        .secondary-target-marker img {
+            width: 32px;
+            height: 32px;
+            filter: drop-shadow(0 2px 8px rgba(0,0,0,0.6));
+            transition: all 0.3s ease;
+        }
+
+        .secondary-target-marker:hover img {
+            filter: drop-shadow(0 4px 12px rgba(0,0,0,0.8)) brightness(1.2);
+        }
+    </style>
+</head>
+<body>
+    <div id="map-container">
+        <!-- GTA风格导航栏 -->
+        <div class="gta-nav">
+            <div class="nav-left">
+                <h1 class="gta-title"><i class="fas fa-umbrella-beach"></i> 佩里科岛地图</h1>
+                <div class="nav-links">
+                    <a href="https://www.antwen.com" target="_blank">安稳</a>
+                    <a href="https://share.antwen.com" target="_blank">在线文件</a>
+                </div>
+            </div>
+            <div class="nav-right">
+                <!-- PC端显示 -->
+                <div class="nav-buttons-desktop">
+                    <button class="nav-button" type="button" onclick="window.location.href='index.html'">
+                        <i class="fas fa-home"></i> 首页
+                    </button>
+                    <button class="nav-button" type="button" onclick="window.location.href='vehicles.html'">
+                        <i class="fas fa-car"></i> 车辆
+                    </button>
+                    <button class="back-button" type="button" onclick="window.location.href='los-santos-map.html'">
+                        <i class="fas fa-city"></i> 返回洛圣都
+                    </button>
+                </div>
+                <!-- 移动端显示 -->
+                <div class="nav-buttons-mobile">
+                    <button class="menu-toggle" id="mobile-menu-toggle">
+                        <i class="fas fa-bars"></i> 更多
+                    </button>
+                    <div class="mobile-menu" id="mobile-menu">
+                        <button class="nav-button" type="button" onclick="window.location.href='index.html'">
+                            <i class="fas fa-home"></i> 首页
+                        </button>
+                        <button class="nav-button" type="button" onclick="window.location.href='vehicles.html'">
+                            <i class="fas fa-car"></i> 车辆
+                        </button>
+                        <button class="back-button" type="button" onclick="window.location.href='los-santos-map.html'">
+                            <i class="fas fa-city"></i> 返回洛圣都
+                        </button>
+                        <a href="https://www.antwen.com" target="_blank" class="nav-link">
+                            <i class="fas fa-link"></i> 安稳
+                        </a>
+                        <a href="https://share.antwen.com" target="_blank" class="nav-link">
+                            <i class="fas fa-cloud"></i> 在线文件
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 左侧控制面板 -->
+        <div class="side-panel" id="side-panel">
+            <div class="side-panel-header">
+                <div class="side-panel-title">地图控制</div>
+                <button class="side-panel-toggle" id="panel-toggle">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+            </div>
+            <div class="side-panel-content">
+                <!-- 地图样式选择 -->
+                <div class="side-panel-section">
+                    <div class="side-panel-section-title">地图样式</div>
+                    <div class="map-style-selector">
+                        <select id="map-style-select">
+                            <option value="game">游戏内地图</option>
+                            <option value="render">渲染地图</option>
+                            <option value="print">印刷地图</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- 物品选择器 -->
+                <div class="side-panel-section">
+                    <div class="side-panel-section-title">每日收藏品</div>
+                    <div class="item-selector-container">
+                        <div class="item-checkbox-wrapper">
+                            <input type="checkbox" id="item-buried-stashes" class="item-checkbox" data-item-type="buried_stashes">
+                            <label for="item-buried-stashes">
+                                <img src="./src/assets/cp_bs.svg" class="item-icon" alt="地下藏匿品">
+                                地下藏匿品
+                            </label>
+                        </div>
+                        <div class="item-checkbox-wrapper">
+                            <input type="checkbox" id="item-treasure-chests" class="item-checkbox" data-item-type="treasure_chests">
+                            <label for="item-treasure-chests">
+                                <img src="./src/assets/cp_tc.svg" class="item-icon" alt="藏宝箱">
+                                藏宝箱
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="side-panel-section">
+                    <div class="side-panel-section-title">抢劫任务</div>
+                    <div class="item-selector-container">
+                        <div class="item-checkbox-wrapper">
+                            <input type="checkbox" id="item-secondary-targets" class="item-checkbox" data-item-type="cp_secondary_targets">
+                            <label for="item-secondary-targets">
+                                <img src="./src/assets/cp_st.svg" class="item-icon" alt="次要目标">
+                                次要目标
+                            </label>
+                        </div>
+                        <div class="item-checkbox-wrapper">
+                            <input type="checkbox" id="item-cp-com" class="item-checkbox" data-item-type="cp_com">
+                            <label for="item-cp-com">
+                                <img src="./src/assets/cp_com.svg" class="item-icon" alt="豪宅入侵点">
+                                豪宅入侵点
+                            </label>
+                        </div>
+                        <div class="item-checkbox-wrapper">
+                            <input type="checkbox" id="item-cp-ps" class="item-checkbox" data-item-type="cp_ps">
+                            <label for="item-cp-ps">
+                                <img src="./src/assets/cp_ps.svg" class="item-icon" alt="发电站">
+                                发电站
+                            </label>
+                        </div>
+                        <div class="item-checkbox-wrapper">
+                            <input type="checkbox" id="item-cp-ct" class="item-checkbox" data-item-type="cp_ct">
+                            <label for="item-cp-ct">
+                                <img src="./src/assets/cp_ct.svg" class="item-icon" alt="控制塔">
+                                控制塔
+                            </label>
+                        </div>
+                        <div class="item-checkbox-wrapper">
+                            <input type="checkbox" id="item-cp-bc" class="item-checkbox" data-item-type="cp_bc">
+                            <label for="item-cp-bc">
+                                <img src="./src/assets/cp_bc.svg" class="item-icon" alt="螺栓切割器">
+                                螺栓切割器
+                            </label>
+                        </div>
+                        <div class="item-checkbox-wrapper">
+                            <input type="checkbox" id="item-cp-ge" class="item-checkbox" data-item-type="cp_ge">
+                            <label for="item-cp-ge">
+                                <img src="./src/assets/cp_ge.svg" class="item-icon" alt="抓钩设备">
+                                抓钩设备
+                            </label>
+                        </div>
+                        <div class="item-checkbox-wrapper">
+                            <input type="checkbox" id="item-cp-gc" class="item-checkbox" data-item-type="cp_gc">
+                            <label for="item-cp-gc">
+                                <img src="./src/assets/cp_gc.svg" class="item-icon" alt="保安制服">
+                                保安制服
+                            </label>
+                        </div>
+                        <div class="item-checkbox-wrapper">
+                            <input type="checkbox" id="item-cp-st2" class="item-checkbox" data-item-type="cp_st2">
+                            <label for="item-cp-st2">
+                                <img src="./src/assets/cp_st2.svg" class="item-icon" alt="运货卡车">
+                                运货卡车
+                            </label>
+                        </div>
+                        <div class="item-checkbox-wrapper">
+                            <input type="checkbox" id="item-cp-cp" class="item-checkbox" data-item-type="cp_cp">
+                            <label for="item-cp-cp">
+                                <img src="./src/assets/cp_cp.svg" class="item-icon" alt="混合粉">
+                                混合粉
+                            </label>
+                        </div>
+                        <div class="item-checkbox-wrapper">
+                            <input type="checkbox" id="item-cp-wt" class="item-checkbox" data-item-type="cp_wt">
+                            <label for="item-cp-wt">
+                                <img src="./src/assets/cp_wt.svg" class="item-icon" alt="水塔">
+                                水塔
+                            </label>
+                        </div>
+                        <div class="item-checkbox-wrapper">
+                            <input type="checkbox" id="item-cp-inf" class="item-checkbox" data-item-type="cp_inf">
+                            <label for="item-cp-inf">
+                                <img src="./src/assets/cp_inf.svg" class="item-icon" alt="入侵点">
+                                入侵点
+                            </label>
+                        </div>
+                        <div class="item-checkbox-wrapper">
+                            <input type="checkbox" id="item-cp-esc" class="item-checkbox" data-item-type="cp_esc">
+                            <label for="item-cp-esc">
+                                <img src="./src/assets/cp_esc.svg" class="item-icon" alt="逃离点">
+                                逃离点
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="side-panel-section">
+                    <button id="reset-checkboxes" class="nav-button" style="width: 100%; margin-top: 10px;">
+                        <i class="fas fa-undo"></i> 重置选择
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 底部缩放控制 -->
+        <div class="zoom-controls">
+            <button class="zoom-button" id="zoom-in">
+                <i class="fas fa-plus"></i>
+            </button>
+            <button class="zoom-button" id="zoom-out">
+                <i class="fas fa-minus"></i>
+            </button>
+        </div>
+
+        <div id="map"></div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        // 侧边栏折叠/展开功能
+        const panelToggle = document.getElementById('panel-toggle');
+        const sidePanel = document.getElementById('side-panel');
+        
+        panelToggle.addEventListener('click', () => {
+            sidePanel.classList.toggle('collapsed');
+            const icon = panelToggle.querySelector('i');
+            if (sidePanel.classList.contains('collapsed')) {
+                icon.classList.remove('fa-chevron-left');
+                icon.classList.add('fa-chevron-right');
+            } else {
+                icon.classList.remove('fa-chevron-right');
+                icon.classList.add('fa-chevron-left');
+            }
+        });
+
+        // 缩放控制功能
+        const zoomInBtn = document.getElementById('zoom-in');
+        const zoomOutBtn = document.getElementById('zoom-out');
+        
+        zoomInBtn.addEventListener('click', () => {
+            map.zoomIn();
+        });
+        
+        zoomOutBtn.addEventListener('click', () => {
+            map.zoomOut();
+        });
+        
+        function updateZoomLevel() {
+            // 不再需要更新zoom-level显示
+        }
+
+        // 物品选择器功能
+        const itemCheckboxes = document.querySelectorAll('.item-checkbox');
+        const activeItemTypes = new Set();
+        
+        itemCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', (e) => {
+                const itemType = e.target.dataset.itemType;
+                if (e.target.checked) {
+                    activeItemTypes.add(itemType);
+                } else {
+                    activeItemTypes.delete(itemType);
+                }
+                updateMarkers();
+            });
+        });
+
+        // 重置按钮功能
+        const resetButton = document.getElementById('reset-checkboxes');
+        if (resetButton) {
+            resetButton.addEventListener('click', () => {
+                // 取消所有复选框的选中状态
+                itemCheckboxes.forEach(checkbox => {
+                    checkbox.checked = false;
+                });
+                
+                // 清空活动物品类型集合
+                activeItemTypes.clear();
+                
+                // 更新标记显示
+                updateMarkers();
+            });
+        }
+
+        // 更新标记显示
+        function updateMarkers() {
+            // 清除所有现有标记
+            clearAllMarkers();
+            
+            // 根据选中的物品类型创建新标记
+            activeItemTypes.forEach(itemType => {
+                switch(itemType) {
+                    case 'cp_secondary_targets':
+                        fetchSecondaryTargets().then(createSecondaryTargetMarkers);
+                        break;
+                    case 'buried_stashes':
+                        fetchBuriedStashes().then(createBuriedStashMarkers);
+                        break;
+                    case 'treasure_chests':
+                        fetchTreasureChests().then(createTreasureChestMarkers);
+                        break;
+                    case 'cp_com':
+                        fetchCPComData().then(createCPComMarkers);
+                        break;
+                    case 'cp_ps':
+                        fetchCPPSData().then(createCPPSMarkers);
+                        break;
+                    case 'cp_ct':
+                        fetchCPCTData().then(createCPCTMarkers);
+                        break;
+                    case 'cp_bc':
+                        fetchCPBCData().then(createCPBCMarkers);
+                        break;
+                    case 'cp_ge':
+                        fetchCPGEData().then(createCPGEMarkers);
+                        break;
+                    case 'cp_gc':
+                        fetchCPGCData().then(createCPGCMarkers);
+                        break;
+                    case 'cp_st2':
+                        fetchCPST2Data().then(createCPST2Markers);
+                        break;
+                    case 'cp_cp':
+                        fetchCPCPData().then(createCPCPMarkers);
+                        break;
+                    case 'cp_wt':
+                        fetchCPWTData().then(createCPWTMarkers);
+                        break;
+                    case 'cp_inf':
+                        fetchCPINFData().then(createCPINFMarkers);
+                        break;
+                    case 'cp_esc':
+                        fetchCPESCData().then(createCPESCMarkers);
+                        break;
+                }
+            });
+        }
+
+        // 清除所有标记的函数
+        function clearAllMarkers() {
+            // 这里需要添加清除所有类型标记的代码
+            // 例如：
+            clearSecondaryTargetMarkers();
+            clearBuriedStashMarkers();
+            clearTreasureChestMarkers();
+            clearCPComMarkers();
+            clearCPPSMarkers();
+            clearCPCTMarkers();
+            clearCPBCMarkers();
+            clearCPGEMarkers();
+            clearCPGCMarkers();
+            clearCPST2Markers();
+            clearCPCPMarkers();
+            clearCPWTMarkers();
+            clearCPINFMarkers();
+            clearCPESCMarkers();
+        }
+
+        // 仅实现地图加载与交互（不处理坐标）
+        const TILE_SIZE = 256;
+
+        // 游戏坐标边界（来自用户）
+        const leftCP = 3700;
+        const rightCP = 5748;
+        const topCP = -4150;
+        const bottomCP = -6198;
+
+        // 兼容别名
+        const GAME_LEFT = leftCP, GAME_RIGHT = rightCP, GAME_TOP = topCP, GAME_BOTTOM = bottomCP;
+        // 使用你指定的 tiles-per-side: 5,10,20,40（对应缩放3..6）
+        const zoomLevels = [
+            { zoom: 3, tilesPerSide: 5 },
+            { zoom: 4, tilesPerSide: 10 },
+            { zoom: 5, tilesPerSide: 20 },
+            { zoom: 6, tilesPerSide: 40 }
+        ];
+
+        function getLevelByZoom(z) { return zoomLevels.find(l => l.zoom === z) || null; }
+        function totalSizeForZoom(z) { const l = getLevelByZoom(z); if (!l) return {width:0,height:0}; return {width: l.tilesPerSide * TILE_SIZE, height: l.tilesPerSide * TILE_SIZE}; }
+
+        // 像素 <-> 游戏坐标 映射（全图像素坐标系）
+        function pixelToGame(px, py, z) {
+            const level = getLevelByZoom(z);
+            if (!level) return { x: 0, y: 0 };
+            
+            // 特殊处理缩放等级2
+            if (z === 2) {
+                // 使用缩放等级3的比例进行计算，但考虑到瓦片数量的差异
+                const level3 = getLevelByZoom(3);
+                if (!level3) return { x: 0, y: 0 };
+                
+                // 计算缩放等级2和3之间的比例
+                const ratio = level.tilesPerSide / level3.tilesPerSide;
+                
+                // 调整像素坐标以匹配缩放等级3的比例
+                const adjustedPx = px / ratio;
+                const adjustedPy = py / ratio;
+                
+                // 使用缩放等级3的计算方法
+                const totalWidth = level3.tilesPerSide * TILE_SIZE;
+                const totalHeight = level3.tilesPerSide * TILE_SIZE;
+                const percentX = adjustedPx / totalWidth;
+                const percentY = adjustedPy / totalHeight;
+                const gameWidth = GAME_RIGHT - GAME_LEFT;
+                const gameHeight = GAME_TOP - GAME_BOTTOM;
+                
+                return {
+                    x: GAME_LEFT + percentX * gameWidth,
+                    y: GAME_TOP - percentY * gameHeight
+                };
+            } else {
+                // 正常计算其他缩放等级
+                const totalWidth = level.tilesPerSide * TILE_SIZE;
+                const totalHeight = level.tilesPerSide * TILE_SIZE;
+                const percentX = px / totalWidth;
+                const percentY = py / totalHeight;
+                const gameWidth = GAME_RIGHT - GAME_LEFT;
+                const gameHeight = GAME_TOP - GAME_BOTTOM;
+                
+                return {
+                    x: GAME_LEFT + percentX * gameWidth,
+                    y: GAME_TOP - percentY * gameHeight
+                };
+            }
+        }
+
+        function gameToPixel(gx, gy, z) {
+            const level = getLevelByZoom(z);
+            if (!level) return { x: 0, y: 0 };
+            
+            // 特殊处理缩放等级2
+            if (z === 2) {
+                // 使用缩放等级3的比例进行计算，但考虑到瓦片数量的差异
+                const level3 = getLevelByZoom(3);
+                if (!level3) return { x: 0, y: 0 };
+                
+                // 计算缩放等级2和3之间的比例
+                const ratio = level.tilesPerSide / level3.tilesPerSide;
+                
+                // 使用缩放等级3的计算方法
+                const totalWidth = level3.tilesPerSide * TILE_SIZE;
+                const totalHeight = level3.tilesPerSide * TILE_SIZE;
+                const gameWidth = GAME_RIGHT - GAME_LEFT;
+                const gameHeight = GAME_TOP - GAME_BOTTOM;
+                const percentX = (gx - GAME_LEFT) / gameWidth;
+                const percentY = (GAME_TOP - gy) / gameHeight;
+                
+                // 调整像素坐标以匹配缩放等级2
+                return { 
+                    x: percentX * totalWidth * ratio, 
+                    y: percentY * totalHeight * ratio 
+                };
+            } else {
+                // 正常计算其他缩放等级
+                const totalWidth = level.tilesPerSide * TILE_SIZE;
+                const totalHeight = level.tilesPerSide * TILE_SIZE;
+                const gameWidth = GAME_RIGHT - GAME_LEFT;
+                const gameHeight = GAME_TOP - GAME_BOTTOM;
+                const percentX = (gx - GAME_LEFT) / gameWidth;
+                const percentY = (GAME_TOP - gy) / gameHeight;
+                
+                return { 
+                    x: percentX * totalWidth, 
+                    y: percentY * totalHeight 
+                };
+            }
+        }
+
+        const initialZoom = zoomLevels[0].zoom;
+        const map = L.map('map', { 
+            crs: L.CRS.Simple, 
+            minZoom: initialZoom, 
+            maxZoom: zoomLevels[zoomLevels.length-1].zoom, 
+            zoomControl: true, 
+            attributionControl: false 
+        });
+
+        // 计算初始中心并设置视图
+        function setInitialView(z) {
+            const size = totalSizeForZoom(z);
+            const centerPoint = L.point(size.width/2, size.height/2);
+            map.setView(map.unproject(centerPoint, z), z);
+        }
+
+        setInitialView(initialZoom);
+
+        // 获取瓦片URL
+        function getTileUrl(style, zoom, x, y) {
+            const baseUrl = 'https://gta-maps.antwen.com/maps/island_map';
+            return `${baseUrl}/island_map_${style}/${zoom}/${x}_${y}.jpg`;
+        }
+
+        // 添加瓦片层（使用项目瓦片服务）
+        const styleSelect = document.getElementById('map-style-select');
+        let currentStyle = 'game';
+
+        // 创建瓦片层
+        const CustomTileLayer = L.TileLayer.extend({
+            getTileUrl: function(coords) {
+                return getTileUrl(currentStyle, coords.z, coords.x, coords.y);
+            }
+        });
+
+        // 根据当前样式获取错误瓦片的纯色背景
+        function getErrorTileUrl(style) {
+            // 不同地图样式对应的RGB颜色值
+            const colors = {
+                'game': 'rgb(56, 73, 80)',
+                'render': 'rgb(13, 43, 79)',
+                'print': 'rgb(78, 177, 208)'
+            };
+            
+            // 获取当前样式对应的颜色，如果没有则使用默认颜色
+            const color = colors[style] || '#1a1a1a';
+            
+            // 返回纯色背景的SVG数据URL
+            return 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(
+                '<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256">' +
+                '<rect width="100%" height="100%" fill="' + color + '"/>' +
+                '</svg>'
+            );
+        }
+
+        const tileLayer = new CustomTileLayer('', {
+            tileSize: TILE_SIZE,
+            minZoom: zoomLevels[0].zoom,
+            maxZoom: zoomLevels[zoomLevels.length - 1].zoom,
+            noWrap: true,
+            subdomains: [],
+            errorTileUrl: getErrorTileUrl(currentStyle)
+        });
+
+        tileLayer.addTo(map);
+
+        // 样式选择事件
+        styleSelect.addEventListener('change', (e) => {
+            currentStyle = e.target.value;
+            // 更新错误瓦片URL以匹配新样式
+            tileLayer.options.errorTileUrl = getErrorTileUrl(currentStyle);
+            tileLayer.redraw();
+        });
+
+        // 次要目标数据
+        let cpSecondaryTargets = [];
+
+        // 次要目标标记数组
+        let secondaryTargetMarkers = [];
+
+        // 次要目标图标
+        const secondaryTargetIcon = './src/assets/cp_st.svg';
+
+        // 获取次要目标数据
+        async function fetchSecondaryTargets() {
+            try {
+                const response = await fetch('./zones.json');
+                const result = await response.json();
+                
+                if (result && result.cp_secondary_targets && Array.isArray(result.cp_secondary_targets)) {
+                    cpSecondaryTargets = result.cp_secondary_targets;
+                    console.log('次要目标数据获取成功:', cpSecondaryTargets);
+                } else {
+                    console.error('zones.json返回数据格式异常');
+                    cpSecondaryTargets = [];
+                }
+            } catch (error) {
+                console.error('获取次要目标数据失败:', error);
+                cpSecondaryTargets = [];
+            }
+        }
+        
+        // 豪宅入侵点数据
+        let cpComData = [];
+
+        // 豪宅入侵点标记数组
+        let cpComMarkers = [];
+
+        // 豪宅入侵点图标
+        const cpComIcon = './src/assets/cp_com.svg';
+
+        // 获取豪宅入侵点数据
+        async function fetchCPComData() {
+            try {
+                const response = await fetch('./zones.json');
+                const result = await response.json();
+                
+                if (result && result.cp_com) {
+                    // 合并所有子数组的坐标点
+                    cpComData = [];
+                    if (result.cp_com.main && Array.isArray(result.cp_com.main)) {
+                        result.cp_com.main.forEach(point => {
+                            cpComData.push({...point, type: 'main'});
+                        });
+                    }
+                    if (result.cp_com.side && Array.isArray(result.cp_com.side)) {
+                        result.cp_com.side.forEach(point => {
+                            cpComData.push({...point, type: 'side'});
+                        });
+                    }
+                    if (result.cp_com.wall && Array.isArray(result.cp_com.wall)) {
+                        result.cp_com.wall.forEach(point => {
+                            cpComData.push({...point, type: 'wall'});
+                        });
+                    }
+                    if (result.cp_com.tunnel && Array.isArray(result.cp_com.tunnel)) {
+                        result.cp_com.tunnel.forEach(point => {
+                            cpComData.push({...point, type: 'tunnel'});
+                        });
+                    }
+                    console.log('豪宅入侵点数据获取成功:', cpComData);
+                } else {
+                    console.error('zones.json中未找到cp_com数据');
+                    cpComData = [];
+                }
+            } catch (error) {
+                console.error('获取豪宅入侵点数据失败:', error);
+                cpComData = [];
+            }
+        }
+        
+        // 发电站数据
+        let cpPSData = [];
+
+        // 发电站标记数组
+        let cpPSMarkers = [];
+
+        // 发电站图标
+        const cpPSIcon = './src/assets/cp_ps.svg';
+
+        // 获取发电站数据
+        async function fetchCPPSData() {
+            try {
+                const response = await fetch('./zones.json');
+                const result = await response.json();
+                
+                if (result && result.cp_ps && Array.isArray(result.cp_ps)) {
+                    cpPSData = result.cp_ps;
+                    console.log('发电站数据获取成功:', cpPSData);
+                } else {
+                    console.error('zones.json中未找到cp_ps数据或格式异常');
+                    cpPSData = [];
+                }
+            } catch (error) {
+                console.error('获取发电站数据失败:', error);
+                cpPSData = [];
+            }
+        }
+        
+        // 控制塔数据
+        let cpCTData = [];
+
+        // 控制塔标记数组
+        let cpCTMarkers = [];
+
+        // 控制塔图标
+        const cpCTIcon = './src/assets/cp_ct.svg';
+
+        // 获取控制塔数据
+        async function fetchCPCTData() {
+            try {
+                const response = await fetch('./zones.json');
+                const result = await response.json();
+                
+                if (result && result.cp_ct && Array.isArray(result.cp_ct)) {
+                    cpCTData = result.cp_ct;
+                    console.log('控制塔数据获取成功:', cpCTData);
+                } else {
+                    console.error('zones.json中未找到cp_ct数据或格式异常');
+                    cpCTData = [];
+                }
+            } catch (error) {
+                console.error('获取控制塔数据失败:', error);
+                cpCTData = [];
+            }
+        }
+
+        // 螺栓切割器数据
+        let cpBCData = [];
+
+        // 螺栓切割器标记数组
+        let cpBCMarkers = [];
+
+        // 螺栓切割器图标
+        const cpBCIcon = './src/assets/cp_bc.svg';
+
+        // 获取螺栓切割器数据
+        async function fetchCPBCData() {
+            try {
+                const response = await fetch('./zones.json');
+                const result = await response.json();
+                
+                if (result && result.cp_bc && Array.isArray(result.cp_bc)) {
+                    cpBCData = result.cp_bc;
+                    console.log('螺栓切割器数据获取成功:', cpBCData);
+                } else {
+                    console.error('zones.json中未找到cp_bc数据或格式异常');
+                    cpBCData = [];
+                }
+            } catch (error) {
+                console.error('获取螺栓切割器数据失败:', error);
+                cpBCData = [];
+            }
+        }
+
+        // 抓钩设备数据
+        let cpGEData = [];
+
+        // 抓钩设备标记数组
+        let cpGEMarkers = [];
+
+        // 抓钩设备图标
+        const cpGEIcon = './src/assets/cp_ge.svg';
+
+        // 获取抓钩设备数据
+        async function fetchCPGEData() {
+            try {
+                const response = await fetch('./zones.json');
+                const result = await response.json();
+                
+                if (result && result.cp_ge && Array.isArray(result.cp_ge)) {
+                    cpGEData = result.cp_ge;
+                    console.log('抓钩设备数据获取成功:', cpGEData);
+                } else {
+                    console.error('zones.json中未找到cp_ge数据或格式异常');
+                    cpGEData = [];
+                }
+            } catch (error) {
+                console.error('获取抓钩设备数据失败:', error);
+                cpGEData = [];
+            }
+        }
+
+        // 水塔数据
+        let cpWTData = [];
+
+        // 水塔标记数组
+        let cpWTMarkers = [];
+
+        // 水塔图标
+        const cpWTIcon = './src/assets/cp_wt.svg';
+
+        // 获取水塔数据
+        async function fetchCPWTData() {
+            try {
+                const response = await fetch('./zones.json');
+                const result = await response.json();
+                
+                if (result && result.cp_wt && Array.isArray(result.cp_wt)) {
+                    cpWTData = result.cp_wt;
+                    console.log('水塔数据获取成功:', cpWTData);
+                } else {
+                    console.error('zones.json中未找到cp_wt数据或格式异常');
+                    cpWTData = [];
+                }
+            } catch (error) {
+                console.error('获取水塔数据失败:', error);
+                cpWTData = [];
+            }
+        }
+
+        // 入侵点数据
+        let cpINFData = [];
+
+        // 入侵点标记数组
+        let cpINFMarkers = [];
+
+        // 入侵点图标
+        const cpINFIcon = './src/assets/cp_inf.svg';
+
+        // 获取入侵点数据
+        async function fetchCPINFData() {
+            try {
+                const response = await fetch('./zones.json');
+                const result = await response.json();
+                
+                if (result && result.cp_inf && Array.isArray(result.cp_inf)) {
+                    cpINFData = result.cp_inf;
+                    console.log('入侵点数据获取成功:', cpINFData);
+                } else {
+                    console.error('zones.json中未找到cp_inf数据或格式异常');
+                    cpINFData = [];
+                }
+            } catch (error) {
+                console.error('获取入侵点数据失败:', error);
+                cpINFData = [];
+            }
+        }
+
+        // 逃离点数据
+        let cpESCData = [];
+
+        // 逃离点标记数组
+        let cpESCMarkers = [];
+
+        // 逃离点图标
+        const cpESCIcon = './src/assets/cp_inf.svg';
+
+        // 获取逃离点数据
+        async function fetchCPESCData() {
+            try {
+                const response = await fetch('./zones.json');
+                const result = await response.json();
+                
+                if (result && result.cp_esc && Array.isArray(result.cp_esc)) {
+                    cpESCData = result.cp_esc;
+                    console.log('逃离点数据获取成功:', cpESCData);
+                } else {
+                    console.error('zones.json中未找到cp_esc数据或格式异常');
+                    cpESCData = [];
+                }
+            } catch (error) {
+                console.error('获取逃离点数据失败:', error);
+                cpESCData = [];
+            }
+        }
+
+        // 混合粉数据
+        let cpCPData = [];
+
+        // 混合粉标记数组
+        let cpCPMarkers = [];
+
+        // 混合粉图标
+        const cpCPIcon = './src/assets/cp_cp.svg';
+
+        // 获取混合粉数据
+        async function fetchCPCPData() {
+            try {
+                const response = await fetch('./zones.json');
+                const result = await response.json();
+                
+                if (result && result.cp_cp && Array.isArray(result.cp_cp)) {
+                    cpCPData = result.cp_cp;
+                    console.log('混合粉数据获取成功:', cpCPData);
+                } else {
+                    console.error('zones.json中未找到cp_cp数据或格式异常');
+                    cpCPData = [];
+                }
+            } catch (error) {
+                console.error('获取混合粉数据失败:', error);
+                cpCPData = [];
+            }
+        }
+
+        // 运货卡车数据
+        let cpST2Data = [];
+
+        // 运货卡车标记数组
+        let cpST2Markers = [];
+
+        // 运货卡车图标
+        const cpST2Icon = './src/assets/cp_st2.svg';
+
+        // 获取运货卡车数据
+        async function fetchCPST2Data() {
+            try {
+                const response = await fetch('./zones.json');
+                const result = await response.json();
+                
+                if (result && result.cp_st2 && Array.isArray(result.cp_st2)) {
+                    cpST2Data = result.cp_st2;
+                    console.log('运货卡车数据获取成功:', cpST2Data);
+                } else {
+                    console.error('zones.json中未找到cp_st2数据或格式异常');
+                    cpST2Data = [];
+                }
+            } catch (error) {
+                console.error('获取运货卡车数据失败:', error);
+                cpST2Data = [];
+            }
+        }
+
+        // 保安制服数据
+        let cpGCData = [];
+
+        // 保安制服标记数组
+        let cpGCMarkers = [];
+
+        // 保安制服图标
+        const cpGCIcon = './src/assets/cp_gc.svg';
+
+        // 获取保安制服数据
+        async function fetchCPGCData() {
+            try {
+                const response = await fetch('./zones.json');
+                const result = await response.json();
+                
+                if (result && result.cp_gc && Array.isArray(result.cp_gc)) {
+                    cpGCData = result.cp_gc;
+                    console.log('保安制服数据获取成功:', cpGCData);
+                } else {
+                    console.error('zones.json中未找到cp_gc数据或格式异常');
+                    cpGCData = [];
+                }
+            } catch (error) {
+                console.error('获取保安制服数据失败:', error);
+                cpGCData = [];
+            }
+        }
+        
+        // 地下藏匿品图标
+        const buriedStashIcon = './src/assets/cp_bs.svg';
+        
+        // 藏宝箱图标
+        const treasureChestIcon = './src/assets/cp_tc.svg';
+        
+        // 地下藏匿品数据
+        let buriedStashes = [];
+
+        // 地下藏匿品标记数组
+        let buriedStashMarkers = [];
+
+        // 添加缺失的藏宝箱数据变量声明
+        let treasureChests = [];
+
+        // 添加缺失的藏宝箱标记数组声明
+        let treasureChestMarkers = [];
+
+        // 全局存储从JSON获取的地下藏匿品和藏宝箱数据（用于图片匹配）
+        let globalBuriedStashesData = [];
+        let globalTreasureChestsData = [];
+
+        // 初始化时获取数据
+        initCollectiblesData();
+
+        // 初始化获取收藏品数据（用于图片匹配）
+        async function initCollectiblesData() {
+            try {
+                const response = await fetch('./zones.json');
+                const result = await response.json();
+                
+                if (result) {
+                    // 获取地下藏匿品数据
+                    if (result.buried_stashes && Array.isArray(result.buried_stashes)) {
+                        globalBuriedStashesData = result.buried_stashes;
+                        console.log('地下藏匿品数据（用于图片匹配）获取成功:', globalBuriedStashesData);
+                    } else {
+                        console.error('zones.json中未找到或格式异常的buried_stashes数据');
+                    }
+                    
+                    // 获取藏宝箱数据
+                    if (result.treasure_chests && Array.isArray(result.treasure_chests)) {
+                        globalTreasureChestsData = result.treasure_chests;
+                        console.log('藏宝箱数据（用于图片匹配）获取成功:', globalTreasureChestsData);
+                    } else {
+                        console.error('zones.json中未找到或格式异常的treasure_chests数据');
+                    }
+                }
+            } catch (error) {
+                console.error('初始化获取收藏品数据失败:', error);
+            }
+        }
+
+        // 获取地下藏匿品数据
+        async function fetchBuriedStashes() {
+            try {
+                const response = await fetch('https://api-gta.antwen.com/api/items/buried-stashes');
+                const result = await response.json();
+                
+                if (result.success && result.data && result.data.coordinate) {
+                    buriedStashes = result.data.coordinate;
+                    console.log('地下藏匿品数据获取成功:', buriedStashes);
+                } else {
+                    console.error('地下藏匿品API返回数据格式异常');
+                    buriedStashes = [];
+                }
+            } catch (error) {
+                console.error('获取地下藏匿品数据失败:', error);
+                buriedStashes = [];
+            }
+        }
+
+        // 获取藏宝箱数据
+        async function fetchTreasureChests() {
+            try {
+                const response = await fetch('https://api-gta.antwen.com/api/items/treasure-chests');
+                const result = await response.json();
+                
+                if (result.success && result.data && result.data.coordinate) {
+                    treasureChests = result.data.coordinate;
+                    console.log('藏宝箱数据获取成功:', treasureChests);
+                } else {
+                    console.error('藏宝箱API返回数据格式异常');
+                    treasureChests = [];
+                }
+            } catch (error) {
+                console.error('获取藏宝箱数据失败:', error);
+                treasureChests = [];
+            }
+        }
+
+        // 创建次要目标标记
+        function createSecondaryTargetMarkers() {
+            // 清除现有的标记
+            clearSecondaryTargetMarkers();
+
+            const z = Math.round(map.getZoom());
+            
+            cpSecondaryTargets.forEach((target, index) => {
+                // 将游戏坐标转换为经纬度坐标
+                const pixel = gameToPixel(target.x, target.y, z);
+                const latlng = map.unproject(L.point(pixel.x, pixel.y), z);
+                
+                // 创建自定义图标
+                const customIcon = L.icon({
+                    iconUrl: './src/assets/cp_st.svg',
+                    iconSize: [32, 32],
+                    iconAnchor: [16, 16],
+                    popupAnchor: [0, -16]
+                });
+                
+                // 创建Leaflet标记
+                const marker = L.marker(latlng, {
+                    icon: customIcon,
+                    interactive: true,
+                    zIndexOffset: 1000
+                }).addTo(map);
+                
+                // 添加点击事件
+                marker.on('click', function(e) {
+                    showSecondaryTargetPopup(index);
+                });
+                
+                secondaryTargetMarkers.push(marker);
+            });
+        }
+
+        // 清除次要目标标记
+        function clearSecondaryTargetMarkers() {
+            secondaryTargetMarkers.forEach(marker => {
+                map.removeLayer(marker);
+            });
+            secondaryTargetMarkers = [];
+        }
+
+        // 显示次要目标弹窗
+        function showSecondaryTargetPopup(index) {
+            // 创建弹窗
+            const popup = document.createElement('div');
+            popup.className = 'secondary-target-popup';
+            popup.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: white;
+                border: 3px solid #FF5722;
+                border-radius: 12px;
+                padding: 20px;
+                z-index: 10000;
+                max-width: 80vw;
+                max-height: 80vh;
+                box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+                font-family: Arial, sans-serif;
+                text-align: center;
+                backdrop-filter: blur(10px);
+            `;
+
+            // 弹窗内容
+            const imageUrl = `https://gta-maps.antwen.com/collectibles_images/cp_st/cp_st_${index + 1}.webp`;
+            
+            popup.innerHTML = `
+                <div style="position: relative;">
+                    <h3 style="margin: 0 0 15px 0; color: #333; font-size: 18px;">佩里科岛次要目标 #${index + 1}</h3>
+                    <img src="${imageUrl}" alt="次要目标位置" style="
+                        max-width: 100%;
+                        max-height: 400px;
+                        border-radius: 8px;
+                        margin-bottom: 15px;
+                        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+                        transition: all 0.3s ease;
+                    " onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                    <div style="display: none; padding: 20px; background: #f0f0f0; border-radius: 8px; margin-bottom: 15px;">
+                        图片加载失败
+                    </div>
+                    <p style="margin: 0; color: #666; font-size: 14px; line-height: 1.5;">
+                        拍照发送给帕维尔即可标记在地图上
+                    </p>
+                    <div style="margin-top: 20px; display: flex; justify-content: center; gap: 10px;">
+                        <button id="hide-marker-btn" type="button" style="
+                            padding: 10px 20px;
+                            background: #4CAF50;
+                            color: white;
+                            border: none;
+                            border-radius: 6px;
+                            cursor: pointer;
+                            font-size: 16px;
+                            transition: background 0.3s;
+                        " onmouseover="this.style.background='#45a049'" onmouseout="this.style.background='#4CAF50'">
+                            隐藏
+                        </button>
+                        <button id="restore-marker-btn" type="button" style="
+                            padding: 10px 20px;
+                            background: #2196F3;
+                            color: white;
+                            border: none;
+                            border-radius: 6px;
+                            cursor: pointer;
+                            font-size: 16px;
+                            transition: background 0.3s;
+                        " onmouseover="this.style.background='#1976D2'" onmouseout="this.style.background='#2196F3'">
+                            恢复
+                        </button>
+                        <button id="close-popup-btn" type="button" style="
+                            padding: 10px 20px;
+                            background: #f44336;
+                            color: white;
+                            border: none;
+                            border-radius: 6px;
+                            cursor: pointer;
+                            font-size: 16px;
+                            transition: background 0.3s;
+                        " onmouseover="this.style.background='#d32f2f'" onmouseout="this.style.background='#f44336'">
+                            关闭
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(popup);
+
+            // 添加关闭按钮事件监听
+            const closeBtn = popup.querySelector('#close-popup-btn');
+            closeBtn.addEventListener('click', () => {
+                popup.remove();
+            });
+
+            // 添加隐藏按钮事件监听
+            const hideBtn = popup.querySelector('#hide-marker-btn');
+            hideBtn.addEventListener('click', () => {
+                // 设置对应标记的透明度为25%
+                if (secondaryTargetMarkers[index]) {
+                    secondaryTargetMarkers[index].setOpacity(0.25);
+                }
+                popup.remove();
+            });
+
+            // 添加恢复按钮事件监听
+            const restoreBtn = popup.querySelector('#restore-marker-btn');
+            restoreBtn.addEventListener('click', () => {
+                // 恢复的透明度为100%
+                if (secondaryTargetMarkers[index]) {
+                    secondaryTargetMarkers[index].setOpacity(1);
+                }
+                popup.remove();
+            });
+
+            // 点击弹窗外部关闭
+            popup.addEventListener('click', (e) => e.stopPropagation());
+            
+            // 使用setTimeout延迟添加document点击事件，避免立即触发
+            setTimeout(() => {
+                const closePopupHandler = (e) => {
+                    if (!popup.contains(e.target)) {
+                        popup.remove();
+                        document.removeEventListener('click', closePopupHandler);
+                    }
+                };
+                document.addEventListener('click', closePopupHandler);
+            }, 100);
+        }
+
+        // 创建螺栓切割器标记
+        function createCPBCMarkers() {
+            // 清除现有的标记
+            clearCPBCMarkers();
+
+            const z = Math.round(map.getZoom());
+            
+            cpBCData.forEach((point, index) => {
+                // 将游戏坐标转换为经纬度坐标
+                const pixel = gameToPixel(point.x, point.y, z);
+                const latlng = map.unproject(L.point(pixel.x, pixel.y), z);
+                
+                // 创建自定义图标
+                const customIcon = L.icon({
+                    iconUrl: './src/assets/cp_bc.svg',
+                    iconSize: [32, 32],
+                    iconAnchor: [16, 16],
+                    popupAnchor: [0, -16]
+                });
+                
+                // 创建Leaflet标记
+                const marker = L.marker(latlng, {
+                    icon: customIcon,
+                    interactive: true,
+                    zIndexOffset: 1000
+                }).addTo(map);
+                
+                // 添加点击事件
+                marker.on('click', function(e) {
+                    showCPBCPopup(index);
+                });
+                
+                cpBCMarkers.push(marker);
+            });
+        }
+
+        // 清除螺栓切割器标记
+        function clearCPBCMarkers() {
+            cpBCMarkers.forEach(marker => {
+                map.removeLayer(marker);
+            });
+            cpBCMarkers = [];
+        }
+
+        // 显示螺栓切割器弹窗
+        function showCPBCPopup(index) {
+            const point = cpBCData[index];
+            if (!point) return;
+            
+            // 创建弹窗
+            const popup = document.createElement('div');
+            popup.className = 'cp-bc-popup';
+            popup.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: white;
+                border: 3px solid #9C27B0;
+                border-radius: 12px;
+                padding: 20px;
+                z-index: 10000;
+                max-width: 80vw;
+                max-height: 80vh;
+                box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+                font-family: Arial, sans-serif;
+                text-align: center;
+                backdrop-filter: blur(10px);
+            `;
+
+            // 弹窗内容
+            const imageUrl = `https://gta-maps.antwen.com/collectibles_images/cp_bc/cp_bc_${index + 1}.webp`;
+            
+            popup.innerHTML = `
+                <div style="position: relative;">
+                    <h3 style="margin: 0 0 15px 0; color: #333; font-size: 18px;">佩里科岛螺栓切割器</h3>
+                    <img src="${imageUrl}" alt="螺栓切割器位置" style="
+                        max-width: 100%;
+                        max-height: 400px;
+                        border-radius: 8px;
+                        margin-bottom: 15px;
+                        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+                        transition: all 0.3s ease;
+                    " onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
+                    <div style="display: none; padding: 20px; background: #f0f0f0; border-radius: 8px; margin-bottom: 15px;">
+                        图片加载失败
+                    </div>
+                    <p style="margin: 0; color: #666; font-size: 14px; line-height: 1.5;">
+                        佩里科岛的螺栓切割器，用于破坏岛上的门锁和围栏
+                    </p>
+                    <div style="margin-top: 20px; display: flex; justify-content: center; gap: 10px;">
+                        <button id="hide-marker-btn" type="button" style="
+                            padding: 10px 20px;
+                            background: #4CAF50;
+                            color: white;
+                            border: none;
+                            border-radius: 6px;
+                            cursor: pointer;
+                            font-size: 16px;
+                            transition: background 0.3s;
+                        " onmouseover="this.style.background='#45a049'" onmouseout="this.style.background='#4CAF50'">
+                            隐藏
+                        </button>
+                        <button id="restore-marker-btn" type="button" style="
+                            padding: 10px 20px;
+                            background: #2196F3;
+                            color: white;
+                            border: none;
+                            border-radius: 6px;
+                            cursor: pointer;
+                            font-size: 16px;
+                            transition: background 0.3s;
+                        " onmouseover="this.style.background='#1976D2'" onmouseout="this.style.background='#2196F3'">
+                            恢复
+                        </button>
+                        <button id="close-popup-btn" type="button" style="
+                            padding: 10px 20px;
+                            background: #f44336;
+                            color: white;
+                            border: none;
+                            border-radius: 6px;
+                            cursor: pointer;
+                            font-size: 16px;
+                            transition: background 0.3s;
+                        " onmouseover="this.style.background='#d32f2f'" onmouseout="this.style.background='#f44336'">
+                            关闭
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(popup);
+
+            // 添加关闭按钮事件监听
+            const closeBtn = popup.querySelector('#close-popup-btn');
+            closeBtn.addEventListener('click', () => {
+                popup.remove();
+            });
+
+            // 添加隐藏按钮事件监听
+            const hideBtn = popup.querySelector('#hide-marker-btn');
+            hideBtn.addEventListener('click', () => {
+                // 设置对应标记的透明度为25%
+                if (cpBCMarkers[index]) {
+                    cpBCMarkers[index].setOpacity(0.25);
+                }
+                popup.remove();
+            });
+        }
+
+        // 创建抓钩设备标记
+        function createCPGEMarkers() {
+            // 清除现有的标记
+            clearCPGEMarkers();
+
+            const z = Math.round(map.getZoom());
+            
+            cpGEData.forEach((point, index) => {
+                // 将游戏坐标转换为经纬度坐标
+                const pixel = gameToPixel(point.x, point.y, z);
+                const latlng = map.unproject(L.point(pixel.x, pixel.y), z);
+                
+                // 创建自定义图标
+                const customIcon = L.icon({
+                    iconUrl: './src/assets/cp_ge.svg',
+                    iconSize: [32, 32],
+                    iconAnchor: [16, 16],
+                    popupAnchor: [0, -16]
+                });
+                
+                // 创建Leaflet标记
+                const marker = L.marker(latlng, {
+                    icon: customIcon,
+                    interactive: true,
+                    zIndexOffset: 1000
+                }).addTo(map);
+                
+                // 添加点击事件
+                marker.on('click', function(e) {
+                    showCPGEPopup(index);
+                });
+                
+                cpGEMarkers.push(marker);
+            });
+        }
+
+        // 清除抓钩设备标记
+        function clearCPGEMarkers() {
+            cpGEMarkers.forEach(marker => {
+                map.removeLayer(marker);
+            });
+            cpGEMarkers = [];
+        }
+
+        // 显示抓钩设备弹窗
+        function showCPGEPopup(index) {
+            const point = cpGEData[index];
+            if (!point) return;
+            
+            // 创建弹窗
+            const popup = document.createElement('div');
+            popup.className = 'cp-ge-popup';
+            popup.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: white;
+                border: 3px solid #009688;
+                border-radius: 12px;
+                padding: 20px;
+                z-index: 10000;
+                max-width: 80vw;
+                max-height: 80vh;
+                box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+                font-family: Arial, sans-serif;
+                text-align: center;
+                backdrop-filter: blur(10px);
+            `;
+
+            // 弹窗内容
+            const imageUrl = `https://gta-maps.antwen.com/collectibles_images/cp_ge/cp_ge_${index + 1}.webp`;
+            
+            popup.innerHTML = `
+                <div style="position: relative;">
+                    <h3 style="margin: 0 0 15px 0; color: #333; font-size: 18px;">佩里科岛抓钩设备</h3>
+                    <img src="${imageUrl}" alt="抓钩设备位置" style="
+                        max-width: 100%;
+                        max-height: 400px;
+                        border-radius: 8px;
+                        margin-bottom: 15px;
+                        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+                        transition: all 0.3s ease;
+                    " onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
+                    <div style="display: none; padding: 20px; background: #f0f0f0; border-radius: 8px; margin-bottom: 15px;">
+                        图片加载失败
+                    </div>
+                    <p style="margin: 0; color: #666; font-size: 14px; line-height: 1.5;">
+                        佩里科岛的抓钩设备，用于攀爬到高处和难以到达的区域
+                    </p>
+                    <div style="margin-top: 20px; display: flex; justify-content: center; gap: 10px;">
+                        <button id="hide-marker-btn" type="button" style="
+                            padding: 10px 20px;
+                            background: #4CAF50;
+                            color: white;
+                            border: none;
+                            border-radius: 6px;
+                            cursor: pointer;
+                            font-size: 16px;
+                            transition: background 0.3s;
+                        " onmouseover="this.style.background='#45a049'" onmouseout="this.style.background='#4CAF50'">
+                            隐藏
+                        </button>
+                        <button id="restore-marker-btn" type="button" style="
+                            padding: 10px 20px;
+                            background: #2196F3;
+                            color: white;
+                            border: none;
+                            border-radius: 6px;
+                            cursor: pointer;
+                            font-size: 16px;
+                            transition: background 0.3s;
+                        " onmouseover="this.style.background='#1976D2'" onmouseout="this.style.background='#2196F3'">
+                            恢复
+                        </button>
+                        <button id="close-popup-btn" type="button" style="
+                            padding: 10px 20px;
+                            background: #f44336;
+                            color: white;
+                            border: none;
+                            border-radius: 6px;
+                            cursor: pointer;
+                            font-size: 16px;
+                            transition: background 0.3s;
+                        " onmouseover="this.style.background='#d32f2f'" onmouseout="this.style.background='#f44336'">
+                            关闭
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(popup);
+
+            // 添加关闭按钮事件监听
+            const closeBtn = popup.querySelector('#close-popup-btn');
+            closeBtn.addEventListener('click', () => {
+                popup.remove();
+            });
+
+            // 添加隐藏按钮事件监听
+            const hideBtn = popup.querySelector('#hide-marker-btn');
+            hideBtn.addEventListener('click', () => {
+                // 设置对应标记的透明度为25%
+                if (cpGEMarkers[index]) {
+                    cpGEMarkers[index].setOpacity(0.25);
+                }
+                popup.remove();
+            });
+
+            // 添加恢复按钮事件监听
+            const restoreBtn = popup.querySelector('#restore-marker-btn');
+            restoreBtn.addEventListener('click', () => {
+                // 恢复的透明度为100%
+                if (cpGEMarkers[index]) {
+                    cpGEMarkers[index].setOpacity(1);
+                }
+                popup.remove();
+            });
+
+            // 点击弹窗外部关闭
+            popup.addEventListener('click', (e) => e.stopPropagation());
+            
+            // 使用setTimeout延迟添加document点击事件，避免立即触发
+            setTimeout(() => {
+                const closePopupHandler = (e) => {
+                    if (!popup.contains(e.target)) {
+                        popup.remove();
+                        document.removeEventListener('click', closePopupHandler);
+                    }
+                };
+                document.addEventListener('click', closePopupHandler);
+            }, 100);
+        }
+        
+        // 创建运货卡车标记
+        function createCPST2Markers() {
+            // 清除现有的标记
+            clearCPST2Markers();
+
+            const z = Math.round(map.getZoom());
+            
+            cpST2Data.forEach((point, index) => {
+                // 将游戏坐标转换为经纬度坐标
+                const pixel = gameToPixel(point.x, point.y, z);
+                const latlng = map.unproject(L.point(pixel.x, pixel.y), z);
+                
+                // 创建自定义图标
+                const customIcon = L.icon({
+                    iconUrl: './src/assets/cp_st2.svg',
+                    iconSize: [32, 32],
+                    iconAnchor: [16, 16],
+                    popupAnchor: [0, -16]
+                });
+                
+                // 创建Leaflet标记
+                const marker = L.marker(latlng, {
+                    icon: customIcon,
+                    interactive: true,
+                    zIndexOffset: 1000
+                }).addTo(map);
+                
+                // 添加点击事件
+                marker.on('click', function(e) {
+                    showCPST2Popup(index);
+                });
+                
+                cpST2Markers.push(marker);
+            });
+        }
+
+        // 清除运货卡车标记
+        function clearCPST2Markers() {
+            cpST2Markers.forEach(marker => {
+                map.removeLayer(marker);
+            });
+            cpST2Markers = [];
+        }
+
+        // 显示运货卡车弹窗
+        function showCPST2Popup(index) {
+            const point = cpST2Data[index];
+            if (!point) return;
+            
+            // 创建弹窗
+            const popup = document.createElement('div');
+            popup.className = 'cp-st2-popup';
+            popup.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: white;
+                border: 3px solid #795548;
+                border-radius: 12px;
+                padding: 20px;
+                z-index: 10000;
+                max-width: 80vw;
+                max-height: 80vh;
+                box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+                font-family: Arial, sans-serif;
+                text-align: center;
+                backdrop-filter: blur(10px);
+            `;
+
+            // 弹窗内容
+            const imageUrl = `https://gta-maps.antwen.com/collectibles_images/cp_st2/cp_st2_${index + 1}.webp`;
+            
+            popup.innerHTML = `
+                <div style="position: relative;">
+                    <h3 style="margin: 0 0 15px 0; color: #333; font-size: 18px;">佩里科岛运货卡车</h3>
+                    <img src="${imageUrl}" alt="运货卡车位置" style="
+                        max-width: 100%;
+                        max-height: 400px;
+                        border-radius: 8px;
+                        margin-bottom: 15px;
+                        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+                        transition: all 0.3s ease;
+                    " onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
+                    <div style="display: none; padding: 20px; background: #f0f0f0; border-radius: 8px; margin-bottom: 15px;">
+                        图片加载失败
+                    </div>
+                    <p style="margin: 0; color: #666; font-size: 14px; line-height: 1.5;">
+                        佩里科岛的运货卡车，可以用于快速运输货物和撤离
+                    </p>
+                    <div style="margin-top: 20px; display: flex; justify-content: center; gap: 10px;">
+                        <button id="hide-marker-btn" style="
+                            padding: 10px 20px;
+                            background: #4CAF50;
+                            color: white;
+                            border: none;
+                            border-radius: 6px;
+                            cursor: pointer;
+                            font-size: 16px;
+                            transition: background 0.3s;
+                        " onmouseover="this.style.background='#45a049'" onmouseout="this.style.background='#4CAF50'">
+                            隐藏
+                        </button>
+                        <button id="restore-marker-btn" style="
+                            padding: 10px 20px;
+                            background: #2196F3;
+                            color: white;
+                            border: none;
+                            border-radius: 6px;
+                            cursor: pointer;
+                            font-size: 16px;
+                            transition: background 0.3s;
+                        " onmouseover="this.style.background='#1976D2'" onmouseout="this.style.background='#2196F3'">
+                            恢复
+                        </button>
+                        <button id="close-popup-btn" style="
+                            padding: 10px 20px;
+                            background: #f44336;
+                            color: white;
+                            border: none;
+                            border-radius: 6px;
+                            cursor: pointer;
+                            font-size: 16px;
+                            transition: background 0.3s;
+                        " onmouseover="this.style.background='#d32f2f'" onmouseout="this.style.background='#f44336'">
+                            关闭
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(popup);
+
+            // 添加关闭按钮事件监听
+            const closeBtn = popup.querySelector('#close-popup-btn');
+            closeBtn.addEventListener('click', () => {
+                popup.remove();
+            });
+
+            // 添加隐藏按钮事件监听
+            const hideBtn = popup.querySelector('#hide-marker-btn');
+            hideBtn.addEventListener('click', () => {
+                // 设置对应标记的透明度为25%
+                if (cpST2Markers[index]) {
+                    cpST2Markers[index].setOpacity(0.25);
+                }
+                popup.remove();
+            });
+
+            // 添加恢复按钮事件监听
+            const restoreBtn = popup.querySelector('#restore-marker-btn');
+            restoreBtn.addEventListener('click', () => {
+                // 恢复的透明度为100%
+                if (cpST2Markers[index]) {
+                    cpST2Markers[index].setOpacity(1);
+                }
+                popup.remove();
+            });
+
+            // 点击弹窗外部关闭
+            popup.addEventListener('click', (e) => e.stopPropagation());
+            
+            // 使用setTimeout延迟添加document点击事件，避免立即触发
+            setTimeout(() => {
+                const closePopupHandler = (e) => {
+                    if (!popup.contains(e.target)) {
+                        popup.remove();
+                        document.removeEventListener('click', closePopupHandler);
+                    }
+                };
+                document.addEventListener('click', closePopupHandler);
+            }, 100);
+        }
+
+        // 创建水塔标记
+        function createCPWTMarkers() {
+            // 清除现有的标记
+            clearCPWTMarkers();
+
+            const z = Math.round(map.getZoom());
+            
+            cpWTData.forEach((point, index) => {
+                // 将游戏坐标转换为经纬度坐标
+                const pixel = gameToPixel(point.x, point.y, z);
+                const latlng = map.unproject(L.point(pixel.x, pixel.y), z);
+                
+                // 创建自定义图标
+                const customIcon = L.icon({
+                    iconUrl: './src/assets/cp_wt.svg',
+                    iconSize: [32, 32],
+                    iconAnchor: [16, 16],
+                    popupAnchor: [0, -16]
+                });
+                
+                // 创建Leaflet标记
+                const marker = L.marker(latlng, {
+                    icon: customIcon,
+                    interactive: true,
+                    zIndexOffset: 1000
+                }).addTo(map);
+                
+                // 添加点击事件
+                marker.on('click', function(e) {
+                    showCPWTPopup(index);
+                });
+                
+                cpWTMarkers.push(marker);
+            });
+        }
+
+        // 清除水塔标记
+        function clearCPWTMarkers() {
+            cpWTMarkers.forEach(marker => {
+                map.removeLayer(marker);
+            });
+            cpWTMarkers = [];
+        }
+
+        // 显示水塔弹窗
+        function showCPWTPopup(index) {
+            const point = cpWTData[index];
+            if (!point) return;
+            
+            // 创建弹窗
+            const popup = document.createElement('div');
+            popup.className = 'cp-wt-popup';
+            popup.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: white;
+                border: 3px solid #03A9F4;
+                border-radius: 12px;
+                padding: 20px;
+                z-index: 10000;
+                max-width: 80vw;
+                max-height: 80vh;
+                box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+                font-family: Arial, sans-serif;
+                text-align: center;
+                backdrop-filter: blur(10px);
+            `;
+
+            // 弹窗内容
+            const imageUrl = `https://gta-maps.antwen.com/collectibles_images/cp_wt/cp_wt_${index + 1}.webp`;
+            
+            popup.innerHTML = `
+                <div style="position: relative;">
+                    <h3 style="margin: 0 0 15px 0; color: #333; font-size: 18px;">佩里科岛水塔</h3>
+                    <img src="${imageUrl}" alt="水塔位置" style="
+                        max-width: 100%;
+                        max-height: 400px;
+                        border-radius: 8px;
+                        margin-bottom: 15px;
+                        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+                        transition: all 0.3s ease;
+                    " onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
+                    <div style="display: none; padding: 20px; background: #f0f0f0; border-radius: 8px; margin-bottom: 15px;">
+                        图片加载失败
+                    </div>
+                    <p style="margin: 0; color: #666; font-size: 14px; line-height: 1.5;">
+                        佩里科岛的水塔，可以用于观察岛屿周围的情况
+                    </p>
+                    <div style="margin-top: 20px; display: flex; justify-content: center; gap: 10px;">
+                        <button id="hide-marker-btn" style="
+                            padding: 10px 20px;
+                            background: #4CAF50;
+                            color: white;
+                            border: none;
+                            border-radius: 6px;
+                            cursor: pointer;
+                            font-size: 16px;
+                            transition: background 0.3s;
+                        " onmouseover="this.style.background='#45a049'" onmouseout="this.style.background='#4CAF50'">
+                            隐藏
+                        </button>
+                        <button id="restore-marker-btn" style="
+                            padding: 10px 20px;
+                            background: #2196F3;
+                            color: white;
+                            border: none;
+                            border-radius: 6px;
+                            cursor: pointer;
+                            font-size: 16px;
+                            transition: background 0.3s;
+                        " onmouseover="this.style.background='#1976D2'" onmouseout="this.style.background='#2196F3'">
+                            恢复
+                        </button>
+                        <button id="close-popup-btn" style="
+                            padding: 10px 20px;
+                            background: #f44336;
+                            color: white;
+                            border: none;
+                            border-radius: 6px;
+                            cursor: pointer;
+                            font-size: 16px;
+                            transition: background 0.3s;
+                        " onmouseover="this.style.background='#d32f2f'" onmouseout="this.style.background='#f44336'">
+                            关闭
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(popup);
+
+            // 添加关闭按钮事件监听
+            const closeBtn = popup.querySelector('#close-popup-btn');
+            closeBtn.addEventListener('click', () => {
+                popup.remove();
+            });
+
+            // 添加隐藏按钮事件监听
+            const hideBtn = popup.querySelector('#hide-marker-btn');
+            hideBtn.addEventListener('click', () => {
+                // 设置对应标记的透明度为25%
+                if (cpWTMarkers[index]) {
+                    cpWTMarkers[index].setOpacity(0.25);
+                }
+                popup.remove();
+            });
+
+            // 添加恢复按钮事件监听
+            const restoreBtn = popup.querySelector('#restore-marker-btn');
+            restoreBtn.addEventListener('click', () => {
+                // 恢复的透明度为100%
+                if (cpWTMarkers[index]) {
+                    cpWTMarkers[index].setOpacity(1);
+                }
+                popup.remove();
+            });
+
+            // 点击弹窗外部关闭
+            popup.addEventListener('click', (e) => e.stopPropagation());
+            
+            // 使用setTimeout延迟添加document点击事件，避免立即触发
+            setTimeout(() => {
+                const closePopupHandler = (e) => {
+                    if (!popup.contains(e.target)) {
+                        popup.remove();
+                        document.removeEventListener('click', closePopupHandler);
+                    }
+                };
+                document.addEventListener('click', closePopupHandler);
+            }, 100);
+        }
+
+        // 创建入侵点标记
+        function createCPINFMarkers() {
+            // 清除现有的标记
+            clearCPINFMarkers();
+
+            const z = Math.round(map.getZoom());
+            
+            cpINFData.forEach((point, index) => {
+                // 将游戏坐标转换为经纬度坐标
+                const pixel = gameToPixel(point.x, point.y, z);
+                const latlng = map.unproject(L.point(pixel.x, pixel.y), z);
+                
+                // 创建自定义图标
+                const customIcon = L.icon({
+                    iconUrl: './src/assets/cp_inf.svg',
+                    iconSize: [32, 32],
+                    iconAnchor: [16, 16],
+                    popupAnchor: [0, -16]
+                });
+                
+                // 创建Leaflet标记
+                const marker = L.marker(latlng, {
+                    icon: customIcon,
+                    interactive: true,
+                    zIndexOffset: 1000
+                }).addTo(map);
+                
+                // 添加点击事件
+                marker.on('click', function(e) {
+                    showCPINFPopup(index);
+                });
+                
+                cpINFMarkers.push(marker);
+            });
+        }
+
+        // 清除入侵点标记
+        function clearCPINFMarkers() {
+            cpINFMarkers.forEach(marker => {
+                map.removeLayer(marker);
+            });
+            cpINFMarkers = [];
+        }
+
+        // 显示入侵点弹窗
+        function showCPINFPopup(index) {
+            const point = cpINFData[index];
+            if (!point) return;
+            
+            // 创建弹窗
+            const popup = document.createElement('div');
+            popup.className = 'cp-inf-popup';
+            popup.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: white;
+                border: 3px solid #FF5722;
+                border-radius: 12px;
+                padding: 20px;
+                z-index: 10000;
+                max-width: 80vw;
+                max-height: 80vh;
+                box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+                font-family: Arial, sans-serif;
+                text-align: center;
+                backdrop-filter: blur(10px);
+            `;
+
+            // 弹窗内容 - 每个点使用不同的占位符描述
+            let description = '';
+            switch(index) {
+                case 0:
+                    description = '入侵点 #1 - [待添加详细描述]';
+                    break;
+                case 1:
+                    description = '入侵点 #2 - [待添加详细描述]';
+                    break;
+                case 2:
+                    description = '入侵点 #3 - [待添加详细描述]';
+                    break;
+                case 3:
+                    description = '入侵点 #4 - [待添加详细描述]';
+                    break;
+                case 4:
+                    description = '入侵点 #5 - [待添加详细描述]';
+                    break;
+                case 5:
+                    description = '入侵点 #6 - [待添加详细描述]';
+                    break;
+                case 6:
+                    description = '入侵点 #7 - [待添加详细描述]';
+                    break;
+                case 7:
+                    description = '入侵点 #8 - [待添加详细描述]';
+                    break;
+                default:
+                    description = '佩里科岛入侵点';
+            }
+            
+            popup.innerHTML = `
+                <div style="position: relative;">
+                    <h3 style="margin: 0 0 15px 0; color: #333; font-size: 18px;">佩里科岛入侵点</h3>
+                    <p style="margin: 0; color: #666; font-size: 14px; line-height: 1.5;">
+                        ${description}
+                    </p>
+                    <div style="margin-top: 20px; display: flex; justify-content: center; gap: 10px;">
+                        <button id="hide-marker-btn" style="
+                            padding: 10px 20px;
+                            background: #4CAF50;
+                            color: white;
+                            border: none;
+                            border-radius: 6px;
+                            cursor: pointer;
+                            font-size: 16px;
+                            transition: background 0.3s;
+                        " onmouseover="this.style.background='#45a049'" onmouseout="this.style.background='#4CAF50'">
+                            隐藏
+                        </button>
+                        <button id="restore-marker-btn" style="
+                            padding: 10px 20px;
+                            background: #2196F3;
+                            color: white;
+                            border: none;
+                            border-radius: 6px;
+                            cursor: pointer;
+                            font-size: 16px;
+                            transition: background 0.3s;
+                        " onmouseover="this.style.background='#1976D2'" onmouseout="this.style.background='#2196F3'">
+                            恢复
+                        </button>
+                        <button id="close-popup-btn" style="
+                            padding: 10px 20px;
+                            background: #f44336;
+                            color: white;
+                            border: none;
+                            border-radius: 6px;
+                            cursor: pointer;
+                            font-size: 16px;
+                            transition: background 0.3s;
+                        " onmouseover="this.style.background='#d32f2f'" onmouseout="this.style.background='#f44336'">
+                            关闭
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(popup);
+
+            // 添加关闭按钮事件监听
+            const closeBtn = popup.querySelector('#close-popup-btn');
+            closeBtn.addEventListener('click', () => {
+                popup.remove();
+            });
+
+            // 添加隐藏按钮事件监听
+            const hideBtn = popup.querySelector('#hide-marker-btn');
+            hideBtn.addEventListener('click', () => {
+                // 设置对应标记的透明度为25%
+                if (cpINFMarkers[index]) {
+                    cpINFMarkers[index].setOpacity(0.25);
+                }
+                popup.remove();
+            });
+
+            // 添加恢复按钮事件监听
+            const restoreBtn = popup.querySelector('#restore-marker-btn');
+            restoreBtn.addEventListener('click', () => {
+                // 恢复的透明度为100%
+                if (cpINFMarkers[index]) {
+                    cpINFMarkers[index].setOpacity(1);
+                }
+                popup.remove();
+            });
+
+            // 点击弹窗外部关闭
+            popup.addEventListener('click', (e) => e.stopPropagation());
+            
+            // 使用setTimeout延迟添加document点击事件，避免立即触发
+            setTimeout(() => {
+                const closePopupHandler = (e) => {
+                    if (!popup.contains(e.target)) {
+                        popup.remove();
+                        document.removeEventListener('click', closePopupHandler);
+                    }
+                };
+                document.addEventListener('click', closePopupHandler);
+            }, 100);
+        }
+
+        // 创建逃离点标记
+        function createCPESCMarkers() {
+            // 清除现有的标记
+            clearCPESCMarkers();
+
+            const z = Math.round(map.getZoom());
+            
+            cpESCData.forEach((point, index) => {
+                // 将游戏坐标转换为经纬度坐标
+                const pixel = gameToPixel(point.x, point.y, z);
+                const latlng = map.unproject(L.point(pixel.x, pixel.y), z);
+                
+                // 创建自定义图标（旋转180度）
+                const customIcon = L.divIcon({
+                    html: `<img src="./src/assets/cp_inf.svg" style="transform: rotate(180deg); width: 32px; height: 32px;">`,
+                    className: 'custom-div-icon',
+                    iconSize: [32, 32],
+                    iconAnchor: [16, 16],
+                    popupAnchor: [0, -16]
+                });
+                
+                // 创建Leaflet标记
+                const marker = L.marker(latlng, {
+                    icon: customIcon,
+                    interactive: true,
+                    zIndexOffset: 1000
+                }).addTo(map);
+                
+                // 添加点击事件
+                marker.on('click', function(e) {
+                    showCPESCPopup(index);
+                });
+                
+                cpESCMarkers.push(marker);
+            });
+        }
+
+        // 清除逃离点标记
+        function clearCPESCMarkers() {
+            cpESCMarkers.forEach(marker => {
+                map.removeLayer(marker);
+            });
+            cpESCMarkers = [];
+        }
+
+        // 显示逃离点弹窗
+        function showCPESCPopup(index) {
+            const point = cpESCData[index];
+            if (!point) return;
+            
+            // 创建弹窗
+            const popup = document.createElement('div');
+            popup.className = 'cp-esc-popup';
+            popup.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: white;
+                border: 3px solid #4CAF50;
+                border-radius: 12px;
+                padding: 20px;
+                z-index: 10000;
+                max-width: 80vw;
+                max-height: 80vh;
+                box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+                font-family: Arial, sans-serif;
+                text-align: center;
+                backdrop-filter: blur(10px);
+            `;
+
+            // 弹窗内容 - 每个点使用不同的占位符描述
+            let description = '';
+            switch(index) {
+                case 0:
+                    description = '逃离点 #1 - 海滩逃离路线，可以快速进入海中撤离';
+                    break;
+                case 1:
+                    description = '逃离点 #2 - 码头撤离点，可使用船只快速离开岛屿';
+                    break;
+                case 2:
+                    description = '逃离点 #3 - 机场附近撤离点，可寻找交通工具快速逃离';
+                    break;
+                case 3:
+                    description = '逃离点 #4 - 北部山区撤离点，地形复杂但安保较少';
+                    break;
+                default:
+                    description = '佩里科岛逃离点';
+            }
+            
+            popup.innerHTML = `
+                <div style="position: relative;">
+                    <h3 style="margin: 0 0 15px 0; color: #333; font-size: 18px;">佩里科岛逃离点</h3>
+                    <p style="margin: 0; color: #666; font-size: 14px; line-height: 1.5;">
+                        ${description}
+                    </p>
+                    <div style="margin-top: 20px; display: flex; justify-content: center; gap: 10px;">
+                        <button id="hide-marker-btn" style="
+                            padding: 10px 20px;
+                            background: #4CAF50;
+                            color: white;
+                            border: none;
+                            border-radius: 6px;
+                            cursor: pointer;
+                            font-size: 16px;
+                            transition: background 0.3s;
+                        " onmouseover="this.style.background='#45a049'" onmouseout="this.style.background='#4CAF50'">
+                            隐藏
+                        </button>
+                        <button id="restore-marker-btn" style="
+                            padding: 10px 20px;
+                            background: #2196F3;
+                            color: white;
+                            border: none;
+                            border-radius: 6px;
+                            cursor: pointer;
+                            font-size: 16px;
+                            transition: background 0.3s;
+                        " onmouseover="this.style.background='#1976D2'" onmouseout="this.style.background='#2196F3'">
+                            恢复
+                        </button>
+                        <button id="close-popup-btn" style="
+                            padding: 10px 20px;
+                            background: #f44336;
+                            color: white;
+                            border: none;
+                            border-radius: 6px;
+                            cursor: pointer;
+                            font-size: 16px;
+                            transition: background 0.3s;
+                        " onmouseover="this.style.background='#d32f2f'" onmouseout="this.style.background='#f44336'">
+                            关闭
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(popup);
+
+            // 添加关闭按钮事件监听
+            const closeBtn = popup.querySelector('#close-popup-btn');
+            closeBtn.addEventListener('click', () => {
+                popup.remove();
+            });
+
+            // 添加隐藏按钮事件监听
+            const hideBtn = popup.querySelector('#hide-marker-btn');
+            hideBtn.addEventListener('click', () => {
+                // 设置对应标记的透明度为25%
+                if (cpESCMarkers[index]) {
+                    cpESCMarkers[index].setOpacity(0.25);
+                }
+                popup.remove();
+            });
+
+            // 添加恢复按钮事件监听
+            const restoreBtn = popup.querySelector('#restore-marker-btn');
+            restoreBtn.addEventListener('click', () => {
+                // 恢复的透明度为100%
+                if (cpESCMarkers[index]) {
+                    cpESCMarkers[index].setOpacity(1);
+                }
+                popup.remove();
+            });
+
+            // 点击弹窗外部关闭
+            popup.addEventListener('click', (e) => e.stopPropagation());
+            
+            // 使用setTimeout延迟添加document点击事件，避免立即触发
+            setTimeout(() => {
+                const closePopupHandler = (e) => {
+                    if (!popup.contains(e.target)) {
+                        popup.remove();
+                        document.removeEventListener('click', closePopupHandler);
+                    }
+                };
+                document.addEventListener('click', closePopupHandler);
+            }, 100);
+        }
+
+        // 创建混合粉标记
+        function createCPCPMarkers() {
+            // 清除现有的标记
+            clearCPCPMarkers();
+
+            const z = Math.round(map.getZoom());
+            
+            cpCPData.forEach((point, index) => {
+                // 将游戏坐标转换为经纬度坐标
+                const pixel = gameToPixel(point.x, point.y, z);
+                const latlng = map.unproject(L.point(pixel.x, pixel.y), z);
+                
+                // 创建自定义图标
+                const customIcon = L.icon({
+                    iconUrl: './src/assets/cp_cp.svg',
+                    iconSize: [32, 32],
+                    iconAnchor: [16, 16],
+                    popupAnchor: [0, -16]
+                });
+                
+                // 创建Leaflet标记
+                const marker = L.marker(latlng, {
+                    icon: customIcon,
+                    interactive: true,
+                    zIndexOffset: 1000
+                }).addTo(map);
+                
+                // 添加点击事件
+                marker.on('click', function(e) {
+                    showCPCPPopup(index);
+                });
+                
+                cpCPMarkers.push(marker);
+            });
+        }
+
+        // 清除混合粉标记
+        function clearCPCPMarkers() {
+            cpCPMarkers.forEach(marker => {
+                map.removeLayer(marker);
+            });
+            cpCPMarkers = [];
+        }
+
+        // 显示混合粉弹窗
+        function showCPCPPopup(index) {
+            const point = cpCPData[index];
+            if (!point) return;
+            
+            // 创建弹窗
+            const popup = document.createElement('div');
+            popup.className = 'cp-cp-popup';
+            popup.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: white;
+                border: 3px solid #FF9800;
+                border-radius: 12px;
+                padding: 20px;
+                z-index: 10000;
+                max-width: 80vw;
+                max-height: 80vh;
+                box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+                font-family: Arial, sans-serif;
+                text-align: center;
+                backdrop-filter: blur(10px);
+            `;
+
+            // 弹窗内容
+            const imageUrl = `https://gta-maps.antwen.com/collectibles_images/cp_cp/cp_cp_${index + 1}.webp`;
+            
+            popup.innerHTML = `
+                <div style="position: relative;">
+                    <h3 style="margin: 0 0 15px 0; color: #333; font-size: 18px;">佩里科岛混合粉</h3>
+                    <img src="${imageUrl}" alt="混合粉位置" style="
+                        max-width: 100%;
+                        max-height: 400px;
+                        border-radius: 8px;
+                        margin-bottom: 15px;
+                        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+                        transition: all 0.3s ease;
+                    " onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
+                    <div style="display: none; padding: 20px; background: #f0f0f0; border-radius: 8px; margin-bottom: 15px;">
+                        图片加载失败
+                    </div>
+                    <p style="margin: 0; color: #666; font-size: 14px; line-height: 1.5;">
+                        佩里科岛的混合粉，可以在任务中收集
+                    </p>
+                    <div style="margin-top: 20px; display: flex; justify-content: center; gap: 10px;">
+                        <button id="hide-marker-btn" style="
+                            padding: 10px 20px;
+                            background: #4CAF50;
+                            color: white;
+                            border: none;
+                            border-radius: 6px;
+                            cursor: pointer;
+                            font-size: 16px;
+                            transition: background 0.3s;
+                        " onmouseover="this.style.background='#45a049'" onmouseout="this.style.background='#4CAF50'">
+                            隐藏
+                        </button>
+                        <button id="restore-marker-btn" style="
+                            padding: 10px 20px;
+                            background: #2196F3;
+                            color: white;
+                            border: none;
+                            border-radius: 6px;
+                            cursor: pointer;
+                            font-size: 16px;
+                            transition: background 0.3s;
+                        " onmouseover="this.style.background='#1976D2'" onmouseout="this.style.background='#2196F3'">
+                            恢复
+                        </button>
+                        <button id="close-popup-btn" style="
+                            padding: 10px 20px;
+                            background: #f44336;
+                            color: white;
+                            border: none;
+                            border-radius: 6px;
+                            cursor: pointer;
+                            font-size: 16px;
+                            transition: background 0.3s;
+                        " onmouseover="this.style.background='#d32f2f'" onmouseout="this.style.background='#f44336'">
+                            关闭
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(popup);
+
+            // 添加关闭按钮事件监听
+            const closeBtn = popup.querySelector('#close-popup-btn');
+            closeBtn.addEventListener('click', () => {
+                popup.remove();
+            });
+
+            // 添加隐藏按钮事件监听
+            const hideBtn = popup.querySelector('#hide-marker-btn');
+            hideBtn.addEventListener('click', () => {
+                // 设置对应标记的透明度为25%
+                if (cpCPMarkers[index]) {
+                    cpCPMarkers[index].setOpacity(0.25);
+                }
+                popup.remove();
+            });
+
+            // 添加恢复按钮事件监听
+            const restoreBtn = popup.querySelector('#restore-marker-btn');
+            restoreBtn.addEventListener('click', () => {
+                // 恢复的透明度为100%
+                if (cpCPMarkers[index]) {
+                    cpCPMarkers[index].setOpacity(1);
+                }
+                popup.remove();
+            });
+
+            // 点击弹窗外部关闭
+            popup.addEventListener('click', (e) => e.stopPropagation());
+            
+            // 使用setTimeout延迟添加document点击事件，避免立即触发
+            setTimeout(() => {
+                const closePopupHandler = (e) => {
+                    if (!popup.contains(e.target)) {
+                        popup.remove();
+                        document.removeEventListener('click', closePopupHandler);
+                    }
+                };
+                document.addEventListener('click', closePopupHandler);
+            }, 100);
+        }
+
+        // 创建豪宅入侵点标记
+        function createCPComMarkers() {
+            // 清除现有的标记
+            clearCPComMarkers();
+
+            const z = Math.round(map.getZoom());
+            
+            cpComData.forEach((point, index) => {
+                // 将游戏坐标转换为经纬度坐标
+                const pixel = gameToPixel(point.x, point.y, z);
+                const latlng = map.unproject(L.point(pixel.x, pixel.y), z);
+                
+                // 创建自定义图标
+                const customIcon = L.icon({
+                    iconUrl: './src/assets/cp_com.svg',
+                    iconSize: [32, 32],
+                    iconAnchor: [16, 16],
+                    popupAnchor: [0, -16]
+                });
+                
+                // 创建Leaflet标记
+                const marker = L.marker(latlng, {
+                    icon: customIcon,
+                    interactive: true,
+                    zIndexOffset: 1000
+                }).addTo(map);
+                
+                // 添加点击事件
+                marker.on('click', function(e) {
+                    showCPComPopup(index);
+                });
+                
+                cpComMarkers.push(marker);
+            });
+        }
+
+        // 创建保安制服标记
+        function createCPGCMarkers() {
+            // 清除现有的标记
+            clearCPGCMarkers();
+
+            const z = Math.round(map.getZoom());
+            
+            cpGCData.forEach((point, index) => {
+                // 将游戏坐标转换为经纬度坐标
+                const pixel = gameToPixel(point.x, point.y, z);
+                const latlng = map.unproject(L.point(pixel.x, pixel.y), z);
+                
+                // 创建自定义图标
+                const customIcon = L.icon({
+                    iconUrl: './src/assets/cp_gc.svg',
+                    iconSize: [32, 32],
+                    iconAnchor: [16, 16],
+                    popupAnchor: [0, -16]
+                });
+                
+                // 创建Leaflet标记
+                const marker = L.marker(latlng, {
+                    icon: customIcon,
+                    interactive: true,
+                    zIndexOffset: 1000
+                }).addTo(map);
+                
+                // 添加点击事件
+                marker.on('click', function(e) {
+                    showCPGCPopup(index);
+                });
+                
+                cpGCMarkers.push(marker);
+            });
+        }
+
+        // 清除保安制服标记
+        function clearCPGCMarkers() {
+            cpGCMarkers.forEach(marker => {
+                map.removeLayer(marker);
+            });
+            cpGCMarkers = [];
+        }
+
+        // 显示保安制服弹窗
+        function showCPGCPopup(index) {
+            const point = cpGCData[index];
+            if (!point) return;
+            
+            // 创建弹窗
+            const popup = document.createElement('div');
+            popup.className = 'cp-gc-popup';
+            popup.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: white;
+                border: 3px solid #FF5722;
+                border-radius: 12px;
+                padding: 20px;
+                z-index: 10000;
+                max-width: 80vw;
+                max-height: 80vh;
+                box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+                font-family: Arial, sans-serif;
+                text-align: center;
+                backdrop-filter: blur(10px);
+            `;
+
+            // 弹窗内容
+            const imageUrl = `https://gta-maps.antwen.com/collectibles_images/cp_gc/cp_gc_${index + 1}.webp`;
+            
+            popup.innerHTML = `
+                <div style="position: relative;">
+                    <h3 style="margin: 0 0 15px 0; color: #333; font-size: 18px;">佩里科岛保安制服</h3>
+                    <img src="${imageUrl}" alt="保安制服位置" style="
+                        max-width: 100%;
+                        max-height: 400px;
+                        border-radius: 8px;
+                        margin-bottom: 15px;
+                        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+                        transition: all 0.3s ease;
+                    " onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
+                    <div style="display: none; padding: 20px; background: #f0f0f0; border-radius: 8px; margin-bottom: 15px;">
+                        图片加载失败
+                    </div>
+                    <p style="margin: 0; color: #666; font-size: 14px; line-height: 1.5;">
+                        佩里科岛的保安制服，穿上后可以在岛上自由行动而不被注意
+                    </p>
+                    <div style="margin-top: 20px; display: flex; justify-content: center; gap: 10px;">
+                        <button id="hide-marker-btn" style="
+                            padding: 10px 20px;
+                            background: #4CAF50;
+                            color: white;
+                            border: none;
+                            border-radius: 6px;
+                            cursor: pointer;
+                            font-size: 16px;
+                            transition: background 0.3s;
+                        " onmouseover="this.style.background='#45a049'" onmouseout="this.style.background='#4CAF50'">
+                            隐藏
+                        </button>
+                        <button id="restore-marker-btn" style="
+                            padding: 10px 20px;
+                            background: #2196F3;
+                            color: white;
+                            border: none;
+                            border-radius: 6px;
+                            cursor: pointer;
+                            font-size: 16px;
+                            transition: background 0.3s;
+                        " onmouseover="this.style.background='#1976D2'" onmouseout="this.style.background='#2196F3'">
+                            恢复
+                        </button>
+                        <button id="close-popup-btn" style="
+                            padding: 10px 20px;
+                            background: #f44336;
+                            color: white;
+                            border: none;
+                            border-radius: 6px;
+                            cursor: pointer;
+                            font-size: 16px;
+                            transition: background 0.3s;
+                        " onmouseover="this.style.background='#d32f2f'" onmouseout="this.style.background='#f44336'">
+                            关闭
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(popup);
+
+            // 添加关闭按钮事件监听
+            const closeBtn = popup.querySelector('#close-popup-btn');
+            closeBtn.addEventListener('click', () => {
+                popup.remove();
+            });
+
+            // 添加隐藏按钮事件监听
+            const hideBtn = popup.querySelector('#hide-marker-btn');
+            hideBtn.addEventListener('click', () => {
+                // 设置对应标记的透明度为25%
+                if (cpGCMarkers[index]) {
+                    cpGCMarkers[index].setOpacity(0.25);
+                }
+                popup.remove();
+            });
+
+            // 添加恢复按钮事件监听
+            const restoreBtn = popup.querySelector('#restore-marker-btn');
+            restoreBtn.addEventListener('click', () => {
+                // 恢复的透明度为100%
+                if (cpGCMarkers[index]) {
+                    cpGCMarkers[index].setOpacity(1);
+                }
+                popup.remove();
+            });
+
+            // 点击弹窗外部关闭
+            popup.addEventListener('click', (e) => e.stopPropagation());
+            
+            // 使用setTimeout延迟添加document点击事件，避免立即触发
+            setTimeout(() => {
+                const closePopupHandler = (e) => {
+                    if (!popup.contains(e.target)) {
+                        popup.remove();
+                        document.removeEventListener('click', closePopupHandler);
+                    }
+                };
+                document.addEventListener('click', closePopupHandler);
+            }, 100);
+            };
+        
+
+        // 清除豪宅入侵点标记
+        function clearCPComMarkers() {
+            cpComMarkers.forEach(marker => {
+                map.removeLayer(marker);
+            });
+            cpComMarkers = [];
+        }
+
+        // 显示豪宅入侵点弹窗
+        function showCPComPopup(index) {
+            const point = cpComData[index];
+            if (!point) return;
+            
+            // 获取入侵点类型名称
+            let typeName = '未知';
+            switch(point.type) {
+                case 'main':
+                    typeName = '主入口';
+                    break;
+                case 'side':
+                    typeName = '侧门';
+                    break;
+                case 'wall':
+                    typeName = '围墙入口';
+                    break;
+                case 'tunnel':
+                    typeName = '隧道入口';
+                    break;
+            }
+            
+            // 创建弹窗
+            const popup = document.createElement('div');
+            popup.className = 'cp-com-popup';
+            popup.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: white;
+                border: 3px solid #9C27B0;
+                border-radius: 12px;
+                padding: 20px;
+                z-index: 10000;
+                max-width: 80vw;
+                max-height: 80vh;
+                box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+                font-family: Arial, sans-serif;
+                text-align: center;
+                backdrop-filter: blur(10px);
+            `;
+
+            // 弹窗内容
+            const imageUrl = `https://gta-maps.antwen.com/collectibles_images/cp_com/cp_com_${index + 1}.webp`;
+            
+            popup.innerHTML = `
+                <div style="position: relative;">
+                    <h3 style="margin: 0 0 15px 0; color: #333; font-size: 18px;">佩里科岛豪宅入侵点 - ${typeName}</h3>
+                    <img src="${imageUrl}" alt="豪宅入侵点位置" style="
+                        max-width: 100%;
+                        max-height: 400px;
+                        border-radius: 8px;
+                        margin-bottom: 15px;
+                        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+                        transition: all 0.3s ease;
+                    " onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                    <div style="display: none; padding: 20px; background: #f0f0f0; border-radius: 8px; margin-bottom: 15px;">
+                        图片加载失败
+                    </div>
+                    <p style="margin: 0; color: #666; font-size: 14px; line-height: 1.5;">
+                        豪宅${typeName}，使用相应的方法可以进入豪宅内部
+                    </p>
+                    <div style="margin-top: 20px; display: flex; justify-content: center; gap: 10px;">
+                        <button id="hide-marker-btn" style="
+                            padding: 10px 20px;
+                            background: #4CAF50;
+                            color: white;
+                            border: none;
+                            border-radius: 6px;
+                            cursor: pointer;
+                            font-size: 16px;
+                            transition: background 0.3s;
+                        " onmouseover="this.style.background='#45a049'" onmouseout="this.style.background='#4CAF50'">
+                            隐藏
+                        </button>
+                        <button id="restore-marker-btn" style="
+                            padding: 10px 20px;
+                            background: #2196F3;
+                            color: white;
+                            border: none;
+                            border-radius: 6px;
+                            cursor: pointer;
+                            font-size: 16px;
+                            transition: background 0.3s;
+                        " onmouseover="this.style.background='#1976D2'" onmouseout="this.style.background='#2196F3'">
+                            恢复
+                        </button>
+                        <button id="close-popup-btn" style="
+                            padding: 10px 20px;
+                            background: #f44336;
+                            color: white;
+                            border: none;
+                            border-radius: 6px;
+                            cursor: pointer;
+                            font-size: 16px;
+                            transition: background 0.3s;
+                        " onmouseover="this.style.background='#d32f2f'" onmouseout="this.style.background='#f44336'">
+                            关闭
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(popup);
+
+            // 添加关闭按钮事件监听
+            const closeBtn = popup.querySelector('#close-popup-btn');
+            closeBtn.addEventListener('click', () => {
+                popup.remove();
+            });
+
+            // 添加隐藏按钮事件监听
+            const hideBtn = popup.querySelector('#hide-marker-btn');
+            hideBtn.addEventListener('click', () => {
+                // 设置对应标记的透明度为25%
+                if (cpComMarkers[index]) {
+                    cpComMarkers[index].setOpacity(0.25);
+                }
+                popup.remove();
+            });
+
+            // 添加恢复按钮事件监听
+            const restoreBtn = popup.querySelector('#restore-marker-btn');
+            restoreBtn.addEventListener('click', () => {
+                // 恢复的透明度为100%
+                if (cpComMarkers[index]) {
+                    cpComMarkers[index].setOpacity(1);
+                }
+                popup.remove();
+            });
+
+            // 点击弹窗外部关闭
+            popup.addEventListener('click', (e) => e.stopPropagation());
+            
+            // 使用setTimeout延迟添加document点击事件，避免立即触发
+            setTimeout(() => {
+                const closePopupHandler = (e) => {
+                    if (!popup.contains(e.target)) {
+                        popup.remove();
+                        document.removeEventListener('click', closePopupHandler);
+                    }
+                };
+                document.addEventListener('click', closePopupHandler);
+            }, 100);
+        }
+        
+        // 创建发电站标记
+        function createCPPSMarkers() {
+            // 清除现有的标记
+            clearCPPSMarkers();
+
+            const z = Math.round(map.getZoom());
+            
+            cpPSData.forEach((point, index) => {
+                // 将游戏坐标转换为经纬度坐标
+                const pixel = gameToPixel(point.x, point.y, z);
+                const latlng = map.unproject(L.point(pixel.x, pixel.y), z);
+                
+                // 创建自定义图标
+                const customIcon = L.icon({
+                    iconUrl: './src/assets/cp_ps.svg',
+                    iconSize: [32, 32],
+                    iconAnchor: [16, 16],
+                    popupAnchor: [0, -16]
+                });
+                
+                // 创建Leaflet标记
+                const marker = L.marker(latlng, {
+                    icon: customIcon,
+                    interactive: true,
+                    zIndexOffset: 1000
+                }).addTo(map);
+                
+                // 添加点击事件
+                marker.on('click', function(e) {
+                    showCPPSPopup(index);
+                });
+                
+                cpPSMarkers.push(marker);
+            });
+        }
+
+        // 清除发电站标记
+        function clearCPPSMarkers() {
+            cpPSMarkers.forEach(marker => {
+                map.removeLayer(marker);
+            });
+            cpPSMarkers = [];
+        }
+
+        // 显示发电站弹窗
+        function showCPPSPopup(index) {
+            const point = cpPSData[index];
+            if (!point) return;
+            
+            // 创建弹窗
+            const popup = document.createElement('div');
+            popup.className = 'cp-ps-popup';
+            popup.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: white;
+                border: 3px solid #FFC107;
+                border-radius: 12px;
+                padding: 20px;
+                z-index: 10000;
+                max-width: 80vw;
+                max-height: 80vh;
+                box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+                font-family: Arial, sans-serif;
+                text-align: center;
+                backdrop-filter: blur(10px);
+            `;
+
+            // 弹窗内容
+            const imageUrl = `https://gta-maps.antwen.com/collectibles_images/cp_ps/cp_ps_${index + 1}.webp`;
+            
+            popup.innerHTML = `
+                <div style="position: relative;">
+                    <h3 style="margin: 0 0 15px 0; color: #333; font-size: 18px;">佩里科岛发电站</h3>
+                    <img src="${imageUrl}" alt="发电站位置" style="
+                        max-width: 100%;
+                        max-height: 400px;
+                        border-radius: 8px;
+                        margin-bottom: 15px;
+                        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+                        transition: all 0.3s ease;
+                    " onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                    <div style="display: none; padding: 20px; background: #f0f0f0; border-radius: 8px; margin-bottom: 15px;">
+                        图片加载失败
+                    </div>
+                    <p style="margin: 0; color: #666; font-size: 14px; line-height: 1.5;">
+                        佩里科岛的发电站，摧毁后可以关闭岛上的部分安保系统
+                    </p>
+                    <div style="margin-top: 20px; display: flex; justify-content: center; gap: 10px;">
+                        <button id="hide-marker-btn" style="
+                            padding: 10px 20px;
+                            background: #4CAF50;
+                            color: white;
+                            border: none;
+                            border-radius: 6px;
+                            cursor: pointer;
+                            font-size: 16px;
+                            transition: background 0.3s;
+                        " onmouseover="this.style.background='#45a049'" onmouseout="this.style.background='#4CAF50'">
+                            隐藏
+                        </button>
+                        <button id="restore-marker-btn" style="
+                            padding: 10px 20px;
+                            background: #2196F3;
+                            color: white;
+                            border: none;
+                            border-radius: 6px;
+                            cursor: pointer;
+                            font-size: 16px;
+                            transition: background 0.3s;
+                        " onmouseover="this.style.background='#1976D2'" onmouseout="this.style.background='#2196F3'">
+                            恢复
+                        </button>
+                        <button id="close-popup-btn" style="
+                            padding: 10px 20px;
+                            background: #f44336;
+                            color: white;
+                            border: none;
+                            border-radius: 6px;
+                            cursor: pointer;
+                            font-size: 16px;
+                            transition: background 0.3s;
+                        " onmouseover="this.style.background='#d32f2f'" onmouseout="this.style.background='#f44336'">
+                            关闭
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(popup);
+
+            // 添加关闭按钮事件监听
+            const closeBtn = popup.querySelector('#close-popup-btn');
+            closeBtn.addEventListener('click', () => {
+                popup.remove();
+            });
+
+            // 添加隐藏按钮事件监听
+            const hideBtn = popup.querySelector('#hide-marker-btn');
+            hideBtn.addEventListener('click', () => {
+                // 设置对应标记的透明度为25%
+                if (cpPSMarkers[index]) {
+                    cpPSMarkers[index].setOpacity(0.25);
+                }
+                popup.remove();
+            });
+
+            // 添加恢复按钮事件监听
+            const restoreBtn = popup.querySelector('#restore-marker-btn');
+            restoreBtn.addEventListener('click', () => {
+                // 恢复的透明度为100%
+                if (cpPSMarkers[index]) {
+                    cpPSMarkers[index].setOpacity(1);
+                }
+                popup.remove();
+            });
+
+            // 点击弹窗外部关闭
+            popup.addEventListener('click', (e) => e.stopPropagation());
+            
+            // 使用setTimeout延迟添加document点击事件，避免立即触发
+            setTimeout(() => {
+                const closePopupHandler = (e) => {
+                    if (!popup.contains(e.target)) {
+                        popup.remove();
+                        document.removeEventListener('click', closePopupHandler);
+                    }
+                };
+                document.addEventListener('click', closePopupHandler);
+            }, 100);
+        }
+
+        // 创建控制塔标记
+        function createCPCTMarkers() {
+            // 清除现有的标记
+            clearCPCTMarkers();
+
+            const z = Math.round(map.getZoom());
+            
+            cpCTData.forEach((point, index) => {
+                // 将游戏坐标转换为经纬度坐标
+                const pixel = gameToPixel(point.x, point.y, z);
+                const latlng = map.unproject(L.point(pixel.x, pixel.y), z);
+                
+                // 创建自定义图标
+                const customIcon = L.icon({
+                    iconUrl: './src/assets/cp_ct.svg',
+                    iconSize: [32, 32],
+                    iconAnchor: [16, 16],
+                    popupAnchor: [0, -16]
+                });
+                
+                // 创建Leaflet标记
+                const marker = L.marker(latlng, {
+                    icon: customIcon,
+                    interactive: true,
+                    zIndexOffset: 1000
+                }).addTo(map);
+                
+                // 添加点击事件
+                marker.on('click', function(e) {
+                    showCPCTPopup(index);
+                });
+                
+                cpCTMarkers.push(marker);
+            });
+        }
+
+        // 清除控制塔标记
+        function clearCPCTMarkers() {
+            cpCTMarkers.forEach(marker => {
+                map.removeLayer(marker);
+            });
+            cpCTMarkers = [];
+        }
+
+        // 显示控制塔弹窗
+        function showCPCTPopup(index) {
+            const point = cpCTData[index];
+            if (!point) return;
+            
+            // 创建弹窗
+            const popup = document.createElement('div');
+            popup.className = 'cp-ct-popup';
+            popup.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: white;
+                border: 3px solid #FF5722;
+                border-radius: 12px;
+                padding: 20px;
+                z-index: 10000;
+                max-width: 80vw;
+                max-height: 80vh;
+                box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+                font-family: Arial, sans-serif;
+                text-align: center;
+                backdrop-filter: blur(10px);
+            `;
+
+            // 弹窗内容
+            const imageUrl = `https://gta-maps.antwen.com/collectibles_images/cp_ct/cp_ct_${index + 1}.webp`;
+            
+            popup.innerHTML = `
+                <div style="position: relative;">
+                    <h3 style="margin: 0 0 15px 0; color: #333; font-size: 18px;">佩里科岛控制塔</h3>
+                    <img src="${imageUrl}" alt="控制塔位置" style="
+                        max-width: 100%;
+                        max-height: 400px;
+                        border-radius: 8px;
+                        margin-bottom: 15px;
+                        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+                        transition: all 0.3s ease;
+                    " onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
+                    <div style="display: none; padding: 20px; background: #f0f0f0; border-radius: 8px; margin-bottom: 15px;">
+                        图片加载失败
+                    </div>
+                    <p style="margin: 0; color: #666; font-size: 14px; line-height: 1.5;">
+                        佩里科岛的控制塔，摧毁后可以降低岛上的警戒等级
+                    </p>
+                    <div style="margin-top: 20px; display: flex; justify-content: center; gap: 10px;">
+                        <button id="hide-marker-btn" style="
+                            padding: 10px 20px;
+                            background: #4CAF50;
+                            color: white;
+                            border: none;
+                            border-radius: 6px;
+                            cursor: pointer;
+                            font-size: 16px;
+                            transition: background 0.3s;
+                        " onmouseover="this.style.background='#45a049'" onmouseout="this.style.background='#4CAF50'">
+                            隐藏
+                        </button>
+                        <button id="restore-marker-btn" style="
+                            padding: 10px 20px;
+                            background: #2196F3;
+                            color: white;
+                            border: none;
+                            border-radius: 6px;
+                            cursor: pointer;
+                            font-size: 16px;
+                            transition: background 0.3s;
+                        " onmouseover="this.style.background='#1976D2'" onmouseout="this.style.background='#2196F3'">
+                            恢复
+                        </button>
+                        <button id="close-popup-btn" style="
+                            padding: 10px 20px;
+                            background: #f44336;
+                            color: white;
+                            border: none;
+                            border-radius: 6px;
+                            cursor: pointer;
+                            font-size: 16px;
+                            transition: background 0.3s;
+                        " onmouseover="this.style.background='#d32f2f'" onmouseout="this.style.background='#f44336'">
+                            关闭
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(popup);
+
+            // 添加关闭按钮事件监听
+            const closeBtn = popup.querySelector('#close-popup-btn');
+            closeBtn.addEventListener('click', () => {
+                popup.remove();
+            });
+
+            // 添加隐藏按钮事件监听
+            const hideBtn = popup.querySelector('#hide-marker-btn');
+            hideBtn.addEventListener('click', () => {
+                // 设置对应标记的透明度为25%
+                if (cpCTMarkers[index]) {
+                    cpCTMarkers[index].setOpacity(0.25);
+                }
+                popup.remove();
+            });
+
+            // 添加恢复按钮事件监听
+            const restoreBtn = popup.querySelector('#restore-marker-btn');
+            restoreBtn.addEventListener('click', () => {
+                // 恢复的透明度为100%
+                if (cpCTMarkers[index]) {
+                    cpCTMarkers[index].setOpacity(1);
+                }
+                popup.remove();
+            });
+
+            // 点击弹窗外部关闭
+            popup.addEventListener('click', (e) => e.stopPropagation());
+            
+            // 使用setTimeout延迟添加document点击事件，避免立即触发
+            setTimeout(() => {
+                const closePopupHandler = (e) => {
+                    if (!popup.contains(e.target)) {
+                        popup.remove();
+                        document.removeEventListener('click', closePopupHandler);
+                    }
+                };
+                document.addEventListener('click', closePopupHandler);
+            }, 100);
+        }
+
+        // 创建地下藏匿品标记
+        function createBuriedStashMarkers() {
+            // 清除现有的标记
+            clearBuriedStashMarkers();
+
+            const z = Math.round(map.getZoom());
+            
+            buriedStashes.forEach((stash, index) => {
+                // 将游戏坐标转换为经纬度坐标
+                const pixel = gameToPixel(stash.x, stash.y, z);
+                const latlng = map.unproject(L.point(pixel.x, pixel.y), z);
+                
+                // 创建自定义图标
+                const customIcon = L.icon({
+                    iconUrl: './src/assets/cp_bs.svg',
+                    iconSize: [32, 32],
+                    iconAnchor: [16, 16],
+                    popupAnchor: [0, -16]
+                });
+                
+                // 创建Leaflet标记
+                const marker = L.marker(latlng, {
+                    icon: customIcon,
+                    interactive: true,
+                    zIndexOffset: 1000
+                }).addTo(map);
+                
+                // 添加点击事件
+                marker.on('click', function(e) {
+                    showBuriedStashPopup(index);
+                });
+                
+                buriedStashMarkers.push(marker);
+            });
+        }
+
+        // 清除地下藏匿品标记
+        function clearBuriedStashMarkers() {
+            buriedStashMarkers.forEach(marker => {
+                map.removeLayer(marker);
+            });
+            buriedStashMarkers = [];
+        }
+
+        // 显示地下藏匿品弹窗
+        function showBuriedStashPopup(index) {
+            const stash = buriedStashes[index];
+            if (!stash) return;
+            
+            // 创建弹窗
+            const popup = document.createElement('div');
+            popup.className = 'buried-stash-popup';
+            popup.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: white;
+                border: 3px solid #795548;
+                border-radius: 12px;
+                padding: 20px;
+                z-index: 10000;
+                max-width: 80vw;
+                max-height: 80vh;
+                box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+                font-family: Arial, sans-serif;
+                text-align: center;
+                backdrop-filter: blur(10px);
+            `;
+
+            // 根据坐标在zones.json中的实际位置确定序号
+            let imageIndex = index + 1; // 默认序号
+
+            // 使用全局存储的地下藏匿品数据（从zones.json获取）
+            const buriedStashesData = globalBuriedStashesData.length > 0 ? globalBuriedStashesData : [];
+            
+            // 查找匹配的坐标
+            for (let i = 0; i < buriedStashesData.length; i++) {
+                const data = buriedStashesData[i];
+                if (data && data.x !== undefined && data.y !== undefined) {
+                    // 检查坐标是否匹配（允许小误差）
+                    if (Math.abs(data.x - stash.x) < 1 && Math.abs(data.y - stash.y) < 1) {
+                        imageIndex = i + 1;
+                        break;
+                    }
+                }
+            }
+            
+            // 弹窗内容
+            const imageUrl = `https://gta-maps.antwen.com/collectibles_images/cp_bs/cp_bs_${imageIndex}.webp`;
+            
+            popup.innerHTML = `
+                <div style="position: relative;">
+                    <h3 style="margin: 0 0 15px 0; color: #333; font-size: 18px;">佩里科岛地下藏匿品 #${imageIndex}</h3>
+                    <img src="${imageUrl}" alt="地下藏匿品位置" style="
+                        max-width: 100%;
+                        max-height: 400px;
+                        border-radius: 8px;
+                        margin-bottom: 15px;
+                        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+                        transition: all 0.3s ease;
+                    " onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                    <div style="display: none; padding: 20px; background: #f0f0f0; border-radius: 8px; margin-bottom: 15px;">
+                        图片加载失败
+                    </div>
+                    <p style="margin: 0; color: #666; font-size: 14px; line-height: 1.5;">
+                        使用金属探测器在此处挖掘可获得奖励
+                    </p>
+                    <div style="margin-top: 20px; display: flex; justify-content: center; gap: 10px;">
+                        <button id="hide-marker-btn" style="
+                            padding: 10px 20px;
+                            background: #4CAF50;
+                            color: white;
+                            border: none;
+                            border-radius: 6px;
+                            cursor: pointer;
+                            font-size: 16px;
+                            transition: background 0.3s;
+                        " onmouseover="this.style.background='#45a049'" onmouseout="this.style.background='#4CAF50'">
+                            隐藏
+                        </button>
+                        <button id="restore-marker-btn" style="
+                            padding: 10px 20px;
+                            background: #2196F3;
+                            color: white;
+                            border: none;
+                            border-radius: 6px;
+                            cursor: pointer;
+                            font-size: 16px;
+                            transition: background 0.3s;
+                        " onmouseover="this.style.background='#1976D2'" onmouseout="this.style.background='#2196F3'">
+                            恢复
+                        </button>
+                        <button id="close-popup-btn" style="
+                            padding: 10px 20px;
+                            background: #f44336;
+                            color: white;
+                            border: none;
+                            border-radius: 6px;
+                            cursor: pointer;
+                            font-size: 16px;
+                            transition: background 0.3s;
+                        " onmouseover="this.style.background='#d32f2f'" onmouseout="this.style.background='#f44336'">
+                            关闭
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(popup);
+
+            // 添加关闭按钮事件监听
+            const closeBtn = popup.querySelector('#close-popup-btn');
+            closeBtn.addEventListener('click', () => {
+                popup.remove();
+            });
+
+            // 添加隐藏按钮事件监听
+            const hideBtn = popup.querySelector('#hide-marker-btn');
+            hideBtn.addEventListener('click', () => {
+                // 设置对应标记的透明度为25%
+                if (buriedStashMarkers[index]) {
+                    buriedStashMarkers[index].setOpacity(0.25);
+                }
+                popup.remove();
+            });
+
+            // 添加恢复按钮事件监听
+            const restoreBtn = popup.querySelector('#restore-marker-btn');
+            restoreBtn.addEventListener('click', () => {
+                // 恢复的透明度为100%
+                if (buriedStashMarkers[index]) {
+                    buriedStashMarkers[index].setOpacity(1);
+                }
+                popup.remove();
+            });
+
+            // 点击弹窗外部关闭
+            popup.addEventListener('click', (e) => e.stopPropagation());
+            
+            // 使用setTimeout延迟添加document点击事件，避免立即触发
+            setTimeout(() => {
+                const closePopupHandler = (e) => {
+                    if (!popup.contains(e.target)) {
+                        popup.remove();
+                        document.removeEventListener('click', closePopupHandler);
+                    }
+                };
+                document.addEventListener('click', closePopupHandler);
+            }, 100);
+        }
+
+        // 创建藏宝箱标记
+        function createTreasureChestMarkers() {
+            // 清除现有的标记
+            clearTreasureChestMarkers();
+
+            const z = Math.round(map.getZoom());
+            
+            treasureChests.forEach((chest, index) => {
+                // 将游戏坐标转换为经纬度坐标
+                const pixel = gameToPixel(chest.x, chest.y, z);
+                const latlng = map.unproject(L.point(pixel.x, pixel.y), z);
+                
+                // 使用统一的藏宝箱图标
+                const customIcon = L.icon({
+                    iconUrl: './src/assets/cp_tc.svg',
+                    iconSize: [32, 32],
+                    iconAnchor: [16, 16],
+                    popupAnchor: [0, -16]
+                });
+                
+                // 创建Leaflet标记
+                const marker = L.marker(latlng, {
+                    icon: customIcon,
+                    interactive: true,
+                    zIndexOffset: 1000
+                }).addTo(map);
+                
+                // 添加点击事件
+                marker.on('click', function(e) {
+                    showTreasureChestPopup(index);
+                });
+                
+                treasureChestMarkers.push(marker);
+            });
+        }
+
+        // 清除藏宝箱标记
+        function clearTreasureChestMarkers() {
+            treasureChestMarkers.forEach(marker => {
+                map.removeLayer(marker);
+            });
+            treasureChestMarkers = [];
+        }
+
+        // 显示藏宝箱弹窗
+        function showTreasureChestPopup(index) {
+            const chest = treasureChests[index];
+            if (!chest) return;
+            
+            // 创建弹窗
+            const popup = document.createElement('div');
+            popup.className = 'treasure-chest-popup';
+            popup.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: white;
+                border: 3px solid #FFD700;
+                border-radius: 12px;
+                padding: 20px;
+                z-index: 10000;
+                max-width: 80vw;
+                max-height: 80vh;
+                box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+                font-family: Arial, sans-serif;
+                text-align: center;
+                backdrop-filter: blur(10px);
+            `;
+
+            // 根据坐标在zones.json中的实际位置确定序号
+            let chestType = '藏宝箱';
+            let imageUrl = '';
+            let imageIndex = 1; // 默认序号
+            
+            // 使用全局存储的藏宝箱数据（从zones.json获取）
+            const treasureChestsData = globalTreasureChestsData.length > 0 ? globalTreasureChestsData : [];
+            
+            // 查找匹配的坐标
+            let foundIndex = -1;
+            for (let i = 0; i < treasureChestsData.length; i++) {
+                const data = treasureChestsData[i];
+                if (data && data.x !== undefined && data.y !== undefined) {
+                    // 检查坐标是否匹配（允许小误差）
+                    if (Math.abs(data.x - chest.x) < 1 && Math.abs(data.y - chest.y) < 1) {
+                        foundIndex = i;
+                        imageIndex = i + 1;
+                        // 根据名称判断是陆地还是水下
+                        if (imageIndex>10) { // 水下藏宝箱
+                            chestType = '水下藏宝箱';
+                            imageIndex = imageIndex - 10;
+                            if (imageIndex <= 0) imageIndex = 1;
+                            imageUrl = `https://gta-maps.antwen.com/collectibles_images/cp_tc_w/cp_tc_w_${imageIndex}.webp`;
+                        } else { // 陆地藏宝箱
+                            chestType = '陆地藏宝箱';
+                            imageUrl = `https://gta-maps.antwen.com/collectibles_images/cp_tc_l/cp_tc_l_${imageIndex}.webp`;
+                        }
+                        break;
+                    }
+                }
+            }
+            
+            // 如果没有找到匹配的坐标，使用默认逻辑
+            if (foundIndex === -1) {
+                // 特别处理第二个藏宝箱（索引为1）或Y坐标小于-5200的藏宝箱为水下藏宝箱
+                if (index === 1 || chest.y < -5200) { // 水下藏宝箱
+                    chestType = '水下藏宝箱';
+                    imageIndex = index + 1 - 10;
+                    if (imageIndex <= 0) imageIndex = 1;
+                    imageUrl = `https://gta-maps.antwen.com/collectibles_images/cp_tc_w/cp_tc_w_${imageIndex}.webp`;
+                } else { // 陆地藏宝箱
+                    chestType = '陆地藏宝箱';
+                    imageIndex = index + 1;
+                    imageUrl = `https://gta-maps.antwen.com/collectibles_images/cp_tc_l/cp_tc_l_${imageIndex}.webp`;
+                }
+            }
+            
+            popup.innerHTML = `
+                <div style="position: relative;">
+                    <h3 style="margin: 0 0 15px 0; color: #333; font-size: 18px;">佩里科岛${chestType} #${imageIndex}</h3>
+                    <img src="${imageUrl}" alt="${chestType}位置" style="
+                        max-width: 100%;
+                        max-height: 400px;
+                        border-radius: 8px;
+                        margin-bottom: 15px;
+                        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+                        transition: all 0.3s ease;
+                    " onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                    <div style="display: none; padding: 20px; background: #f0f0f0; border-radius: 8px; margin-bottom: 15px;">
+                        图片加载失败
+                    </div>
+                    <p style="margin: 0; color: #666; font-size: 14px; line-height: 1.5;">
+                        挖掘此处可获得丰厚奖励
+                    </p>
+                    <div style="margin-top: 20px; display: flex; justify-content: center; gap: 10px;">
+                        <button id="hide-marker-btn" style="
+                            padding: 10px 20px;
+                            background: #4CAF50;
+                            color: white;
+                            border: none;
+                            border-radius: 6px;
+                            cursor: pointer;
+                            font-size: 16px;
+                            transition: background 0.3s;
+                        " onmouseover="this.style.background='#45a049'" onmouseout="this.style.background='#4CAF50'">
+                            隐藏
+                        </button>
+                        <button id="restore-marker-btn" style="
+                            padding: 10px 20px;
+                            background: #2196F3;
+                            color: white;
+                            border: none;
+                            border-radius: 6px;
+                            cursor: pointer;
+                            font-size: 16px;
+                            transition: background 0.3s;
+                        " onmouseover="this.style.background='#1976D2'" onmouseout="this.style.background='#2196F3'">
+                            恢复
+                        </button>
+                        <button id="close-popup-btn" style="
+                            padding: 10px 20px;
+                            background: #f44336;
+                            color: white;
+                            border: none;
+                            border-radius: 6px;
+                            cursor: pointer;
+                            font-size: 16px;
+                            transition: background 0.3s;
+                        " onmouseover="this.style.background='#d32f2f'" onmouseout="this.style.background='#f44336'">
+                            关闭
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(popup);
+
+            // 添加关闭按钮事件监听
+            const closeBtn = popup.querySelector('#close-popup-btn');
+            closeBtn.addEventListener('click', () => {
+                popup.remove();
+            });
+
+            // 添加隐藏按钮事件监听
+            const hideBtn = popup.querySelector('#hide-marker-btn');
+            hideBtn.addEventListener('click', () => {
+                // 设置对应标记的透明度为25%
+                if (treasureChestMarkers[index]) {
+                    treasureChestMarkers[index].setOpacity(0.25);
+                }
+                popup.remove();
+            });
+
+            // 添加恢复按钮事件监听
+            const restoreBtn = popup.querySelector('#restore-marker-btn');
+            restoreBtn.addEventListener('click', () => {
+                // 恢复的透明度为100%
+                if (treasureChestMarkers[index]) {
+                    treasureChestMarkers[index].setOpacity(1);
+                }
+                popup.remove();
+            });
+
+            // 点击弹窗外部关闭
+            popup.addEventListener('click', (e) => e.stopPropagation());
+            
+            // 使用setTimeout延迟添加document点击事件，避免立即触发
+            setTimeout(() => {
+                const closePopupHandler = (e) => {
+                    if (!popup.contains(e.target)) {
+                        popup.remove();
+                        document.removeEventListener('click', closePopupHandler);
+                    }
+                };
+                document.addEventListener('click', closePopupHandler);
+            }, 100);
+        }
+
+
+        
+
+        // zoom 改变时更新中心标记位置（使用当前缩放级别的整张图中心）
+        map.on('zoomend', function() {
+            const z = Math.round(map.getZoom());
+            const size = totalSizeForZoom(z);
+            const centerPoint = L.point(size.width/2, size.height/2);
+            
+            // 限制地图拖动范围
+            limitMapBounds(z);
+            
+            // 重新创建物品标记
+            updateMarkers();
+        });
+
+        // moveend 事件更新标记位置
+        map.on('moveend', function() {
+            // 重新创建物品标记
+            updateMarkers();
+        });
+
+        // 限制地图拖动范围
+        function limitMapBounds(z) {
+            const size = totalSizeForZoom(z);
+            const padding = size.width * 0.2; // 允许超出20%的范围
+            
+            const sw = map.unproject(L.point(-padding, size.height + padding), z);
+            const ne = map.unproject(L.point(size.width + padding, -padding), z);
+            map.setMaxBounds(new L.LatLngBounds(sw, ne));
+        }
+
+        // 点击输出当前游戏坐标（控制台）
+        map.on('click', function(e) {
+            const z = Math.round(map.getZoom());
+            const pixelPoint = map.project(e.latlng, z);
+            const game = pixelToGame(pixelPoint.x, pixelPoint.y, z);
+            console.log('map click -> pixel:', Math.round(pixelPoint.x), Math.round(pixelPoint.y), 'game:', { x: game.x, y: game.y });
+        });
+
+        // resize 修正
+        setTimeout(() => map.invalidateSize(), 100);
+
+        // 初始化限制地图边界
+        limitMapBounds(initialZoom);
+
+        // 移动端菜单交互
+        const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+        const mobileMenu = document.getElementById('mobile-menu');
+        
+        if (mobileMenuToggle && mobileMenu) {
+            mobileMenuToggle.addEventListener('click', (e) => {
+                e.stopPropagation();
+                mobileMenu.classList.toggle('show');
+            });
+
+            // 点击其他地方关闭菜单
+            document.addEventListener('click', (e) => {
+                if (!mobileMenu.contains(e.target) && e.target !== mobileMenuToggle) {
+                    mobileMenu.classList.remove('show');
+                }
+            });
+        }
+    </script>
+
+    <script>
+        // Prevent pinch/double-tap zoom across devices
+        (function preventPinchZoom() {
+            function stopEvent(e) { e.preventDefault(); }
+            try {
+                document.addEventListener('gesturestart', stopEvent, { passive: false });
+                document.addEventListener('gesturechange', stopEvent, { passive: false });
+                document.addEventListener('gestureend', stopEvent, { passive: false });
+            } catch (err) {}
+
+            document.addEventListener('touchstart', function(e) {
+                if (e.touches && e.touches.length > 1) e.preventDefault();
+            }, { passive: false });
+
+            document.addEventListener('touchmove', function(e) {
+                if (e.touches && e.touches.length > 1) e.preventDefault();
+            }, { passive: false });
+
+            let lastTouchEnd = 0;
+            document.addEventListener('touchend', function(e) {
+                const now = Date.now();
+                if (now - lastTouchEnd <= 300) e.preventDefault();
+                lastTouchEnd = now;
+            }, { passive: false });
+
+            window.addEventListener('wheel', function(e) {
+                if (e.ctrlKey) e.preventDefault();
+            }, { passive: false });
+        })();
+    </script>
+
+</body>
+</html>

@@ -2198,7 +2198,7 @@
             vehicles.forEach((vehicle, index) => {
                 const vehicleType = Array.isArray(vehicleTypes) ? vehicleTypes[index] : vehicleTypes;
                 const imageUrl = vehicle.img ? `https://gta-images.antwen.com/${vehicle.img.replace(/^\/+/, '')}` : '';
-                const detailUrl = vehicle.modelHash ? `https://vehicle.antwen.com/#/vehicle/${vehicle.modelHash.toLowerCase()}` : '';
+                const detailUrl = vehicle.modelHash ? `/vehicles#/vehicle/${vehicle.modelHash.toLowerCase()}` : '';
                 
                 // 处理涂装价格显示
                 let liveryPriceDisplay = '';
@@ -5049,13 +5049,19 @@
 
         // 显示武器厢型车武器信息
         function showGunVanWeapons() {
-
-            // 从API动态获取武器信息
-            fetch('https://api-gta.antwen.com/api/items/gun-van')
+            // 加载labels.json数据
+            let labelsData = {};
+            fetch('./src/data/labels.json')
+                .then(response => response.json())
+                .then(labels => {
+                    labelsData = labels;
+                    // 从API动态获取武器信息
+                    return fetch('https://api-gta.antwen.com/api/items/gun-van');
+                })
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        displayGunVanWeapons(data.data.message);
+                        displayGunVanWeapons(data.data.message, labelsData);
                     } else {
                         console.error('获取武器厢型车信息失败:', data.error);
                         alert('获取武器信息失败，请稍后重试');
@@ -5066,7 +5072,7 @@
                     alert('网络请求失败，请检查网络连接');
                 });
 
-            function displayGunVanWeapons(message) {
+            function displayGunVanWeapons(message, labels) {
                 // 解析API返回的消息来提取武器信息
                 const lines = message.split('\n');
                 const weapons = [];
@@ -5081,7 +5087,12 @@
                     } else if (line.trim() && line.includes('-')) {
                         const match = line.match(/- (.+?) \((\d+)折\)/);
                         if (match) {
-                            const weaponName = match[1];
+                            // 尝试从labels中查找武器的中文名称
+                            let weaponName = match[1];
+                            if (labels.hasOwnProperty(weaponName)) {
+                                weaponName = labels[weaponName];
+                            }
+                            
                             const discountText = match[2] + '折';
                             
                             const weaponEntry = {

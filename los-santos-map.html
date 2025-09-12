@@ -971,9 +971,9 @@
                     <div class="map-style-selector">
 
                         <select id="map-style-select" style="width:100%; margin-top:6px;">
-                            <option value="https://gta-maps.antwen.com/maps/gta_map/gta_map_game">游戏 (Game)</option>
-                            <option value="https://gta-maps.antwen.com/maps/gta_map/gta_map_render">渲染 (Render)</option>
-                            <option value="https://gta-maps.antwen.com/maps/gta_map/gta_map_print">印刷 (Print)</option>
+                            <option value="https://eo-gta-maps.antwen.com/maps/gta_map/gta_map_game">游戏 (Game)</option>
+                            <option value="https://eo-gta-maps.antwen.com/maps/gta_map/gta_map_render">渲染 (Render)</option>
+                            <option value="https://eo-gta-maps.antwen.com/maps/gta_map/gta_map_print">印刷 (Print)</option>
                         </select>
                     </div>
                 </div>
@@ -2197,7 +2197,7 @@
             
             vehicles.forEach((vehicle, index) => {
                 const vehicleType = Array.isArray(vehicleTypes) ? vehicleTypes[index] : vehicleTypes;
-                const imageUrl = vehicle.img ? `https://gta-images.antwen.com/${vehicle.img.replace(/^\/+/, '')}` : '';
+                const imageUrl = vehicle.img ? `https://eo-gta-images.antwen.com/${vehicle.img.replace(/^\/+/, '')}` : '';
                 const detailUrl = vehicle.modelHash ? `/vehicles#/vehicle/${vehicle.modelHash.toLowerCase()}` : '';
                 
                 // 处理涂装价格显示
@@ -2640,7 +2640,7 @@
              const sequenceNumber = index + 1;
              // 1-9使用单个数字，10+使用两位数
              const paddedNumber = sequenceNumber < 10 ? sequenceNumber.toString() : sequenceNumber.toString().padStart(2, '0');
-             const imageUrl = `https://gta-maps.antwen.com/collectibles_images/signal_jammers/signal_jammers_${paddedNumber}.webp`;
+             const imageUrl = `https://eo-gta-maps.antwen.com/collectibles_images/signal_jammers/signal_jammers_${paddedNumber}.webp`;
             
             // 创建弹窗
             const popup = document.createElement('div');
@@ -2755,7 +2755,7 @@
         function showJackOLanternImage(index) {
             // 序号从1开始
             const sequenceNumber = index + 1;
-            const imageUrl = `https://gta-maps.antwen.com/collectibles_images/lantern/lantern_${sequenceNumber.toString().padStart(2, '0')}.webp`;
+            const imageUrl = `https://eo-gta-maps.antwen.com/collectibles_images/lantern/lantern_${sequenceNumber.toString().padStart(2, '0')}.webp`;
             
             // 创建弹窗
             const popup = document.createElement('div');
@@ -2853,7 +2853,7 @@
         function showPlayingCardsImage(index) {
             // 序号从1开始
             const sequenceNumber = index + 1;
-            const imageUrl = `https://gta-maps.antwen.com/collectibles_images/playing_cards/playing_cards_${sequenceNumber}.webp`;
+            const imageUrl = `https://eo-gta-maps.antwen.com/collectibles_images/playing_cards/playing_cards_${sequenceNumber}.webp`;
             
             // 创建弹窗
             const popup = document.createElement('div');
@@ -2966,7 +2966,7 @@
         function showSmokeProductImage(index) {
             // 序号从1开始
             const sequenceNumber = index + 1;
-            const imageUrl = `https://gta-maps.antwen.com/collectibles_images/smoke_on_the_water_product/smoke_on_the_water_product_${sequenceNumber}.webp`;
+            const imageUrl = `https://eo-gta-maps.antwen.com/collectibles_images/smoke_on_the_water_product/smoke_on_the_water_product_${sequenceNumber}.webp`;
             
             // 创建弹窗
             const popup = document.createElement('div');
@@ -3082,7 +3082,7 @@
         function showActionFiguresImage(index) {
             // 序号从1开始
             const sequenceNumber = index + 1;
-            const imageUrl = `https://gta-maps.antwen.com/collectibles_images/action_figures/action_figures_${sequenceNumber}.webp`;
+            const imageUrl = `https://eo-gta-maps.antwen.com/collectibles_images/action_figures/action_figures_${sequenceNumber}.webp`;
             
             // 创建弹窗
             const popup = document.createElement('div');
@@ -3198,7 +3198,7 @@
         function showYuanbaoImage(index) {
             // 序号从1开始
             const sequenceNumber = index + 1;
-            const imageUrl = `https://gta-maps.antwen.com/collectibles_images/yuanbao/yuanbao_${sequenceNumber}.webp`;
+            const imageUrl = `https://eo-gta-maps.antwen.com/collectibles_images/yuanbao/yuanbao_${sequenceNumber}.webp`;
             
             // 创建弹窗
             const popup = document.createElement('div');
@@ -3325,7 +3325,7 @@
             }
             
             console.log('沉船sequenceNumber:', sequenceNumber);
-            const imageUrl = `https://gta-maps.antwen.com/collectibles_images/shipwrecks/shipwrecks_${sequenceNumber}.webp`;
+            const imageUrl = `https://eo-gta-maps.antwen.com/collectibles_images/shipwrecks/shipwrecks_${sequenceNumber}.webp`;
             
             // 创建弹窗
             const popup = document.createElement('div');
@@ -3545,7 +3545,7 @@
         function showGolfHolesImage(index) {
             // 序号从1开始
             const sequenceNumber = index + 1;
-            const imageUrl = `https://gta-maps.antwen.com/collectibles_images/golf_holes/golf_holes_${sequenceNumber}.webp`;
+            const imageUrl = `https://eo-gta-maps.antwen.com/collectibles_images/golf_holes/golf_holes_${sequenceNumber}.webp`;
             
             // 创建弹窗
             const popup = document.createElement('div');
@@ -3658,7 +3658,7 @@
         function showSprayImage(index) {
             // 序号从1开始
             const sequenceNumber = index + 1;
-            const imageUrl = `https://gta-maps.antwen.com/collectibles_images/spray/spray_${sequenceNumber}.webp`;
+            const imageUrl = `https://eo-gta-maps.antwen.com/collectibles_images/spray/spray_${sequenceNumber}.webp`;
             
             // 创建弹窗
             const popup = document.createElement('div');
@@ -3771,7 +3771,7 @@
         function showStuntJumpsImage(index) {
             // 序号从1开始
             const sequenceNumber = index + 1;
-            const imageUrl = `https://gta-maps.antwen.com/collectibles_images/stunt_jumps/stunt_jumps_${sequenceNumber}.webp`;
+            const imageUrl = `https://eo-gta-maps.antwen.com/collectibles_images/stunt_jumps/stunt_jumps_${sequenceNumber}.webp`;
             
             // 创建弹窗
             const popup = document.createElement('div');
@@ -3883,7 +3883,7 @@
         function showSnowmenImage(index) {
             // 序号从1开始
             const sequenceNumber = index + 1;
-            const imageUrl = `https://gta-maps.antwen.com/collectibles_images/snowmen/snowmen_${sequenceNumber}.webp`;
+            const imageUrl = `https://eo-gta-maps.antwen.com/collectibles_images/snowmen/snowmen_${sequenceNumber}.webp`;
             
             // 创建弹窗
             const popup = document.createElement('div');
@@ -4093,7 +4093,7 @@
         function showDeadDropImage(index) {
             // 序号从1开始
             const sequenceNumber = index + 1;
-            const imageUrl = `https://gta-maps.antwen.com/collectibles_images/dead_drop/dead_drop_${sequenceNumber}.webp`;
+            const imageUrl = `https://eo-gta-maps.antwen.com/collectibles_images/dead_drop/dead_drop_${sequenceNumber}.webp`;
             
             // 创建弹窗
             const popup = document.createElement('div');
@@ -4207,7 +4207,7 @@
         function showOrganicFarmImage(index) {
             // 序号从1开始
             const sequenceNumber = index + 1;
-            const imageUrl = `https://gta-maps.antwen.com/collectibles_images/ld_organics/ld_organics_${sequenceNumber.toString().padStart(2, '0')}.webp`;
+            const imageUrl = `https://eo-gta-maps.antwen.com/collectibles_images/ld_organics/ld_organics_${sequenceNumber.toString().padStart(2, '0')}.webp`;
             
             // 创建弹窗
             const popup = document.createElement('div');
@@ -4560,7 +4560,7 @@
         function showLSTagsImage(tag) {
             // 使用API返回的编号数字
             const sequenceNumber = tag.sequenceNumber;
-            const imageUrl = `https://gta-maps.antwen.com/collectibles_images/ls_tags/ls_tags_${sequenceNumber}.webp`;
+            const imageUrl = `https://eo-gta-maps.antwen.com/collectibles_images/ls_tags/ls_tags_${sequenceNumber}.webp`;
             
             // 创建弹窗
             const popup = document.createElement('div');

@@ -1206,7 +1206,7 @@ let browseState = {
 
             const processImageUrl = (url) => {
                 if (url && !url.startsWith('http')) {
-                    return 'https://gta-images.antwen.com/' + url;
+                    return 'https://eo-gta-images.antwen.com/' + url;
                 }
                 return url;
             };
@@ -1387,7 +1387,7 @@ let browseState = {
                         const priceClass = isFree ? 'text-red-400' : 'text-green-400';
                         let localLiveryPath = `images/${vehicle.ModelName}/${vehicle.ModelName}_livery_${livery.id}.jpg`;
                         if (!localLiveryPath.startsWith('http')) {
-                            localLiveryPath = 'https://gta-images.antwen.com/' + localLiveryPath;
+                            localLiveryPath = 'https://eo-gta-images.antwen.com/' + localLiveryPath;
                         }
 
                         return `
@@ -1753,7 +1753,7 @@ let browseState = {
                 const screenshots = vehicle.ScreenShots || vehicle['截图'] || [];
                 const processImageUrl = (url) => {
                     if (url && !url.startsWith('http')) {
-                        return 'https://gta-images.antwen.com/' + url;
+                        return 'https://eo-gta-images.antwen.com/' + url;
                     }
                     return url;
                 };
@@ -2318,25 +2318,25 @@ let browseState = {
                 console.log('开始处理图片URL...', allVehicles.length, '辆车');
                 allVehicles.forEach(vehicle => {
                     if (vehicle.ImageUrl && !vehicle.ImageUrl.startsWith('http')) {
-                        vehicle.ImageUrl = 'https://gta-images.antwen.com/' + vehicle.ImageUrl;
+                        vehicle.ImageUrl = 'https://eo-gta-images.antwen.com/' + vehicle.ImageUrl;
                     }
                     if (vehicle.bakImageUrl && !vehicle.bakImageUrl.startsWith('http')) {
-                        vehicle.bakImageUrl = 'https://gta-images.antwen.com/' + vehicle.bakImageUrl;
+                        vehicle.bakImageUrl = 'https://eo-gta-images.antwen.com/' + vehicle.bakImageUrl;
                     }
                     if (vehicle.liveries && Array.isArray(vehicle.liveries)) {
                         vehicle.liveries.forEach(livery => {
                             if (livery.link && !livery.link.startsWith('http')) {
-                                livery.link = 'https://gta-images.antwen.com/' + livery.link;
+                                livery.link = 'https://eo-gta-images.antwen.com/' + livery.link;
                             }
                             if (livery.baklink && !livery.baklink.startsWith('http')) {
-                                livery.baklink = 'https://gta-images.antwen.com/' + livery.baklink;
+                                livery.baklink = 'https://eo-gta-images.antwen.com/' + livery.baklink;
                             }
                         });
                     }
                     if (vehicle.Screenshots && Array.isArray(vehicle.Screenshots)) {
                         vehicle.Screenshots.forEach((screenshot, index) => {
                             if (screenshot && !screenshot.startsWith('http')) {
-                                vehicle.Screenshots[index] = 'https://gta-images.antwen.com/' + screenshot;
+                                vehicle.Screenshots[index] = 'https://eo-gta-images.antwen.com/' + screenshot;
                             }
                         });
                     }

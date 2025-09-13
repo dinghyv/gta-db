@@ -2308,7 +2308,7 @@ let browseState = {
             }
 
             try {
-                const response = await fetch('vehicles_database_antwen.json?v=' + Date.now());
+                const response = await fetch('./src/data/vehicles_database_antwen.json?v=' + Date.now());
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }

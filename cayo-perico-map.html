@@ -1114,7 +1114,7 @@
         // 获取次要目标数据
         async function fetchSecondaryTargets() {
             try {
-                const response = await fetch('./zones.json');
+                const response = await fetch('./src/data/zones.json');
                 const result = await response.json();
                 
                 if (result && result.cp_secondary_targets && Array.isArray(result.cp_secondary_targets)) {
@@ -1142,7 +1142,7 @@
         // 获取豪宅入侵点数据
         async function fetchCPComData() {
             try {
-                const response = await fetch('./zones.json');
+                const response = await fetch('./src/data/zones.json');
                 const result = await response.json();
                 
                 if (result && result.cp_com) {
@@ -1191,7 +1191,7 @@
         // 获取发电站数据
         async function fetchCPPSData() {
             try {
-                const response = await fetch('./zones.json');
+                const response = await fetch('./src/data/zones.json');
                 const result = await response.json();
                 
                 if (result && result.cp_ps && Array.isArray(result.cp_ps)) {
@@ -1219,7 +1219,7 @@
         // 获取控制塔数据
         async function fetchCPCTData() {
             try {
-                const response = await fetch('./zones.json');
+                const response = await fetch('./src/data/zones.json');
                 const result = await response.json();
                 
                 if (result && result.cp_ct && Array.isArray(result.cp_ct)) {
@@ -1247,7 +1247,7 @@
         // 获取螺栓切割器数据
         async function fetchCPBCData() {
             try {
-                const response = await fetch('./zones.json');
+                const response = await fetch('./src/data/zones.json');
                 const result = await response.json();
                 
                 if (result && result.cp_bc && Array.isArray(result.cp_bc)) {
@@ -1275,7 +1275,7 @@
         // 获取抓钩设备数据
         async function fetchCPGEData() {
             try {
-                const response = await fetch('./zones.json');
+                const response = await fetch('./src/data/zones.json');
                 const result = await response.json();
                 
                 if (result && result.cp_ge && Array.isArray(result.cp_ge)) {
@@ -1303,7 +1303,7 @@
         // 获取水塔数据
         async function fetchCPWTData() {
             try {
-                const response = await fetch('./zones.json');
+                const response = await fetch('./src/data/zones.json');
                 const result = await response.json();
                 
                 if (result && result.cp_wt && Array.isArray(result.cp_wt)) {
@@ -1331,7 +1331,7 @@
         // 获取入侵点数据
         async function fetchCPINFData() {
             try {
-                const response = await fetch('./zones.json');
+                const response = await fetch('./src/data/zones.json');
                 const result = await response.json();
                 
                 if (result && result.cp_inf && Array.isArray(result.cp_inf)) {
@@ -1359,7 +1359,7 @@
         // 获取逃离点数据
         async function fetchCPESCData() {
             try {
-                const response = await fetch('./zones.json');
+                const response = await fetch('./src/data/zones.json');
                 const result = await response.json();
                 
                 if (result && result.cp_esc && Array.isArray(result.cp_esc)) {
@@ -1387,7 +1387,7 @@
         // 获取混合粉数据
         async function fetchCPCPData() {
             try {
-                const response = await fetch('./zones.json');
+                const response = await fetch('./src/data/zones.json');
                 const result = await response.json();
                 
                 if (result && result.cp_cp && Array.isArray(result.cp_cp)) {
@@ -1415,7 +1415,7 @@
         // 获取运货卡车数据
         async function fetchCPST2Data() {
             try {
-                const response = await fetch('./zones.json');
+                const response = await fetch('./src/data/zones.json');
                 const result = await response.json();
                 
                 if (result && result.cp_st2 && Array.isArray(result.cp_st2)) {
@@ -1443,7 +1443,7 @@
         // 获取保安制服数据
         async function fetchCPGCData() {
             try {
-                const response = await fetch('./zones.json');
+                const response = await fetch('./src/data/zones.json');
                 const result = await response.json();
                 
                 if (result && result.cp_gc && Array.isArray(result.cp_gc)) {
@@ -1487,7 +1487,7 @@
         // 初始化获取收藏品数据（用于图片匹配）
         async function initCollectiblesData() {
             try {
-                const response = await fetch('./zones.json');
+                const response = await fetch('./src/data/zones.json');
                 const result = await response.json();
                 
                 if (result) {

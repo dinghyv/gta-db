@@ -1095,6 +1095,7 @@
             rc_time_trial: './src/assets/rctt.png',
             bike_time_trial: './src/assets/btt.png',
             skydives: './src/assets/skydive.png',
+            gang_attacks: './src/assets/gang_attack.svg',
             // 车行图标
             casino: './src/assets/casino.svg',
             car_meet: './src/assets/lscm.svg',
@@ -1124,7 +1125,8 @@
             spray: [],
             rc_time_trial: [],
             bike_time_trial: [],
-            skydives: []
+            skydives: [],
+            gang_attacks: []
         };
 
         // 车行位置数据
@@ -1192,7 +1194,8 @@
             { value: 'snowmen', text: '雪人' },
             { value: 'rc_time_trial', text: 'RC时间挑战赛' },
             { value: 'bike_time_trial', text: '自行车时间挑战赛' },
-            { value: 'skydives', text: '跳伞' }
+            { value: 'skydives', text: '跳伞' },
+            { value: 'gang_attacks', text: '⚔️ 帮派攻击' }
         ];
         const loader = document.getElementById('loader');
         const tilePaneDom = document.getElementById('tile-pane');
@@ -1830,12 +1833,64 @@
             marker.dataset.index = index;
             marker.dataset.type = type;
             
-            // 设置标记图标
-            const img = document.createElement('img');
-            img.src = itemIcons[type];
-            img.style.width = '32px';
-            img.style.height = '32px';
-            marker.appendChild(img);
+            // 特殊处理帮派攻击 - 创建红色圆圈
+            if (type === 'gang_attacks') {
+                // 检查时间是否匹配
+                if (!isGangAttackActive(item.time)) {
+                    return null; // 不在时间范围内，不显示
+                }
+                
+                // 获取当前缩放等级来计算圆圈大小
+                const z = map.getZoom();
+                const level = getLevelByZoom(z);
+                if (!level) return null;
+                
+                const totalWidth = level.cols * TILE_SIZE;
+                const totalHeight = level.rows * TILE_SIZE;
+                
+                // 计算游戏坐标100单位对应的像素大小
+                const gameRadius = 100; // 游戏坐标半径
+                const gameWidth = GAME_RIGHT - GAME_LEFT; // 9000
+                const pixelRadius = (gameRadius / gameWidth) * totalWidth;
+                const circleSize = pixelRadius * 2; // 直径
+                
+                console.log('帮派攻击圆圈大小计算:', {
+                    gameRadius,
+                    gameWidth,
+                    totalWidth,
+                    pixelRadius,
+                    circleSize
+                });
+                
+                // 创建红色圆圈
+                marker.style.width = `${circleSize}px`;
+                marker.style.height = `${circleSize}px`;
+                marker.style.borderRadius = '50%';
+                marker.style.border = '3px solid #ff0000';
+                marker.style.backgroundColor = 'rgba(255, 0, 0, 0.1)';
+                marker.style.position = 'absolute';
+                marker.style.transform = 'translate(-50%, -50%)';
+                marker.style.cursor = 'pointer';
+                marker.style.pointerEvents = 'all';
+                
+                // 添加中心图标
+                const img = document.createElement('img');
+                img.src = itemIcons[type];
+                img.style.width = '32px';
+                img.style.height = '32px';
+                img.style.position = 'absolute';
+                img.style.top = '50%';
+                img.style.left = '50%';
+                img.style.transform = 'translate(-50%, -50%)';
+                marker.appendChild(img);
+            } else {
+                // 普通标记处理
+                const img = document.createElement('img');
+                img.src = itemIcons[type];
+                img.style.width = '32px';
+                img.style.height = '32px';
+                marker.appendChild(img);
+            }
             
             // 添加点击事件：使用标记自身的 type/index
             L.DomEvent.on(marker, 'click', function(e) {
@@ -1876,10 +1931,12 @@
                     const itemY = percentY * totalHeight;
 
                     const markerEl = createItemMarker(item, index, type);
-                    markerEl.style.left = `${itemX}px`;
-                    markerEl.style.top = `${itemY}px`;
-                    tilePaneDom.appendChild(markerEl);
-                    itemMarkers.push({ type, index, el: markerEl });
+                    if (markerEl) { // 检查是否创建成功（帮派攻击可能返回null）
+                        markerEl.style.left = `${itemX}px`;
+                        markerEl.style.top = `${itemY}px`;
+                        tilePaneDom.appendChild(markerEl);
+                        itemMarkers.push({ type, index, el: markerEl });
+                    }
                 });
             });
         }
@@ -1922,6 +1979,18 @@
 
                 el.style.left = `${itemX}px`;
                 el.style.top = `${itemY}px`;
+                
+                // 特殊处理帮派攻击圆圈大小更新
+                if (type === 'gang_attacks') {
+                    // 计算游戏坐标100单位对应的像素大小
+                    const gameRadius = 100; // 游戏坐标半径
+                    const gameWidth = GAME_RIGHT - GAME_LEFT; // 9000
+                    const pixelRadius = (gameRadius / gameWidth) * totalWidth;
+                    const circleSize = pixelRadius * 2; // 直径
+                    
+                    el.style.width = `${circleSize}px`;
+                    el.style.height = `${circleSize}px`;
+                }
             });
         }
 
@@ -2330,7 +2399,8 @@
                 snowmen: '雪人',
                 rc_time_trial: 'RC时间挑战赛',
                 bike_time_trial: '自行车时间挑战赛',
-                skydives: '跳伞'
+                skydives: '跳伞',
+                gang_attacks: '帮派攻击'
             };
 
 
@@ -2370,7 +2440,8 @@
                 'snowmen',
                 'dead_drop',
                 'stunt_jumps',
-                'spray'
+                'spray',
+                'gang_attacks'
             ]);
 
             if (!imageTypes.has(type)) {
@@ -2433,6 +2504,11 @@
             // 如果是杰拉德包裹，显示图片弹窗
             if (type === 'dead_drop') {
                 showDeadDropImage(index);
+            }
+            
+            // 如果是帮派攻击，显示弹窗
+            if (type === 'gang_attacks') {
+                showGangAttackPopup(item, index);
             }
         }
 
@@ -4428,6 +4504,9 @@
             
             // 检测是否点击在车行附近
             checkDealershipClick(gameX, gameY);
+            
+            // 检测是否点击在帮派攻击附近
+            checkGangAttackClick(gameX, gameY);
         });
 
         // 检测武器厢型车点击
@@ -5047,6 +5126,109 @@
             }
         }
 
+        // 检测帮派攻击点击（坐标检测）
+        function checkGangAttackClick(clickX, clickY) {
+            const GANG_ATTACK_RADIUS = 100; // 检测半径100单位
+            
+            // 检查当前是否显示帮派攻击（支持多选）
+            if (activeItemTypes.has('gang_attacks') && itemData.gang_attacks) {
+                // 检查点击位置是否在任意帮派攻击附近
+                const nearbyAttack = itemData.gang_attacks.find((attack, index) => {
+                    // 首先检查时间是否匹配
+                    if (!isGangAttackActive(attack.time)) {
+                        return false;
+                    }
+                    
+                    const distance = Math.sqrt(Math.pow(attack.x - clickX, 2) + Math.pow(attack.y - clickY, 2));
+                    return distance <= GANG_ATTACK_RADIUS;
+                });
+
+                if (nearbyAttack) {
+                    console.log('点击了帮派攻击附近:', nearbyAttack);
+                    // 找到对应的索引
+                    const attackIndex = itemData.gang_attacks.findIndex(attack => 
+                        attack.x === nearbyAttack.x && attack.y === nearbyAttack.y
+                    );
+                    showGangAttackPopup(nearbyAttack, attackIndex);
+                }
+            }
+        }
+
+        // 显示帮派攻击弹窗
+        function showGangAttackPopup(item, index) {
+            // 创建弹窗
+            const popup = document.createElement('div');
+            popup.className = 'gang-attack-popup';
+            popup.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: white;
+                border: 3px solid #ff0000;
+                border-radius: 12px;
+                padding: 20px;
+                z-index: 10000;
+                max-width: 400px;
+                max-height: 80vh;
+                box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+                font-family: Arial, sans-serif;
+                text-align: center;
+            `;
+
+            // 弹窗内容
+            popup.innerHTML = `
+                <div style="margin-bottom: 20px; font-size: 24px; font-weight: bold; color: #ff0000;">
+                    ⚔️ 帮派攻击
+                </div>
+                <div style="margin: 15px 0; padding: 15px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #ff0000;">
+                    <div style="font-weight: bold; color: #ff0000; margin-bottom: 8px; font-size: 16px;">⏰ 时间限制</div>
+                    <div style="color: #333; font-size: 18px; margin-bottom: 15px;">${item.time || '未知时间'}</div>
+                </div>
+                
+                <div style="margin: 15px 0; padding: 12px; background: #ffebee; border-radius: 6px; color: #c62828; font-size: 14px; line-height: 1.6;">
+                    🎯 <strong>帮派攻击事件</strong><br>
+                    • 在指定时间内前往该区域<br>
+                    • 与敌对帮派成员战斗<br>
+                    • 完成可获得<strong>经验值</strong>和<strong>游戏币奖励</strong><br>
+                    • 注意安全，准备充足的武器和弹药！
+                </div>
+                
+                <button id="close-gang-attack-popup-btn" 
+                        style="padding: 12px 24px; 
+                               background: #ff0000; color: white; 
+                               border: none; border-radius: 6px; 
+                               cursor: pointer; font-size: 16px;
+                               font-weight: bold;
+                               transition: background-color 0.3s;">
+                    关闭
+                </button>
+            `;
+
+            // 添加关闭按钮事件
+            const closeBtn = popup.querySelector('#close-gang-attack-popup-btn');
+            closeBtn.addEventListener('click', () => {
+                popup.remove();
+            });
+
+            // 点击弹窗外部关闭
+            popup.addEventListener('click', (e) => e.stopPropagation());
+            
+            // 使用setTimeout延迟添加document点击事件，避免立即触发
+            setTimeout(() => {
+                const closePopupHandler = (e) => {
+                    if (!popup.contains(e.target)) {
+                        popup.remove();
+                        document.removeEventListener('click', closePopupHandler);
+                    }
+                };
+                document.addEventListener('click', closePopupHandler);
+            }, 100);
+
+            // 添加到页面
+            document.body.appendChild(popup);
+        }
+
         // 显示武器厢型车武器信息
         function showGunVanWeapons() {
             // 加载labels.json数据
@@ -5373,6 +5555,37 @@
             });
         })();
 
+        // 检查帮派攻击时间是否匹配
+        function isGangAttackActive(timeRange) {
+            try {
+                // 获取当前游戏时间
+                const timestamp = Math.floor(Date.now() / 1000);
+                const currentHour = Math.floor(timestamp / 120) % 24;
+                const currentMinute = Math.floor(timestamp / 2) % 60;
+                const currentTime = currentHour * 60 + currentMinute; // 转换为分钟
+                
+                // 解析时间范围 "04:00 - 12:00"
+                const [startTime, endTime] = timeRange.split(' - ');
+                const [startHour, startMinute] = startTime.split(':').map(Number);
+                const [endHour, endMinute] = endTime.split(':').map(Number);
+                
+                const startTimeMinutes = startHour * 60 + startMinute;
+                const endTimeMinutes = endHour * 60 + endMinute;
+                
+                // 检查当前时间是否在范围内
+                if (startTimeMinutes <= endTimeMinutes) {
+                    // 正常范围，如 04:00 - 12:00
+                    return currentTime >= startTimeMinutes && currentTime <= endTimeMinutes;
+                } else {
+                    // 跨天范围，如 22:00 - 06:00
+                    return currentTime >= startTimeMinutes || currentTime <= endTimeMinutes;
+                }
+            } catch (error) {
+                console.error('检查帮派攻击时间失败:', error);
+                return false;
+            }
+        }
+
         // 游戏时间和天气显示功能
         function initGameTimeWeatherDisplay() {
             // 简化样式创建，因为我们已经在头部定义了样式
@@ -5540,6 +5753,13 @@
             window.addEventListener('resize', placeGameTimeWeatherForMobile);
             // 现实5秒等于游戏内1分钟，每5秒更新一次
             setInterval(updateGameTimeWeather, 1000);
+            
+            // 每30秒更新一次帮派攻击显示状态
+            setInterval(() => {
+                if (activeItemTypes.has('gang_attacks')) {
+                    updateItemMarkers();
+                }
+            }, 30000);
         }
 
         // 佩里科岛样式：侧边栏折叠/缩放按钮与多选样式/重置行为
@@ -5595,7 +5815,7 @@
                     label.style.gap = '8px';
 
                     // 图标
-                    if (type !== 'dealerships' && typeof itemIcons !== 'undefined' && itemIcons[type]) {
+                    if (type !== 'dealerships' && type !== 'gang_attacks' && typeof itemIcons !== 'undefined' && itemIcons[type]) {
                         const ico = document.createElement('img');
                         ico.src = itemIcons[type];
                         ico.alt = '';

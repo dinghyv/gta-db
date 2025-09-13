@@ -1108,6 +1108,12 @@
             stash_houses: './src/assets/stash.svg',
             // 玛德拉索雇凶图标
             madrazo_hits: './src/assets/hits.svg',
+            // 帕特里克救援图标
+            police_rescue_patrick_mcreary: './src/assets/patrick.svg',
+            // 随机任务图标
+            random_missions: './src/assets/random.svg',
+            // 毒品载具图标
+            drug_vehicle: './src/assets/drug_vehicle.svg',
             // 电影道具图标
             movie_props: './src/assets/mp_static.svg',
             // 车行图标
@@ -1148,7 +1154,10 @@
             maude_bounty_targets: { areas: [], endpoints: [] },
             media_sticks: [],
             stash_houses: [],
-            madrazo_hits: []
+            madrazo_hits: [],
+            police_rescue_patrick_mcreary: { spawn: [], dropoff: [] },
+            random_missions: {},
+            drug_vehicle: []
         };
 
         // 车行位置数据
@@ -1222,10 +1231,13 @@
             { value: 'treasure_hunt_dba_revolver', text: '左轮寻宝' },
             { value: 'movie_props', text: '电影道具' },
             { value: 'serial_killer_slasher', text: '洛圣都杀人狂' },
-            { value: 'maude_bounty_targets', text: '🎯 茉德悬赏目标' },
-            { value: 'media_sticks', text: '🎵 媒体记忆棒' },
-            { value: 'stash_houses', text: '🏠 藏匿屋' },
-            { value: 'madrazo_hits', text: '🎯 玛德拉索雇凶' }
+            { value: 'maude_bounty_targets', text: '茉德悬赏目标' },
+            { value: 'media_sticks', text: '媒体记忆棒' },
+            { value: 'stash_houses', text: '藏匿屋' },
+            { value: 'madrazo_hits', text: '玛德拉索雇凶' },
+            { value: 'police_rescue_patrick_mcreary', text: '帕特里克救援', icon: './src/assets/patrick.svg' },
+            { value: 'random_missions', text: '🎲 随机任务', icon: './src/assets/random.svg' },
+            { value: 'drug_vehicle', text: '🚗 毒品载具', icon: './src/assets/drug_vehicle.svg' }
         ];
         const loader = document.getElementById('loader');
         const tilePaneDom = document.getElementById('tile-pane');
@@ -1380,33 +1392,15 @@
             const containerWidth = window.innerWidth;
             const containerHeight = window.innerHeight;
             
-            // 特别处理缩放级别3和4的居中问题
+            // 计算基础偏移量
             let translateX = -topLeftPoint.x;
             let translateY = -topLeftPoint.y;
-            
-            // 对于小缩放级别3和4，强制居中
-            if (z === 3 || z === 4) {
-                if (size.width < containerWidth) {
-                    translateX = (containerWidth - size.width) / 2;
-                }
-                if (size.height < containerHeight) {
-                    translateY = (containerHeight - size.height) / 2;
-                }
-            } else {
-                // 对于更大的缩放级别，使用标准逻辑
-                if (size.width < containerWidth) {
-                    const centerOffset = (containerWidth - size.width) / 2;
-                    translateX += centerOffset;
-                }
-                if (size.height < containerHeight) {
-                    const centerOffset = (containerHeight - size.height) / 2;
-                    translateY += centerOffset;
-                }
-            }
+            // 移除额外的居中偏移，避免在地图尺寸小于容器时重复居中导致偏差
 
             tilePaneDom.style.transform = `translate(${Math.round(translateX)}px, ${Math.round(translateY)}px)`;
             updateOriginMarker();
-            updateItemMarkers();
+            updateItemMarkersPosition(); // 更新标记位置而不是重新创建
+            updateDealershipMarkers(); // 更新车行标记位置
         }
 
         function updateOriginMarker() {
@@ -2207,7 +2201,7 @@
             // 为每个激活的类型创建标记
             activeItemTypes.forEach(type => {
                 // 跳过有特殊渲染逻辑的类型
-                if (type === 'media_sticks' || type === 'maude_bounty_targets' || type === 'serial_killer_slasher' || type === 'movie_props' || type === 'treasure_hunt_dba_revolver' || type === 'stash_houses' || type === 'madrazo_hits') return;
+                if (type === 'media_sticks' || type === 'maude_bounty_targets' || type === 'serial_killer_slasher' || type === 'movie_props' || type === 'treasure_hunt_dba_revolver' || type === 'stash_houses' || type === 'madrazo_hits' || type === 'police_rescue_patrick_mcreary' || type === 'random_missions' || type === 'drug_vehicle') return;
                 
                 if (!itemData[type] || !Array.isArray(itemData[type])) return;
                 itemData[type].forEach((item, index) => {
@@ -2485,22 +2479,227 @@
                     itemMarkers.push({ type: 'stash_houses', index: index, el: marker });
                 });
             }
-        }
 
-        // 修复地图拖动时图标不跟随的问题
-        function updateTilePanePosition() {
-            const z = map.getZoom();
-            const level = getLevelByZoom(z);
-            if (!level) return;
+            // 特殊：玛德拉索雇凶渲染
+            if (activeItemTypes.has('madrazo_hits')) {
+                const madrazoHits = itemData.madrazo_hits || [];
+                madrazoHits.forEach((hit, index) => {
+                    if (typeof hit.x === 'undefined' || typeof hit.y === 'undefined') return;
+                    const percentX = (hit.x - GAME_LEFT) / (GAME_RIGHT - GAME_LEFT);
+                    const percentY = (GAME_TOP - hit.y) / (GAME_TOP - GAME_BOTTOM);
+                    const itemX = percentX * totalWidth;
+                    const itemY = percentY * totalHeight;
+                    
+                    // 创建玛德拉索雇凶标记
+                    const marker = document.createElement('div');
+                    marker.className = 'item-marker madrazo-hits-marker';
+                    marker.dataset.type = 'madrazo_hits';
+                    marker.dataset.index = index;
+                    marker.style.position = 'absolute';
+                    marker.style.left = `${itemX}px`;
+                    marker.style.top = `${itemY}px`;
+                    marker.style.transform = 'translate(-50%, -50%)';
+                    marker.style.cursor = 'pointer';
+                    marker.style.zIndex = '670';
+                    
+                    // 创建图标
+                    const img = document.createElement('img');
+                    img.src = './src/assets/hits.svg';
+                    img.style.width = '32px';
+                    img.style.height = '32px';
+                    marker.appendChild(img);
+                    
+                    // 添加点击事件
+                    marker.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        showMadrazoHitsPopup(hit, index);
+                    });
+                    
+                    tilePaneDom.appendChild(marker);
+                    itemMarkers.push({ type: 'madrazo_hits', index: index, el: marker });
+                });
+            }
 
-            const bounds = map.getBounds();
-            const topLeftLatLng = bounds.getNorthWest();
-            const topLeftPoint = map.project(topLeftLatLng, z);
+            // 特殊：帕特里克救援渲染
+            if (activeItemTypes.has('police_rescue_patrick_mcreary')) {
+                const patrickData = itemData.police_rescue_patrick_mcreary;
+                
+                // 渲染spawn点（普通patrick.svg）
+                if (patrickData && patrickData.spawn) {
+                    patrickData.spawn.forEach((spawn, index) => {
+                        if (typeof spawn.x === 'undefined' || typeof spawn.y === 'undefined') return;
+                        const percentX = (spawn.x - GAME_LEFT) / (GAME_RIGHT - GAME_LEFT);
+                        const percentY = (GAME_TOP - spawn.y) / (GAME_TOP - GAME_BOTTOM);
+                        const itemX = percentX * totalWidth;
+                        const itemY = percentY * totalHeight;
+                        
+                        // 创建spawn标记
+                        const marker = document.createElement('div');
+                        marker.className = 'item-marker patrick-spawn-marker';
+                        marker.dataset.type = 'police_rescue_patrick_mcreary_spawn';
+                        marker.dataset.index = index;
+                        marker.style.position = 'absolute';
+                        marker.style.left = `${itemX}px`;
+                        marker.style.top = `${itemY}px`;
+                        marker.style.transform = 'translate(-50%, -50%)';
+                        marker.style.cursor = 'pointer';
+                        marker.style.zIndex = '670';
+                        
+                        // 创建图标
+                        const img = document.createElement('img');
+                        img.src = './src/assets/patrick.svg';
+                        img.style.width = '32px';
+                        img.style.height = '32px';
+                        marker.appendChild(img);
+                        
+                        // 添加点击事件
+                        marker.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            showPatrickRescuePopup(spawn, index, 'spawn');
+                        });
+                        
+                        tilePaneDom.appendChild(marker);
+                        itemMarkers.push({ type: 'police_rescue_patrick_mcreary_spawn', index: index, el: marker });
+                    });
+                }
+                
+                // 渲染dropoff点（黄色patrick_drop.svg）
+                if (patrickData && patrickData.dropoff) {
+                    patrickData.dropoff.forEach((dropoff, index) => {
+                        if (typeof dropoff.x === 'undefined' || typeof dropoff.y === 'undefined') return;
+                        const percentX = (dropoff.x - GAME_LEFT) / (GAME_RIGHT - GAME_LEFT);
+                        const percentY = (GAME_TOP - dropoff.y) / (GAME_TOP - GAME_BOTTOM);
+                        const itemX = percentX * totalWidth;
+                        const itemY = percentY * totalHeight;
+                        
+                        // 创建dropoff标记
+                        const marker = document.createElement('div');
+                        marker.className = 'item-marker patrick-dropoff-marker';
+                        marker.dataset.type = 'police_rescue_patrick_mcreary_dropoff';
+                        marker.dataset.index = index;
+                        marker.style.position = 'absolute';
+                        marker.style.left = `${itemX}px`;
+                        marker.style.top = `${itemY}px`;
+                        marker.style.transform = 'translate(-50%, -50%)';
+                        marker.style.cursor = 'pointer';
+                        marker.style.zIndex = '670';
+                        
+                        // 创建黄色图标
+                        const img = document.createElement('img');
+                        img.src = './src/assets/patrick_drop.svg';
+                        img.style.width = '32px';
+                        img.style.height = '32px';
+                        marker.appendChild(img);
+                        
+                        // 添加点击事件
+                        marker.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            showPatrickRescuePopup(dropoff, index, 'dropoff');
+                        });
+                        
+                        tilePaneDom.appendChild(marker);
+                        itemMarkers.push({ type: 'police_rescue_patrick_mcreary_dropoff', index: index, el: marker });
+                    });
+                }
+            }
 
-            tilePaneDom.style.transform = `translate(${-topLeftPoint.x}px, ${-topLeftPoint.y}px)`;
-            updateOriginMarker();
-            updateItemMarkersPosition(); // 更新标记位置而不是重新创建
-            updateDealershipMarkers(); // 更新车行标记位置
+            // 特殊：随机任务渲染
+            if (activeItemTypes.has('random_missions')) {
+                const randomMissions = itemData.random_missions || {};
+                let globalIndex = 0;
+                
+                // 遍历所有时间段
+                Object.keys(randomMissions).forEach(timeSlot => {
+                    const missions = randomMissions[timeSlot] || [];
+                    
+                    missions.forEach((mission, index) => {
+                        if (!Array.isArray(mission) || mission.length < 4) return;
+                        
+                        const x = mission[0];
+                        const y = mission[1];
+                        const taskName = Array.isArray(mission[2]) ? mission[2][0] : mission[2];
+                        const details = mission[3];
+                        
+                        if (typeof x === 'undefined' || typeof y === 'undefined') return;
+                        
+                        const percentX = (x - GAME_LEFT) / (GAME_RIGHT - GAME_LEFT);
+                        const percentY = (GAME_TOP - y) / (GAME_TOP - GAME_BOTTOM);
+                        const itemX = percentX * totalWidth;
+                        const itemY = percentY * totalHeight;
+                        
+                        // 创建随机任务标记
+                        const marker = document.createElement('div');
+                        marker.className = 'item-marker random-mission-marker';
+                        marker.dataset.type = 'random_missions';
+                        marker.dataset.index = globalIndex;
+                        marker.dataset.timeSlot = timeSlot;
+                        marker.dataset.missionIndex = index;
+                        marker.style.position = 'absolute';
+                        marker.style.left = `${itemX}px`;
+                        marker.style.top = `${itemY}px`;
+                        marker.style.transform = 'translate(-50%, -50%)';
+                        marker.style.cursor = 'pointer';
+                        marker.style.zIndex = '670';
+                        
+                        // 创建图标
+                        const img = document.createElement('img');
+                        img.src = './src/assets/random.svg';
+                        img.style.width = '32px';
+                        img.style.height = '32px';
+                        marker.appendChild(img);
+                        
+                        // 添加点击事件
+                        marker.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            showRandomMissionPopup(mission, timeSlot, index);
+                        });
+                        
+                        tilePaneDom.appendChild(marker);
+                        itemMarkers.push({ type: 'random_missions', index: globalIndex, el: marker });
+                        globalIndex++;
+                    });
+                });
+            }
+
+            // 特殊：毒品载具渲染
+            if (activeItemTypes.has('drug_vehicle')) {
+                const drugVehicles = itemData.drug_vehicle || [];
+                drugVehicles.forEach((vehicle, index) => {
+                    if (typeof vehicle.x === 'undefined' || typeof vehicle.y === 'undefined') return;
+                    const percentX = (vehicle.x - GAME_LEFT) / (GAME_RIGHT - GAME_LEFT);
+                    const percentY = (GAME_TOP - vehicle.y) / (GAME_TOP - GAME_BOTTOM);
+                    const itemX = percentX * totalWidth;
+                    const itemY = percentY * totalHeight;
+                    
+                    // 创建毒品载具标记
+                    const marker = document.createElement('div');
+                    marker.className = 'item-marker drug-vehicle-marker';
+                    marker.dataset.type = 'drug_vehicle';
+                    marker.dataset.index = index;
+                    marker.style.position = 'absolute';
+                    marker.style.left = `${itemX}px`;
+                    marker.style.top = `${itemY}px`;
+                    marker.style.transform = 'translate(-50%, -50%)';
+                    marker.style.cursor = 'pointer';
+                    marker.style.zIndex = '670';
+                    
+                    // 创建图标
+                    const img = document.createElement('img');
+                    img.src = './src/assets/drug_vehicle.svg';
+                    img.style.width = '32px';
+                    img.style.height = '32px';
+                    marker.appendChild(img);
+                    
+                    // 添加点击事件
+                    marker.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        showDrugVehiclePopup(vehicle, index);
+                    });
+                    
+                    tilePaneDom.appendChild(marker);
+                    itemMarkers.push({ type: 'drug_vehicle', index: index, el: marker });
+                });
+            }
         }
 
         // 更新物品标记位置（不重新创建）
@@ -2547,6 +2746,32 @@
                 } else if (type === 'maude_bounty_endpoint') {
                     // 茉德悬赏终点
                     item = itemData.maude_bounty_targets && itemData.maude_bounty_targets.endpoints && itemData.maude_bounty_targets.endpoints[index];
+                } else if (type === 'police_rescue_patrick_mcreary_spawn') {
+                    // 帕特里克救援生成点
+                    item = itemData.police_rescue_patrick_mcreary && itemData.police_rescue_patrick_mcreary.spawn && itemData.police_rescue_patrick_mcreary.spawn[index];
+                } else if (type === 'police_rescue_patrick_mcreary_dropoff') {
+                    // 帕特里克救援送达点
+                    item = itemData.police_rescue_patrick_mcreary && itemData.police_rescue_patrick_mcreary.dropoff && itemData.police_rescue_patrick_mcreary.dropoff[index];
+                } else if (type === 'random_missions') {
+                    // 随机任务需要特殊处理，因为数据结构是嵌套的
+                    const randomMissions = itemData.random_missions || {};
+                    let currentIndex = 0;
+                    
+                    // 遍历所有时间段找到对应的任务
+                    for (const timeSlot of Object.keys(randomMissions)) {
+                        const missions = randomMissions[timeSlot] || [];
+                        for (let i = 0; i < missions.length; i++) {
+                            if (currentIndex === index) {
+                                const mission = missions[i];
+                                if (Array.isArray(mission) && mission.length >= 2) {
+                                    item = { x: mission[0], y: mission[1] };
+                                }
+                                break;
+                            }
+                            currentIndex++;
+                        }
+                        if (item) break;
+                    }
                 } else {
                     item = itemData[type] && itemData[type][index];
                 }
@@ -5175,6 +5400,15 @@
             
             // 检测是否点击在玛德拉索雇凶附近
             checkMadrazoHitsClick(gameX, gameY);
+            
+            // 检测是否点击在帕特里克救援附近
+            checkPatrickRescueClick(gameX, gameY);
+            
+            // 检测是否点击在随机任务附近
+            checkRandomMissionClick(gameX, gameY);
+            
+            // 检测是否点击在毒品载具附近
+            checkDrugVehicleClick(gameX, gameY);
         });
 
         // 检测武器厢型车点击
@@ -6223,6 +6457,164 @@
             }
         }
 
+        // 检测帕特里克救援点击（坐标检测）
+        function checkPatrickRescueClick(clickX, clickY) {
+            const PATRICK_RADIUS = 100; // 检测半径100单位
+            
+            // 检查当前是否显示帕特里克救援
+            if (activeItemTypes.has('police_rescue_patrick_mcreary') && itemData.police_rescue_patrick_mcreary) {
+                const patrickData = itemData.police_rescue_patrick_mcreary;
+                
+                // 检查spawn点
+                if (patrickData.spawn) {
+                    const nearbySpawn = patrickData.spawn.find((spawn, index) => {
+                        const distance = Math.sqrt(Math.pow(spawn.x - clickX, 2) + Math.pow(spawn.y - clickY, 2));
+                        return distance <= PATRICK_RADIUS;
+                    });
+                    
+                    if (nearbySpawn) {
+                        const index = patrickData.spawn.findIndex(spawn => 
+                            spawn.x === nearbySpawn.x && spawn.y === nearbySpawn.y
+                        );
+                        console.log('点击了帕特里克救援生成点附近:', nearbySpawn);
+                        showPatrickRescuePopup(nearbySpawn, index, 'spawn');
+                        return;
+                    }
+                }
+                
+                // 检查dropoff点
+                if (patrickData.dropoff) {
+                    const nearbyDropoff = patrickData.dropoff.find((dropoff, index) => {
+                        const distance = Math.sqrt(Math.pow(dropoff.x - clickX, 2) + Math.pow(dropoff.y - clickY, 2));
+                        return distance <= PATRICK_RADIUS;
+                    });
+                    
+                    if (nearbyDropoff) {
+                        const index = patrickData.dropoff.findIndex(dropoff => 
+                            dropoff.x === nearbyDropoff.x && dropoff.y === nearbyDropoff.y
+                        );
+                        console.log('点击了帕特里克救援送达点附近:', nearbyDropoff);
+                        showPatrickRescuePopup(nearbyDropoff, index, 'dropoff');
+                        return;
+                    }
+                }
+            }
+        }
+
+        // 检测随机任务点击（坐标检测）
+        function checkRandomMissionClick(clickX, clickY) {
+            const RANDOM_MISSION_RADIUS = 100; // 检测半径100单位
+            
+            // 检查当前是否显示随机任务
+            if (activeItemTypes.has('random_missions') && itemData.random_missions) {
+                const randomMissions = itemData.random_missions;
+                let globalIndex = 0;
+                
+                // 遍历所有时间段
+                for (const timeSlot of Object.keys(randomMissions)) {
+                    const missions = randomMissions[timeSlot] || [];
+                    
+                    for (let i = 0; i < missions.length; i++) {
+                        const mission = missions[i];
+                        if (!Array.isArray(mission) || mission.length < 2) continue;
+                        
+                        const x = mission[0];
+                        const y = mission[1];
+                        const distance = Math.sqrt(Math.pow(x - clickX, 2) + Math.pow(y - clickY, 2));
+                        
+                        if (distance <= RANDOM_MISSION_RADIUS) {
+                            console.log('点击了随机任务附近:', mission);
+                            showRandomMissionPopup(mission, timeSlot, i);
+                            return;
+                        }
+                        globalIndex++;
+                    }
+                }
+            }
+        }
+
+        // 检测毒品载具点击（坐标检测）
+        function checkDrugVehicleClick(clickX, clickY) {
+            const DRUG_VEHICLE_RADIUS = 100; // 检测半径100单位
+            
+            // 检查当前是否显示毒品载具
+            if (activeItemTypes.has('drug_vehicle') && Array.isArray(itemData.drug_vehicle)) {
+                const nearbyVehicle = itemData.drug_vehicle.find((vehicle) => {
+                    const dx = vehicle.x - clickX;
+                    const dy = vehicle.y - clickY;
+                    return Math.sqrt(dx * dx + dy * dy) <= DRUG_VEHICLE_RADIUS;
+                });
+                
+                if (nearbyVehicle) {
+                    const index = itemData.drug_vehicle.findIndex(v => v.x === nearbyVehicle.x && v.y === nearbyVehicle.y);
+                    console.log('点击了毒品载具附近:', nearbyVehicle);
+                    showDrugVehiclePopup(nearbyVehicle, index);
+                    return;
+                }
+            }
+        }
+
+        // 毒品载具弹窗
+        function showDrugVehiclePopup(item, index) {
+            const title = `🚗 毒品载具 #${index + 1}`;
+            const content = `毒品载具会在此位置附近刷新。靠近时会在游戏中以蓝点标记。`;
+            
+            const popup = document.createElement('div');
+            popup.className = 'drug-vehicle-popup';
+            popup.style.cssText = `
+                position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+                background: #fff; border: 3px solid #4CAF50; border-radius: 12px; padding: 18px;
+                z-index: 10000; max-width: 520px; max-height: 80vh; box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+                font-family: Arial, sans-serif; text-align: left; overflow-y: auto;`;
+
+            popup.innerHTML = `
+                <div style="margin-bottom: 14px; font-size: 20px; font-weight: bold; color: #2E7D32; text-align:center;">${title}</div>
+                <img src="https://gta-maps.antwen.com/collectibles_images/drug_vehicle/drug_vehicle.webp" alt="毒品载具图片" style="max-width: 100%; height: auto; border-radius: 6px; margin: 8px 0; display:block;"/>
+                <div style="margin: 10px 0; padding: 10px; background: #e8f5e9; border-radius: 8px; color: #1b5e20; font-size: 13px; line-height: 1.6;">
+                    ${content}
+                </div>
+                <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px;">
+                    <button id="hide-drug-vehicle-btn" style="padding: 10px 18px; background: #4CAF50; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">隐藏</button>
+                    <button id="show-drug-vehicle-btn" style="padding: 10px 18px; background: #2196F3; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">显示</button>
+                    <button id="close-drug-vehicle-btn" style="padding: 10px 18px; background: #f44336; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">关闭</button>
+                </div>
+            `;
+
+            // 按钮
+            const hideBtn = popup.querySelector('#hide-drug-vehicle-btn');
+            const showBtn = popup.querySelector('#show-drug-vehicle-btn');
+            const closeBtn = popup.querySelector('#close-drug-vehicle-btn');
+
+            // 解析目标标记和索引
+            function resolveTargetAndIndex() {
+                const el = document.querySelector(`.item-marker[data-type="drug_vehicle"][data-index="${index}"]`);
+                return { el, globalIndex: index };
+            }
+
+            hideBtn.addEventListener('click', () => {
+                const { el } = resolveTargetAndIndex();
+                if (!el) return;
+                el.style.opacity = '0.25';
+            });
+
+            showBtn.addEventListener('click', () => {
+                const { el } = resolveTargetAndIndex();
+                if (!el) return;
+                el.style.opacity = '1';
+            });
+
+            closeBtn.addEventListener('click', () => popup.remove());
+            popup.addEventListener('click', (e) => e.stopPropagation());
+            setTimeout(() => {
+                const closePopupHandler = (e) => {
+                    if (!popup.contains(e.target)) { popup.remove(); document.removeEventListener('click', closePopupHandler); }
+                };
+                document.addEventListener('click', closePopupHandler);
+            }, 50);
+
+            document.body.appendChild(popup);
+        }
+
         // 玛德拉索雇凶弹窗
         function showMadrazoHitsPopup(item, index) {
             const title = `🎯 玛德拉索雇凶 #${index + 1}`;
@@ -6256,6 +6648,165 @@
             // 解析目标标记和索引
             function resolveTargetAndIndex() {
                 const el = document.querySelector(`.item-marker[data-type="madrazo_hits"][data-index="${index}"]`);
+                return { el, globalIndex: index };
+            }
+
+            // 隐藏按钮：设置标记透明度为25%
+            hideBtn.addEventListener('click', () => {
+                const { el } = resolveTargetAndIndex();
+                if (!el) return;
+                el.style.opacity = '0.25';
+            });
+
+            // 显示按钮：恢复标记透明度为100%
+            showBtn.addEventListener('click', () => {
+                const { el } = resolveTargetAndIndex();
+                if (!el) return;
+                el.style.opacity = '1';
+            });
+
+            // 关闭按钮
+            closeBtn.addEventListener('click', () => popup.remove());
+            
+            popup.addEventListener('click', (e) => e.stopPropagation());
+            setTimeout(() => {
+                const closePopupHandler = (e) => {
+                    if (!popup.contains(e.target)) { popup.remove(); document.removeEventListener('click', closePopupHandler); }
+                };
+                document.addEventListener('click', closePopupHandler);
+            }, 50);
+
+            document.body.appendChild(popup);
+        }
+
+        // 帕特里克救援弹窗
+        function showPatrickRescuePopup(item, index, type) {
+            const typeNames = {
+                'spawn': '生成点',
+                'dropoff': '送达点'
+            };
+            
+            const title = `🚔 帕特里克救援 - ${typeNames[type]} #${index + 1}`;
+            const content = `寻找正在鸣笛巡逻的警用运输车。这辆车以蓝点标记在地图上。拦截囚车，救出囚犯。囚车会生成在 ，您需要将其送至 。运气好的话，您也有可能在送达点发现事件。<br><br>奖励：10.000 GTA$、2.000 RP，解锁名钻赌场豪劫的枪手帕特里克·麦克瑞利（8% 分红）。`;
+            const imageUrl = 'https://gta-maps.antwen.com/collectibles_images/patrick/patrick.webp';
+            
+            const popup = document.createElement('div');
+            popup.className = 'patrick-rescue-popup';
+            popup.style.cssText = `
+                position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+                background: #fff; border: 3px solid #2196F3; border-radius: 12px; padding: 18px;
+                z-index: 10000; max-width: 520px; max-height: 80vh; box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+                font-family: Arial, sans-serif; text-align: center; overflow-y: auto;`;
+
+            popup.innerHTML = `
+                <div style="margin-bottom: 14px; font-size: 20px; font-weight: bold; color: #1976D2;">${title}</div>
+                <img src="${imageUrl}" alt="帕特里克救援图片" style="max-width: 100%; height: auto; border-radius: 6px; margin: 8px 0;"/>
+                <div style="margin: 10px 0; padding: 10px; background: #e3f2fd; border-radius: 8px; color: #4e342e; font-size: 13px; text-align: left; line-height: 1.6;">
+                    ${content}
+                </div>
+                <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px;">
+                    <button id="hide-patrick-btn" style="padding: 10px 18px; background: #4CAF50; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">隐藏</button>
+                    <button id="show-patrick-btn" style="padding: 10px 18px; background: #2196F3; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">显示</button>
+                    <button id="close-patrick-btn" style="padding: 10px 18px; background: #f44336; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">关闭</button>
+                </div>
+            `;
+
+            // 隐藏/显示/关闭按钮
+            const hideBtn = popup.querySelector('#hide-patrick-btn');
+            const showBtn = popup.querySelector('#show-patrick-btn');
+            const closeBtn = popup.querySelector('#close-patrick-btn');
+
+            // 解析目标标记和索引
+            function resolveTargetAndIndex() {
+                const el = document.querySelector(`.item-marker[data-type="police_rescue_patrick_mcreary_${type}"][data-index="${index}"]`);
+                return { el, globalIndex: index };
+            }
+
+            // 隐藏按钮：设置标记透明度为25%
+            hideBtn.addEventListener('click', () => {
+                const { el } = resolveTargetAndIndex();
+                if (!el) return;
+                el.style.opacity = '0.25';
+            });
+
+            // 显示按钮：恢复标记透明度为100%
+            showBtn.addEventListener('click', () => {
+                const { el } = resolveTargetAndIndex();
+                if (!el) return;
+                el.style.opacity = '1';
+            });
+
+            // 关闭按钮
+            closeBtn.addEventListener('click', () => popup.remove());
+            
+            popup.addEventListener('click', (e) => e.stopPropagation());
+            setTimeout(() => {
+                const closePopupHandler = (e) => {
+                    if (!popup.contains(e.target)) { popup.remove(); document.removeEventListener('click', closePopupHandler); }
+                };
+                document.addEventListener('click', closePopupHandler);
+            }, 50);
+
+            document.body.appendChild(popup);
+        }
+
+        // 随机任务弹窗
+        function showRandomMissionPopup(mission, timeSlot, index) {
+            if (!Array.isArray(mission) || mission.length < 4) return;
+            
+            const taskName = Array.isArray(mission[2]) ? mission[2][0] : mission[2];
+            const details = mission[3];
+            
+            if (!Array.isArray(details) || details.length < 3) return;
+            
+            const level = details[0];
+            const players = details[1];
+            const timeRange = details[2];
+            
+            const title = `🎲 随机任务 - ${taskName}`;
+            const content = `
+                <div style="margin-bottom: 10px;">
+                    <strong>任务名:</strong> ${taskName}
+                </div>
+                <div style="margin-bottom: 10px;">
+                    <strong>开放等级:</strong> ${level}
+                </div>
+                <div style="margin-bottom: 10px;">
+                    <strong>人数:</strong> ${players}
+                </div>
+                <div style="margin-bottom: 10px;">
+                    <strong>开放时间:</strong> ${timeRange}
+                </div>
+            `;
+            
+            const popup = document.createElement('div');
+            popup.className = 'random-mission-popup';
+            popup.style.cssText = `
+                position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+                background: #fff; border: 3px solid #9C27B0; border-radius: 12px; padding: 18px;
+                z-index: 10000; max-width: 520px; max-height: 80vh; box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+                font-family: Arial, sans-serif; text-align: left; overflow-y: auto;`;
+
+            popup.innerHTML = `
+                <div style="margin-bottom: 14px; font-size: 20px; font-weight: bold; color: #7B1FA2;">${title}</div>
+                <div style="margin: 10px 0; padding: 10px; background: #f3e5f5; border-radius: 8px; color: #4e342e; font-size: 14px; line-height: 1.6;">
+                    ${content}
+                </div>
+                <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px;">
+                    <button id="hide-random-mission-btn" style="padding: 10px 18px; background: #4CAF50; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">隐藏</button>
+                    <button id="show-random-mission-btn" style="padding: 10px 18px; background: #9C27B0; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">显示</button>
+                    <button id="close-random-mission-btn" style="padding: 10px 18px; background: #f44336; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">关闭</button>
+                </div>
+            `;
+
+            // 隐藏/显示/关闭按钮
+            const hideBtn = popup.querySelector('#hide-random-mission-btn');
+            const showBtn = popup.querySelector('#show-random-mission-btn');
+            const closeBtn = popup.querySelector('#close-random-mission-btn');
+
+            // 解析目标标记和索引
+            function resolveTargetAndIndex() {
+                const el = document.querySelector(`.item-marker[data-type="random_missions"][data-time-slot="${timeSlot}"][data-mission-index="${index}"]`);
                 return { el, globalIndex: index };
             }
 
@@ -7212,7 +7763,7 @@
             // 每30秒更新一次帮派攻击显示状态
             setInterval(() => {
                 if (activeItemTypes.has('gang_attacks')) {
-                    updateItemMarkers();
+                    updateItemMarkers(); // 帮派攻击需要重新创建标记
                 }
             }, 30000);
         }
@@ -7270,12 +7821,24 @@
                     label.style.gap = '8px';
 
                     // 图标
-                    if (type !== 'dealerships' && type !== 'gang_attacks' && typeof itemIcons !== 'undefined' && itemIcons[type]) {
+                    if (type !== 'dealerships' && type !== 'gang_attacks') {
+                        let iconSrc = null;
+                        // 优先使用菜单配置中的icon属性
+                        if (opt.icon) {
+                            iconSrc = opt.icon;
+                        } else if (typeof itemIcons !== 'undefined' && itemIcons[type]) {
+                            iconSrc = itemIcons[type];
+                        }
+                        
+                        if (iconSrc) {
                         const ico = document.createElement('img');
-                        ico.src = itemIcons[type];
+                            ico.src = iconSrc;
                         ico.alt = '';
                         ico.className = 'item-icon';
+                            ico.style.width = '16px';
+                            ico.style.height = '16px';
                         label.appendChild(ico);
+                        }
                     }
 
                     // 文本
@@ -7297,7 +7860,7 @@
                         }
 
                         if (activeItemTypes.size > 0) {
-                            updateItemMarkers();
+                            updateItemMarkers(); // 物品选择变化时需要重新创建标记
                             if (typeof updateDealershipMarkers === 'function') updateDealershipMarkers();
                             if (typeof updateTilePanePosition === 'function') updateTilePanePosition();
                         } else {

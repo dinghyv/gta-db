@@ -128,12 +128,40 @@
 
         /* 成员网格 */
         .members-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; }
-        .member-card { background: rgba(30,30,30,0.9); border: 1px solid rgba(255,255,255,0.1); border-radius: 14px; padding: 16px; text-align: center; transition: transform .2s, box-shadow .2s, border-color .2s; }
+        .member-card { 
+            background: rgba(30,30,30,0.9); 
+            border: 1px solid rgba(255,255,255,0.1); 
+            border-radius: 14px; 
+            padding: 16px; 
+            text-align: center; 
+            transition: transform .2s, box-shadow .2s, border-color .2s;
+            min-height: 140px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
         .member-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-xl), 0 0 24px rgba(230,81,0,.25); border-color: var(--gta-border-light); }
         .avatar { width: 72px; height: 72px; margin: 0 auto 10px; border-radius: 50%; overflow: hidden; border: 2px solid rgba(255,255,255,0.15); background: radial-gradient(circle at 30% 30%, #444 0%, #222 60%, #111 100%); display: flex; align-items: center; justify-content: center; font-weight: 900; color: #fff; letter-spacing: .5px; }
         .avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
-        .member-id { font-weight: 700; letter-spacing: .5px; }
-        .member-role { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+        .member-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .member-id { 
+            font-weight: 700; 
+            letter-spacing: .5px; 
+            margin-bottom: 4px;
+            line-height: 1.2;
+            word-break: break-word;
+        }
+        .member-role { 
+            font-size: 12px; 
+            color: var(--text-muted); 
+            line-height: 1.3;
+            word-break: break-word;
+        }
 
         /* 规则样式 */
         .rules { display: grid; grid-template-columns: 1fr; gap: 16px; }
@@ -142,6 +170,59 @@
         .rule-content { padding: 12px 16px; color: var(--text-secondary); }
         .rule-content ul { padding-left: 18px; margin: 6px 0; }
         .rule-content li { margin: 4px 0; line-height: 1.6; }
+
+        /* 折叠功能样式 */
+        .collapsible {
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            user-select: none;
+            transition: background-color 0.2s ease;
+        }
+        .collapsible:hover {
+            background: linear-gradient(90deg, rgba(35,15,10,.7) 0%, rgba(230,81,0,.5) 100%);
+        }
+        .collapse-icon {
+            transition: transform 0.3s ease;
+            color: var(--gta-accent);
+            font-size: 14px;
+        }
+        .collapsible.expanded .collapse-icon {
+            transform: rotate(180deg);
+        }
+        .collapse-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease, padding 0.3s ease;
+            padding: 0 16px;
+        }
+        .collapse-content.expanded {
+            max-height: 1000px;
+            padding: 12px 16px;
+        }
+        .collapse-hint {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            color: var(--text-muted);
+            font-size: 14px;
+            margin-bottom: 16px;
+            padding: 8px 16px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 20px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .collapse-hint i {
+            color: var(--gta-primary);
+            animation: bounce 2s infinite;
+        }
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-3px); }
+            60% { transform: translateY(-2px); }
+        }
 
         /* 报名 */
         .apply-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; }
@@ -162,8 +243,140 @@
 
         .footer { position: static; left: 0; right: 0; bottom: 0; text-align: center; color: var(--text-dim); font-size: 0.9rem; z-index: 30; pointer-events: auto; background: rgba(10,10,10,0.35); padding: 12px; backdrop-filter: blur(6px); margin-top: 16px; }
 
-        @media (max-width: 1024px) { .members-grid { grid-template-columns: repeat(4, 1fr); } .apply-grid { grid-template-columns: 1fr; } .form-row { grid-template-columns: 1fr; } }
-        @media (max-width: 640px) { .members-grid { grid-template-columns: repeat(2, 1fr); } .page-header h1 { font-size: 2.2rem; } .org-logo { width: 72px; height: 72px; } }
+        /* 视频横向滚动样式 */
+        .scroll-hint {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            color: var(--text-muted);
+            font-size: 14px;
+            margin-bottom: 16px;
+            padding: 8px 16px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 20px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .scroll-hint i {
+            color: var(--gta-primary);
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .videos-scroll-container {
+            position: relative;
+            overflow: hidden;
+            border-radius: 16px;
+            background: rgba(0,0,0,0.1);
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        
+        .videos-scroll {
+            display: flex;
+            gap: 16px;
+            padding: 16px;
+            overflow-x: auto;
+            overflow-y: hidden;
+            scroll-behavior: smooth;
+            scrollbar-width: thin;
+            scrollbar-color: var(--gta-primary) rgba(255,255,255,0.1);
+        }
+        
+        .videos-scroll::-webkit-scrollbar {
+            height: 8px;
+        }
+        
+        .videos-scroll::-webkit-scrollbar-track {
+            background: rgba(255,255,255,0.1);
+            border-radius: 4px;
+        }
+        
+        .videos-scroll::-webkit-scrollbar-thumb {
+            background: var(--gta-primary);
+            border-radius: 4px;
+        }
+        
+        .videos-scroll::-webkit-scrollbar-thumb:hover {
+            background: var(--gta-border-light);
+        }
+        
+        .video-card { 
+            flex: 0 0 280px;
+            background: rgba(20,20,20,0.8); 
+            border: 1px solid rgba(255,255,255,0.1); 
+            border-radius: 16px; 
+            overflow: hidden; 
+            transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+            position: relative;
+        }
+        .video-card:hover { 
+            transform: translateY(-6px); 
+            box-shadow: var(--shadow-xl), 0 0 30px rgba(230,81,0,0.3); 
+            border-color: var(--gta-border-light); 
+        }
+        .video-player { 
+            width: 100%; 
+            height: 180px; 
+            object-fit: cover; 
+            background: #000; 
+            border: none; 
+            outline: none;
+        }
+        .video-player::-webkit-media-controls-panel {
+            background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.7) 100%);
+        }
+        .video-title { 
+            padding: 12px 16px; 
+            font-weight: 600; 
+            color: var(--text-light); 
+            text-align: center; 
+            background: rgba(0,0,0,0.3);
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+        .video-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, transparent 30%, rgba(230,81,0,0.1) 50%, transparent 70%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+            z-index: 1;
+        }
+        .video-card:hover::before {
+            opacity: 1;
+        }
+
+        @media (max-width: 1024px) { 
+            .members-grid { grid-template-columns: repeat(4, 1fr); } 
+            .apply-grid { grid-template-columns: 1fr; } 
+            .form-row { grid-template-columns: 1fr; }
+            .video-card { flex: 0 0 260px; }
+            .video-player { height: 160px; }
+        }
+        @media (max-width: 768px) {
+            .video-card { flex: 0 0 240px; }
+            .video-player { height: 150px; }
+            .videos-scroll { gap: 12px; padding: 12px; }
+            .scroll-hint { font-size: 13px; padding: 6px 12px; }
+        }
+        @media (max-width: 640px) { 
+            .members-grid { grid-template-columns: repeat(2, 1fr); } 
+            .page-header h1 { font-size: 2.2rem; } 
+            .org-logo { width: 72px; height: 72px; }
+            .video-card { flex: 0 0 220px; }
+            .video-player { height: 140px; }
+            .videos-scroll { gap: 10px; padding: 10px; }
+            .scroll-hint { font-size: 12px; padding: 4px 8px; }
+            .scroll-hint span { display: none; }
+            .scroll-hint::after { content: "滑动查看"; }
+        }
     </style>
 </head>
 <body>
@@ -233,56 +446,165 @@
                 <div class="members-grid">
                     <div class="member-card">
                         <div class="avatar"><img src="src/assets/chet/richard.png" alt="头像"></div>
-                        <div class="member-id">理查德</div>
-                        <div class="member-role">抢劫专家</div>
+                        <div class="member-info">
+                            <div class="member-id">理查德</div>
+                            <div class="member-role">抢劫专家</div>
+                        </div>
                     </div>
                     <div class="member-card">
                         <div class="avatar"><img src="src/assets/chet/yoyo.png" alt="头像"></div>
-                        <div class="member-id">Anonym</div>
-                        <div class="member-role">战术指挥</div>
+                        <div class="member-info">
+                            <div class="member-id">Anonym</div>
+                            <div class="member-role">战术指挥</div>
+                        </div>
                     </div>
                     <div class="member-card">
                         <div class="avatar"><img src="src/assets/chet/cut.jpg" alt="头像"></div>
-                        <div class="member-id">Cutliy</div>
-                        <div class="member-role">搞笑担当</div>
+                        <div class="member-info">
+                            <div class="member-id">Cutliy</div>
+                            <div class="member-role">搞笑担当</div>
+                        </div>
                     </div>
                     <div class="member-card">
                         <div class="avatar"><img src="src/assets/chet/ljx.jpg" alt="头像"></div>
-                        <div class="member-id">🤔</div>
-                        <div class="member-role">C帮大佬</div>
+                        <div class="member-info">
+                            <div class="member-id">🤔</div>
+                            <div class="member-role">C帮大佬</div>
+                        </div>
                     </div>
                     <div class="member-card">
                         <div class="avatar"><img src="src/assets/chet/hongren.jpg" alt="头像"></div>
-                        <div class="member-id">红纫</div>
-                        <div class="member-role">E#大神</div>
+                        <div class="member-info">
+                            <div class="member-id">红纫</div>
+                            <div class="member-role">E#大神</div>
+                        </div>
                     </div>
                     <div class="member-card">
                         <div class="avatar"><img src="src/assets/chet/catlfy.jpg" alt="头像"></div>
-                        <div class="member-id">新加坡大神</div>
-                        <div class="member-role">破坏黑客</div>
+                        <div class="member-info">
+                            <div class="member-id">新加坡大神</div>
+                            <div class="member-role">破坏黑客</div>
+                        </div>
                     </div>
                     <div class="member-card">
                         <div class="avatar"><img src="src/assets/chet/km.jpg" alt="头像"></div>
-                        <div class="member-id">KirisameMarisa45</div>
-                        <div class="member-role">断网高手</div>
+                        <div class="member-info">
+                            <div class="member-id">KirisameMarisa45</div>
+                            <div class="member-role">断网高手</div>
+                        </div>
                     </div>
                     <div class="member-card">
                         <div class="avatar"><img src="src/assets/chet/mj.png" alt="头像"></div>
-                        <div class="member-id">速冻饺子</div>
-                        <div class="member-role">上厕所要带纸</div>
+                        <div class="member-info">
+                            <div class="member-id">速冻饺子</div>
+                            <div class="member-role">上厕所要带纸</div>
+                        </div>
                     </div>
                     <div class="member-card">
                         <div class="avatar"><img src="src/assets/chet/genshin.png" alt="头像"></div>
-                        <div class="member-id">元神哥</div>
-                        <div class="member-role">60级</div>
+                        <div class="member-info">
+                            <div class="member-id">元神哥</div>
+                            <div class="member-role">60级</div>
+                        </div>
                     </div>
                     <div class="member-card">
                         <div class="avatar"><img src="src/assets/chet/421.jpg" alt="头像"></div>
-                        <div class="member-id">Dinghy_421</div>
-                        <div class="member-role">你是?</div>
+                        <div class="member-info">
+                            <div class="member-id">Dinghy_421</div>
+                            <div class="member-role">你是?</div>
+                        </div>
                     </div>
                 </div>
                 <p class="helper">以上为展示位, 期待您的加入!</p>
+            </div>
+        </section>
+
+        <!-- 魅力时刻 -->
+        <section class="section">
+            <div class="section-header">
+                <span>🎬</span>
+                <h2>魅力时刻</h2>
+            </div>
+            <div class="section-content">
+                <div class="scroll-hint">
+                    <i class="fas fa-arrows-alt-h"></i>
+                    <span>左右滑动查看更多精彩视频</span>
+                </div>
+                <div class="videos-scroll-container">
+                    <div class="videos-scroll">
+                        <div class="video-card">
+                            <video class="video-player" controls preload="metadata" poster="src/assets/chet/cut.jpg">
+                                <source src="https://eo-gta-maps.antwen.com/other/cut/1.mp4" type="video/mp4">
+                                您的浏览器不支持视频播放。
+                            </video>
+                            <div class="video-title">魅力时刻 #1</div>
+                        </div>
+                        <div class="video-card">
+                            <video class="video-player" controls preload="metadata" poster="src/assets/chet/cut.jpg">
+                                <source src="https://eo-gta-maps.antwen.com/other/cut/2.mp4" type="video/mp4">
+                                您的浏览器不支持视频播放。
+                            </video>
+                            <div class="video-title">魅力时刻 #2</div>
+                        </div>
+                        <div class="video-card">
+                            <video class="video-player" controls preload="metadata" poster="src/assets/chet/cut.jpg">
+                                <source src="https://eo-gta-maps.antwen.com/other/cut/3.mp4" type="video/mp4">
+                                您的浏览器不支持视频播放。
+                            </video>
+                            <div class="video-title">魅力时刻 #3</div>
+                        </div>
+                        <div class="video-card">
+                            <video class="video-player" controls preload="metadata" poster="src/assets/chet/cut.jpg">
+                                <source src="https://eo-gta-maps.antwen.com/other/cut/4.mp4" type="video/mp4">
+                                您的浏览器不支持视频播放。
+                            </video>
+                            <div class="video-title">魅力时刻 #4</div>
+                        </div>
+                        <div class="video-card">
+                            <video class="video-player" controls preload="metadata" poster="src/assets/chet/cut.jpg">
+                                <source src="https://eo-gta-maps.antwen.com/other/cut/5.mp4" type="video/mp4">
+                                您的浏览器不支持视频播放。
+                            </video>
+                            <div class="video-title">魅力时刻 #5</div>
+                        </div>
+                        <div class="video-card">
+                            <video class="video-player" controls preload="metadata" poster="src/assets/chet/cut.jpg">
+                                <source src="https://eo-gta-maps.antwen.com/other/cut/6.mp4" type="video/mp4">
+                                您的浏览器不支持视频播放。
+                            </video>
+                            <div class="video-title">魅力时刻 #6</div>
+                        </div>
+                        <div class="video-card">
+                            <video class="video-player" controls preload="metadata" poster="src/assets/chet/cut.jpg">
+                                <source src="https://eo-gta-maps.antwen.com/other/cut/7.mp4" type="video/mp4">
+                                您的浏览器不支持视频播放。
+                            </video>
+                            <div class="video-title">魅力时刻 #7</div>
+                        </div>
+                        <div class="video-card">
+                            <video class="video-player" controls preload="metadata" poster="src/assets/chet/cut.jpg">
+                                <source src="https://eo-gta-maps.antwen.com/other/cut/8.mp4" type="video/mp4">
+                                您的浏览器不支持视频播放。
+                            </video>
+                            <div class="video-title">魅力时刻 #8</div>
+                        </div>
+                        <div class="video-card">
+                            <video class="video-player" controls preload="metadata" poster="src/assets/chet/cut.jpg">
+                                <source src="https://eo-gta-maps.antwen.com/other/cut/9.mp4" type="video/mp4">
+                                您的浏览器不支持视频播放。
+                            </video>
+                            <div class="video-title">魅力时刻 #9</div>
+                        </div>
+                        <div class="video-card">
+                            <video class="video-player" controls preload="metadata" poster="src/assets/chet/cut.jpg">
+                                <source src="https://eo-gta-maps.antwen.com/other/cut/10.mp4" type="video/mp4">
+                                您的浏览器不支持视频播放。
+                            </video>
+                            <div class="video-title">魅力时刻 #10</div>
+                        </div>
+                    </div>
+                </div>
+                <p class="helper">精彩瞬间，记录我们的传奇时刻</p>
             </div>
         </section>
 
@@ -293,9 +615,16 @@
                 <h2>CHET考核标准细则（10/09/2025）</h2>
             </div>
             <div class="section-content rules">
+                <div class="collapse-hint">
+                    <i class="fas fa-hand-point-down"></i>
+                    <span>点击下方标题展开查看具体要求</span>
+                </div>
                 <div class="rule-block">
-                    <div class="rule-title">通用要求</div>
-                    <div class="rule-content">
+                    <div class="rule-title collapsible" data-target="rule-1">
+                        <span>通用要求</span>
+                        <i class="fas fa-chevron-down collapse-icon"></i>
+                    </div>
+                    <div class="rule-content collapse-content" id="rule-1">
                         <ul>
                             <li>1. 全部任务必须在困难模式下完成RE重开挑战。</li>
                             <li>2. 视频需要展示考核者的任务全过程，且视频必须为剪辑版本。考核必须提交对应视频至CHET官方群聊</li>
@@ -308,8 +637,11 @@
                 </div>
 
                 <div class="rule-block">
-                    <div class="rule-title">全福银行</div>
-                    <div class="rule-content">
+                    <div class="rule-title collapsible" data-target="rule-2">
+                        <span>全福银行</span>
+                        <i class="fas fa-chevron-down collapse-icon"></i>
+                    </div>
+                    <div class="rule-content collapse-content" id="rule-2">
                         <p><strong>队伍二选一</strong></p>
                         <p><strong>硬性要求：</strong></p>
                         <ul>
@@ -334,8 +666,11 @@
                 </div>
 
                 <div class="rule-block">
-                    <div class="rule-title">越狱</div>
-                    <div class="rule-content">
+                    <div class="rule-title collapsible" data-target="rule-3">
+                        <span>越狱</span>
+                        <i class="fas fa-chevron-down collapse-icon"></i>
+                    </div>
+                    <div class="rule-content collapse-content" id="rule-3">
                         <p><strong>硬性要求：</strong></p>
                         <ul>
                             <li>1. 任务建议在七叶树2045开。</li>
@@ -351,8 +686,11 @@
                 </div>
 
                 <div class="rule-block">
-                    <div class="rule-title">人道</div>
-                    <div class="rule-content">
+                    <div class="rule-title collapsible" data-target="rule-4">
+                        <span>人道</span>
+                        <i class="fas fa-chevron-down collapse-icon"></i>
+                    </div>
+                    <div class="rule-content collapse-content" id="rule-4">
                         <p><strong>硬性要求：</strong></p>
                         <ul>
                             <li>1. 任务建议在七叶树2045开。</li>
@@ -375,8 +713,11 @@
                 </div>
 
                 <div class="rule-block">
-                    <div class="rule-title">首轮</div>
-                    <div class="rule-content">
+                    <div class="rule-title collapsible" data-target="rule-5">
+                        <span>首轮</span>
+                        <i class="fas fa-chevron-down collapse-icon"></i>
+                    </div>
+                    <div class="rule-content collapse-content" id="rule-5">
                         <ul>
                             <li>1. 任务建议在正直大道开。</li>
                             <li>2. 出门上车必须南边和北边一台车，否则重考。</li>
@@ -391,8 +732,11 @@
                 </div>
 
                 <div class="rule-block">
-                    <div class="rule-title">太平洋</div>
-                    <div class="rule-content">
+                    <div class="rule-title collapsible" data-target="rule-6">
+                        <span>太平洋</span>
+                        <i class="fas fa-chevron-down collapse-icon"></i>
+                    </div>
+                    <div class="rule-content collapse-content" id="rule-6">
                         <ul>
                             <li>1. 任务建议在2044/2045开。</li>
                             <li>2. 如果要在2045开，出门只有一辆摩托，那么只有一个人可以驾驶摩托去银行，剩余三个人不允许下坡找车，必须跑步前往，全程不允许偷速。</li>
@@ -418,8 +762,11 @@
                 </div>
 
                 <div class="rule-block">
-                    <div class="rule-title">末日将至</div>
-                    <div class="rule-content">
+                    <div class="rule-title collapsible" data-target="rule-7">
+                        <span>末日将至</span>
+                        <i class="fas fa-chevron-down collapse-icon"></i>
+                    </div>
+                    <div class="rule-content collapse-content" id="rule-7">
                         <ul>
                             <li>1. 进游戏前房主必须设置为保真模式，队友设置为性能模式再进任务，一旦发现房主为主力网即刻取消考核资格。</li>
                             <li>2. 选车时主力不可选择义警作为载具只能选摩托车类，副手要跟主力一起上摩托车且车辆选择选项必须调整到无载具才可开启任务。</li>
@@ -653,6 +1000,31 @@
                 } else {
                     status.textContent = '未配置在线提交通道或网络异常。已为你复制文本后可直接到群聊报名。';
                 }
+            });
+        })();
+
+        // 折叠/展开功能
+        (function(){
+            const collapsibles = document.querySelectorAll('.collapsible');
+            
+            collapsibles.forEach(collapsible => {
+                collapsible.addEventListener('click', function() {
+                    const targetId = this.getAttribute('data-target');
+                    const content = document.getElementById(targetId);
+                    const icon = this.querySelector('.collapse-icon');
+                    
+                    if (content.classList.contains('expanded')) {
+                        // 折叠
+                        content.classList.remove('expanded');
+                        this.classList.remove('expanded');
+                        icon.style.transform = 'rotate(0deg)';
+                    } else {
+                        // 展开
+                        content.classList.add('expanded');
+                        this.classList.add('expanded');
+                        icon.style.transform = 'rotate(180deg)';
+                    }
+                });
             });
         })();
     </script>

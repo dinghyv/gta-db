@@ -1131,6 +1131,14 @@
             smuggler_trail: './src/assets/smuggler_trail.svg',
             // 犯罪现场
             crime_scenes: './src/assets/crime_scenes.svg',
+            // UFO观光
+            ufo: './src/assets/ufo.svg',
+            // 万圣节杀人狂
+            halloween_slashers: './src/assets/slasher.svg',
+            // 鬼上身的动物
+            possessed_animals: './src/assets/cerberus.svg',
+            // 社区边界
+            community_outreach: './src/assets/community_outreach.svg',
             // 商店抢劫
             store_robbery: './src/assets/store_robbery.svg',
             // 车队
@@ -1138,7 +1146,11 @@
             // 车队终点
             convoy_final: './src/assets/convoy_final.svg',
             // 装甲运钞车
-            armored_truck: './src/assets/armored_truck.svg'
+            armored_truck: './src/assets/armored_truck.svg',
+            // 外贸出口载具1
+            exotic_exports1: './src/assets/exotic_exports1.svg',
+            // 外贸出口载具2
+            exotic_exports2: './src/assets/exotic_exports2.svg'
         };
 
         // 物品数据（从JSON文件加载）
@@ -1181,10 +1193,16 @@
             smuggler_plane: [],
             smuggler_trail: [],
             crime_scenes: [],
+            ufo: [],
+            halloween_slashers: [],
+            possessed_animals: [],
+            community_outreach: [],
             store_robbery: [],
             convoy: [],
             convoy_final: [],
-            armored_truck: []
+            armored_truck: [],
+            exotic_exports1: [],
+            exotic_exports2: []
         };
 
         // 车行位置数据
@@ -1270,9 +1288,15 @@
             { value: 'smuggler_plane', text: '✈️ 走私贩飞机', icon: './src/assets/smuggler_plane.svg' },
             { value: 'smuggler_trail', text: '🛤️ 走私贩踪迹', icon: './src/assets/smuggler_trail.svg' },
             { value: 'crime_scenes', text: '🔍 犯罪现场', icon: './src/assets/crime_scenes.svg' },
+            { value: 'ufo', text: '🛸 UFO观光', icon: './src/assets/ufo.svg' },
+            { value: 'halloween_slashers', text: '🎃 万圣节杀人狂', icon: './src/assets/slasher.svg' },
+            { value: 'possessed_animals', text: '🐺 鬼上身的动物', icon: './src/assets/cerberus.svg' },
+            { value: 'community_outreach', text: '🏘️ 社区边界', icon: './src/assets/community_outreach.svg' },
             { value: 'store_robbery', text: '🏪 商店抢劫', icon: './src/assets/store_robbery.svg' },
             { value: 'convoy', text: '🚛 车队', icon: './src/assets/convoy.svg' },
-            { value: 'armored_truck', text: '💰 装甲运钞车', icon: './src/assets/armored_truck.svg' }
+            { value: 'armored_truck', text: '💰 装甲运钞车', icon: './src/assets/armored_truck.svg' },
+            { value: 'exotic_exports1', text: '🚗 外贸出口载具1', icon: './src/assets/exotic_exports1.svg' },
+            { value: 'exotic_exports2', text: '🚗 外贸出口载具2', icon: './src/assets/exotic_exports2.svg' }
         ];
         const loader = document.getElementById('loader');
         const tilePaneDom = document.getElementById('tile-pane');
@@ -1770,6 +1794,187 @@
                     } catch (error) {
                         console.error('加载crime_scenes数据失败:', error);
                         itemData.crime_scenes = [];
+                    }
+                    
+                    // 额外加载：UFO观光（ufo）
+                    try {
+                        if (cardsData && Array.isArray(cardsData.ufo)) {
+                            itemData.ufo = cardsData.ufo.map((item, index) => ({
+                                x: item.x,
+                                y: item.y,
+                                name: `UFO观光 ${index + 1}`
+                            }));
+                            console.log(`ufo 数据加载成功：${itemData.ufo.length} 个UFO观光位置`);
+                            console.log('ufo 数据示例:', itemData.ufo[0]);
+                        } else {
+                            console.log('ufo 数据未找到或格式不正确');
+                        }
+                    } catch (error) {
+                        console.error('加载ufo数据失败:', error);
+                        itemData.ufo = [];
+                    }
+                    
+                    // 额外加载：万圣节杀人狂（halloween_slashers）
+                    try {
+                        if (cardsData && cardsData.halloween_slashers && typeof cardsData.halloween_slashers === 'object') {
+                            itemData.halloween_slashers = [];
+                            Object.keys(cardsData.halloween_slashers).forEach(slasherType => {
+                                const slasherData = cardsData.halloween_slashers[slasherType];
+                                if (Array.isArray(slasherData)) {
+                                    slasherData.forEach((item, index) => {
+                                        if (Array.isArray(item) && item.length >= 5) {
+                                            itemData.halloween_slashers.push({
+                                                x: item[0],
+                                                y: item[1],
+                                                radius: item[4],
+                                                type: slasherType,
+                                                name: `${slasherType} ${index + 1}`
+                                            });
+                                        }
+                                    });
+                                }
+                            });
+                            console.log(`halloween_slashers 数据加载成功：${itemData.halloween_slashers.length} 个万圣节杀人狂位置`);
+                            console.log('halloween_slashers 数据示例:', itemData.halloween_slashers[0]);
+                        } else {
+                            console.log('halloween_slashers 数据未找到或格式不正确');
+                        }
+                    } catch (error) {
+                        console.error('加载halloween_slashers数据失败:', error);
+                        itemData.halloween_slashers = [];
+                    }
+                    
+                    // 额外加载：鬼上身的动物（possessed_animals）
+                    try {
+                        if (cardsData && cardsData.possessed_animals && typeof cardsData.possessed_animals === 'object') {
+                            itemData.possessed_animals = [];
+                            
+                            // 加载areas数据（圆形区域）
+                            if (cardsData.possessed_animals.areas && Array.isArray(cardsData.possessed_animals.areas)) {
+                                cardsData.possessed_animals.areas.forEach((item, index) => {
+                                    if (Array.isArray(item) && item.length >= 5) {
+                                        // 从数据结构中正确提取动物类型
+                                        // 数据结构：[x, y, [["animal_boar"]], [["boar"]], radius]
+                                        const animalType = item[3] && item[3][0] ? item[3][0] : 'unknown';
+                                        itemData.possessed_animals.push({
+                                            x: item[0],
+                                            y: item[1],
+                                            radius: item[4],
+                                            type: 'area',
+                                            animalType: animalType,
+                                            name: `${animalType} 区域 ${index + 1}`
+                                        });
+                                    }
+                                });
+                            }
+                            
+                            // 加载spawns数据（具体位置）
+                            if (cardsData.possessed_animals.spawns && typeof cardsData.possessed_animals.spawns === 'object') {
+                                Object.keys(cardsData.possessed_animals.spawns).forEach(animalType => {
+                                    const spawnData = cardsData.possessed_animals.spawns[animalType];
+                                    if (Array.isArray(spawnData)) {
+                                        spawnData.forEach((item, index) => {
+                                            if (Array.isArray(item) && item.length >= 2) {
+                                                // 从spawns数据结构中提取动物类型
+                                                // 数据结构：[x, y, [["animal_boar"]], [["boar"]]]
+                                                const extractedAnimalType = item[3] && item[3][0] ? item[3][0] : animalType;
+                                                itemData.possessed_animals.push({
+                                                    x: item[0],
+                                                    y: item[1],
+                                                    radius: 50, // 默认小半径用于spawns
+                                                    type: 'spawn',
+                                                    animalType: extractedAnimalType,
+                                                    name: `${extractedAnimalType} 生成点 ${index + 1}`
+                                                });
+                                            }
+                                        });
+                                    }
+                                });
+                            }
+                            
+                            console.log(`possessed_animals 数据加载成功：${itemData.possessed_animals.length} 个鬼上身动物位置`);
+                            console.log('possessed_animals 数据示例:', itemData.possessed_animals[0]);
+                        } else {
+                            console.log('possessed_animals 数据未找到或格式不正确');
+                        }
+                    } catch (error) {
+                        console.error('加载possessed_animals数据失败:', error);
+                        itemData.possessed_animals = [];
+                    }
+                    
+                    // 额外加载：社区边界（community_outreach）
+                    try {
+                        if (cardsData && Array.isArray(cardsData.community_outreach)) {
+                            itemData.community_outreach = cardsData.community_outreach.map((item, index) => ({
+                                x: item.x,
+                                y: item.y,
+                                name: `社区边界 ${index + 1}`
+                            }));
+                            console.log(`community_outreach 数据加载成功：${itemData.community_outreach.length} 个社区边界位置`);
+                            console.log('community_outreach 数据示例:', itemData.community_outreach[0]);
+                        } else {
+                            console.log('community_outreach 数据未找到或格式不正确');
+                        }
+                    } catch (error) {
+                        console.error('加载community_outreach数据失败:', error);
+                        itemData.community_outreach = [];
+                    }
+                    
+                    // 额外加载：外贸出口载具（exotic_exports1和exotic_exports2）
+                    try {
+                        // 从API获取外贸出口载具数据
+                        const response = await fetch('https://api-gta.antwen.com/api/items/exotic-exports');
+                        let vehicleList = [];
+                        let apiData = null;
+                        
+                        if (response.ok) {
+                            const apiResponse = await response.json();
+                            if (apiResponse.success && apiResponse.data && apiResponse.data.message) {
+                                // 解析车辆列表
+                                vehicleList = apiResponse.data.message.trim().split('\n').filter(vehicle => vehicle.trim());
+                                apiData = apiResponse.data;
+                                console.log(`exotic_exports API数据加载成功：${vehicleList.length} 辆车辆`);
+                                console.log('exotic_exports 车辆列表:', vehicleList);
+                            } else {
+                                console.log('exotic_exports API数据格式不正确');
+                            }
+                        } else {
+                            console.log('exotic_exports API请求失败');
+                        }
+                        
+                        // 从zones.json加载exotic_exports1坐标数据
+                        if (cardsData && Array.isArray(cardsData.exotic_exports1)) {
+                            itemData.exotic_exports1 = cardsData.exotic_exports1.map((item, index) => ({
+                                x: item.x,
+                                y: item.y,
+                                name: `外贸出口载具1 ${index + 1}`,
+                                vehicleList: vehicleList,
+                                apiData: apiData
+                            }));
+                            console.log(`exotic_exports1 坐标数据加载成功：${itemData.exotic_exports1.length} 个位置`);
+                        } else {
+                            console.log('exotic_exports1 坐标数据未找到或格式不正确');
+                            itemData.exotic_exports1 = [];
+                        }
+                        
+                        // 从zones.json加载exotic_exports2坐标数据
+                        if (cardsData && Array.isArray(cardsData.exotic_exports2)) {
+                            itemData.exotic_exports2 = cardsData.exotic_exports2.map((item, index) => ({
+                                x: item.x,
+                                y: item.y,
+                                name: `外贸出口载具2 ${index + 1}`,
+                                vehicleList: vehicleList,
+                                apiData: apiData
+                            }));
+                            console.log(`exotic_exports2 坐标数据加载成功：${itemData.exotic_exports2.length} 个位置`);
+                        } else {
+                            console.log('exotic_exports2 坐标数据未找到或格式不正确');
+                            itemData.exotic_exports2 = [];
+                        }
+                    } catch (error) {
+                        console.error('加载exotic_exports数据失败:', error);
+                        itemData.exotic_exports1 = [];
+                        itemData.exotic_exports2 = [];
                     }
                     
                     // 额外加载：商店抢劫（store_robbery）
@@ -2400,7 +2605,7 @@
             // 为每个激活的类型创建标记
             activeItemTypes.forEach(type => {
                 // 跳过有特殊渲染逻辑的类型
-                if (type === 'media_sticks' || type === 'maude_bounty_targets' || type === 'serial_killer_slasher' || type === 'movie_props' || type === 'treasure_hunt_dba_revolver' || type === 'stash_houses' || type === 'madrazo_hits' || type === 'police_rescue_patrick_mcreary' || type === 'random_missions' || type === 'drug_vehicle' || type === 'smuggler_plane' || type === 'smuggler_trail' || type === 'convoy') return;
+                if (type === 'media_sticks' || type === 'maude_bounty_targets' || type === 'serial_killer_slasher' || type === 'movie_props' || type === 'treasure_hunt_dba_revolver' || type === 'stash_houses' || type === 'madrazo_hits' || type === 'police_rescue_patrick_mcreary' || type === 'random_missions' || type === 'drug_vehicle' || type === 'smuggler_plane' || type === 'smuggler_trail' || type === 'convoy' || type === 'halloween_slashers' || type === 'possessed_animals') return;
                 
                 // 调试信息
                 if (type === 'crime_scenes') {
@@ -2470,6 +2675,170 @@
                         itemMarkers.push({ type: it.__subtype, index: it.__index, el: markerEl });
                     }
                 });
+            }
+
+            // 特殊：万圣节杀人狂圆形区域渲染
+            if (activeItemTypes.has('halloween_slashers')) {
+                if (itemData.halloween_slashers && Array.isArray(itemData.halloween_slashers)) {
+                    itemData.halloween_slashers.forEach((item, index) => {
+                        if (typeof item.x === 'undefined' || typeof item.y === 'undefined' || typeof item.radius === 'undefined') return;
+
+                        const percentX = (item.x - GAME_LEFT) / (GAME_RIGHT - GAME_LEFT);
+                        const percentY = (GAME_TOP - item.y) / (GAME_TOP - GAME_BOTTOM);
+
+                        const itemX = percentX * totalWidth;
+                        const itemY = percentY * totalHeight;
+
+                        // 计算圆形区域的像素大小
+                        const gameWidth = GAME_RIGHT - GAME_LEFT; // 9000
+                        const pixelRadius = (item.radius / gameWidth) * totalWidth;
+                        const circleSize = pixelRadius * 2; // 直径
+
+                        // 为不同种类的杀人狂设置不同的颜色
+                        let borderColor, bgColor;
+                        switch(item.type) {
+                            case 'clown':
+                                borderColor = '#FF9800'; // 橙色
+                                bgColor = 'rgba(255, 152, 0, 0.1)';
+                                break;
+                            case 'psycho':
+                                borderColor = '#F44336'; // 红色
+                                bgColor = 'rgba(244, 67, 54, 0.1)';
+                                break;
+                            case 'driver':
+                                borderColor = '#9C27B0'; // 紫色
+                                bgColor = 'rgba(156, 39, 176, 0.1)';
+                                break;
+                            case 'sackslasher':
+                                borderColor = '#607D8B'; // 蓝灰色
+                                bgColor = 'rgba(96, 125, 139, 0.1)';
+                                break;
+                            default:
+                                borderColor = '#795548'; // 棕色
+                                bgColor = 'rgba(121, 85, 72, 0.1)';
+                        }
+
+                        // 创建圆形区域标记
+                        const marker = document.createElement('div');
+                        marker.className = 'item-marker halloween-slasher-circle';
+                        marker.dataset.index = index;
+                        marker.dataset.type = 'halloween_slashers';
+                        marker.dataset.slasherType = item.type;
+                        marker.style.position = 'absolute';
+                        marker.style.left = `${itemX}px`;
+                        marker.style.top = `${itemY}px`;
+                        marker.style.width = `${circleSize}px`;
+                        marker.style.height = `${circleSize}px`;
+                        marker.style.borderRadius = '50%';
+                        marker.style.border = `3px solid ${borderColor}`;
+                        marker.style.backgroundColor = bgColor;
+                        marker.style.transform = 'translate(-50%, -50%)';
+                        marker.style.cursor = 'pointer';
+                        marker.style.zIndex = '670';
+
+                        tilePaneDom.appendChild(marker);
+                        itemMarkers.push({ type: 'halloween_slashers', index: index, el: marker });
+                    });
+                }
+            }
+
+            // 特殊：鬼上身动物圆形区域渲染
+            if (activeItemTypes.has('possessed_animals')) {
+                if (itemData.possessed_animals && Array.isArray(itemData.possessed_animals)) {
+                    itemData.possessed_animals.forEach((item, index) => {
+                        if (typeof item.x === 'undefined' || typeof item.y === 'undefined' || typeof item.radius === 'undefined') return;
+
+                        const percentX = (item.x - GAME_LEFT) / (GAME_RIGHT - GAME_LEFT);
+                        const percentY = (GAME_TOP - item.y) / (GAME_TOP - GAME_BOTTOM);
+
+                        const itemX = percentX * totalWidth;
+                        const itemY = percentY * totalHeight;
+
+                        // 计算圆形区域的像素大小
+                        const gameWidth = GAME_RIGHT - GAME_LEFT; // 9000
+                        const pixelRadius = (item.radius / gameWidth) * totalWidth;
+                        const circleSize = pixelRadius * 2; // 直径
+
+                        // 为不同种类的动物设置不同的颜色
+                        let borderColor, bgColor, textColor;
+                        switch(item.animalType) {
+                            case 'boar':
+                                borderColor = '#8D6E63'; // 棕色
+                                bgColor = 'rgba(141, 110, 99, 0.1)';
+                                textColor = '#5D4037';
+                                break;
+                            case 'cougar':
+                                borderColor = '#FF5722'; // 橙红色
+                                bgColor = 'rgba(255, 87, 34, 0.1)';
+                                textColor = '#D84315';
+                                break;
+                            case 'coyote':
+                                borderColor = '#795548'; // 深棕色
+                                bgColor = 'rgba(121, 85, 72, 0.1)';
+                                textColor = '#4E342E';
+                                break;
+                            case 'deer':
+                                borderColor = '#4CAF50'; // 绿色
+                                bgColor = 'rgba(76, 175, 80, 0.1)';
+                                textColor = '#2E7D32';
+                                break;
+                            case 'pug':
+                                borderColor = '#9C27B0'; // 紫色
+                                bgColor = 'rgba(156, 39, 176, 0.1)';
+                                textColor = '#6A1B9A';
+                                break;
+                            default:
+                                borderColor = '#607D8B'; // 蓝灰色
+                                bgColor = 'rgba(96, 125, 139, 0.1)';
+                                textColor = '#37474F';
+                        }
+
+                        // 创建圆形区域标记
+                        const marker = document.createElement('div');
+                        marker.className = 'item-marker possessed-animal-circle';
+                        marker.dataset.index = index;
+                        marker.dataset.type = 'possessed_animals';
+                        marker.dataset.animalType = item.animalType;
+                        marker.dataset.areaType = item.type;
+                        marker.style.position = 'absolute';
+                        marker.style.left = `${itemX}px`;
+                        marker.style.top = `${itemY}px`;
+                        marker.style.width = `${circleSize}px`;
+                        marker.style.height = `${circleSize}px`;
+                        marker.style.borderRadius = '50%';
+                        marker.style.border = `3px solid ${borderColor}`;
+                        marker.style.backgroundColor = bgColor;
+                        marker.style.transform = 'translate(-50%, -50%)';
+                        marker.style.cursor = 'pointer';
+                        marker.style.zIndex = '670';
+                        marker.style.display = 'flex';
+                        marker.style.alignItems = 'center';
+                        marker.style.justifyContent = 'center';
+
+                        // 添加动物名称标签（仅对areas显示，spawns不显示标签）
+                        if (item.type === 'area') {
+                            const animalName = item.animalType === 'boar' ? '野猪' : 
+                                              item.animalType === 'cougar' ? '美洲狮' : 
+                                              item.animalType === 'coyote' ? '郊狼' : 
+                                              item.animalType === 'deer' ? '鹿' : 
+                                              item.animalType === 'pug' ? '哈巴狗' : 
+                                              item.animalType;
+                            
+                            const label = document.createElement('div');
+                            label.textContent = animalName;
+                            label.style.color = textColor;
+                            label.style.fontSize = '12px';
+                            label.style.fontWeight = 'bold';
+                            label.style.textAlign = 'center';
+                            label.style.pointerEvents = 'none';
+                            label.style.textShadow = '1px 1px 2px rgba(255,255,255,0.8)';
+                            marker.appendChild(label);
+                        }
+
+                        tilePaneDom.appendChild(marker);
+                        itemMarkers.push({ type: 'possessed_animals', index: index, el: marker });
+                    });
+                }
             }
 
             // 特殊：电影道具多个子类型分别渲染
@@ -6031,6 +6400,7 @@
             resetViewForZoom(z, { x: centerPixel.x, y: centerPixel.y });
             updateTilePanePosition();
             probeTilesForStyleAndZoom(currentStyle, z);
+            updatePossessedAnimalsCircleSizes(z);
         });
 
         // 地图点击事件 - 检测坐标值
@@ -6183,6 +6553,12 @@
 
             // 检测是否点击在犯罪现场附近
             checkCrimeScenesClick(gameX, gameY);
+
+            // 检测是否点击在社区边界附近
+            checkCommunityOutreachClick(gameX, gameY);
+
+            // 检测是否点击在外贸出口载具附近
+            checkExoticExportsClick(gameX, gameY);
 
             // 检测是否点击在商店抢劫附近
             checkStoreRobberyClick(gameX, gameY);
@@ -7468,6 +7844,127 @@
                         crimeScene.x === nearbyCrimeScene.x && crimeScene.y === nearbyCrimeScene.y
                     );
                     showCrimeScenesPopup(nearbyCrimeScene, crimeSceneIndex);
+                    return; // 找到犯罪现场，停止后续检测
+                }
+            }
+            
+            // 检查当前是否显示UFO观光（支持多选）
+            if (activeItemTypes.has('ufo') && itemData.ufo) {
+                // 检查点击位置是否在任意UFO观光附近
+                const nearbyUfo = itemData.ufo.find(ufo => {
+                    const distance = Math.sqrt(Math.pow(ufo.x - clickX, 2) + Math.pow(ufo.y - clickY, 2));
+                    return distance <= CRIME_SCENES_RADIUS; // 使用相同的检测半径
+                });
+                
+                if (nearbyUfo) {
+                    console.log('点击了UFO观光附近:', nearbyUfo.name);
+                    // 找到对应的索引
+                    const ufoIndex = itemData.ufo.findIndex(ufo => 
+                        ufo.x === nearbyUfo.x && ufo.y === nearbyUfo.y
+                    );
+                    showUfoPopup(nearbyUfo, ufoIndex);
+                    return; // 找到UFO观光，停止后续检测
+                }
+            }
+            
+            // 检查当前是否显示万圣节杀人狂（支持多选）
+            if (activeItemTypes.has('halloween_slashers') && itemData.halloween_slashers) {
+                // 检查点击位置是否在任意万圣节杀人狂圆形区域内
+                const nearbySlasher = itemData.halloween_slashers.find(slasher => {
+                    const distance = Math.sqrt(Math.pow(slasher.x - clickX, 2) + Math.pow(slasher.y - clickY, 2));
+                    return distance <= slasher.radius; // 使用每个杀人狂自己的半径
+                });
+                
+                if (nearbySlasher) {
+                    console.log('点击了万圣节杀人狂区域:', nearbySlasher.name);
+                    // 找到对应的索引
+                    const slasherIndex = itemData.halloween_slashers.findIndex(slasher => 
+                        slasher.x === nearbySlasher.x && slasher.y === nearbySlasher.y && slasher.type === nearbySlasher.type
+                    );
+                    showHalloweenSlasherPopup(nearbySlasher, slasherIndex);
+                    return; // 找到万圣节杀人狂，停止后续检测
+                }
+            }
+            
+            // 检查当前是否显示鬼上身的动物（支持多选）
+            if (activeItemTypes.has('possessed_animals') && itemData.possessed_animals) {
+                // 检查点击位置是否在任意鬼上身动物圆形区域内
+                const nearbyAnimal = itemData.possessed_animals.find(animal => {
+                    const distance = Math.sqrt(Math.pow(animal.x - clickX, 2) + Math.pow(animal.y - clickY, 2));
+                    return distance <= animal.radius; // 使用每个动物自己的半径
+                });
+                
+                if (nearbyAnimal) {
+                    console.log('点击了鬼上身动物区域:', nearbyAnimal.name);
+                    // 找到对应的索引
+                    const animalIndex = itemData.possessed_animals.findIndex(animal => 
+                        animal.x === nearbyAnimal.x && animal.y === nearbyAnimal.y && 
+                        animal.type === nearbyAnimal.type && animal.animalType === nearbyAnimal.animalType
+                    );
+                    showPossessedAnimalPopup(nearbyAnimal, animalIndex);
+                    return; // 找到鬼上身动物，停止后续检测
+                }
+            }
+        }
+
+        // 检测社区边界点击（坐标检测）
+        function checkCommunityOutreachClick(clickX, clickY) {
+            const COMMUNITY_OUTREACH_RADIUS = 100; // 检测半径100单位
+            
+            // 检查当前是否显示社区边界（支持多选）
+            if (activeItemTypes.has('community_outreach') && itemData.community_outreach) {
+                // 检查点击位置是否在任意社区边界附近
+                const nearbyCommunityOutreach = itemData.community_outreach.find(communityOutreach => {
+                    const distance = Math.sqrt(Math.pow(communityOutreach.x - clickX, 2) + Math.pow(communityOutreach.y - clickY, 2));
+                    return distance <= COMMUNITY_OUTREACH_RADIUS;
+                });
+
+                if (nearbyCommunityOutreach) {
+                    console.log('点击了社区边界附近:', nearbyCommunityOutreach.name);
+                    // 找到对应的索引
+                    const communityOutreachIndex = itemData.community_outreach.findIndex(communityOutreach => 
+                        communityOutreach.x === nearbyCommunityOutreach.x && communityOutreach.y === nearbyCommunityOutreach.y
+                    );
+                    showCommunityOutreachPopup(nearbyCommunityOutreach, communityOutreachIndex);
+                }
+            }
+        }
+
+        // 检测外贸出口载具点击（坐标检测）
+        function checkExoticExportsClick(clickX, clickY) {
+            const EXOTIC_EXPORTS_RADIUS = 100; // 检测半径100单位
+            
+            // 检查exotic_exports1
+            if (activeItemTypes.has('exotic_exports1') && itemData.exotic_exports1) {
+                const nearbyExoticExport = itemData.exotic_exports1.find(exoticExport => {
+                    const distance = Math.sqrt(Math.pow(exoticExport.x - clickX, 2) + Math.pow(exoticExport.y - clickY, 2));
+                    return distance <= EXOTIC_EXPORTS_RADIUS;
+                });
+
+                if (nearbyExoticExport) {
+                    console.log('点击了外贸出口载具1附近:', nearbyExoticExport.name);
+                    const exoticExportIndex = itemData.exotic_exports1.findIndex(exoticExport => 
+                        exoticExport.x === nearbyExoticExport.x && exoticExport.y === nearbyExoticExport.y
+                    );
+                    showExoticExportsPopup(nearbyExoticExport, exoticExportIndex, 'exotic_exports1');
+                    return;
+                }
+            }
+            
+            // 检查exotic_exports2
+            if (activeItemTypes.has('exotic_exports2') && itemData.exotic_exports2) {
+                const nearbyExoticExport = itemData.exotic_exports2.find(exoticExport => {
+                    const distance = Math.sqrt(Math.pow(exoticExport.x - clickX, 2) + Math.pow(exoticExport.y - clickY, 2));
+                    return distance <= EXOTIC_EXPORTS_RADIUS;
+                });
+
+                if (nearbyExoticExport) {
+                    console.log('点击了外贸出口载具2附近:', nearbyExoticExport.name);
+                    const exoticExportIndex = itemData.exotic_exports2.findIndex(exoticExport => 
+                        exoticExport.x === nearbyExoticExport.x && exoticExport.y === nearbyExoticExport.y
+                    );
+                    showExoticExportsPopup(nearbyExoticExport, exoticExportIndex, 'exotic_exports2');
+                    return;
                 }
             }
         }
@@ -7876,6 +8373,406 @@
 
             function resolveTargetAndIndex() {
                 const el = document.querySelector(`.item-marker[data-type="crime_scenes"][data-index="${index}"]`);
+                return { el, globalIndex: index };
+            }
+
+            hideBtn.addEventListener('click', () => {
+                const { el } = resolveTargetAndIndex();
+                if (!el) return;
+                el.style.opacity = '0.25';
+            });
+
+            showBtn.addEventListener('click', () => {
+                const { el } = resolveTargetAndIndex();
+                if (!el) return;
+                el.style.opacity = '1';
+            });
+
+            closeBtn.addEventListener('click', () => popup.remove());
+            popup.addEventListener('click', (e) => e.stopPropagation());
+            setTimeout(() => {
+                const closePopupHandler = (e) => {
+                    if (!popup.contains(e.target)) { popup.remove(); document.removeEventListener('click', closePopupHandler); }
+                };
+                document.addEventListener('click', closePopupHandler);
+            }, 50);
+
+            document.body.appendChild(popup);
+        }
+
+        // UFO观光弹窗
+        function showUfoPopup(item, index) {
+            const title = `🛸 UFO观光 #${index + 1}`;
+            const content = `可于 晚上 1000至次日早上 400 （万圣节天气期间为 晚上 730至次日早上 630 ）期间找到。
+奖励:
+拍摄 UFO 并将其发送给欧米加，即可获得 15.000 GTA$ 和 1.000 RP 奖励。
+拍摄所有 26 张照片以赚取额外 100.000 GTA$ 奖励，并解锁 UFO 主题帽子。
+拍摄 潜行 UFO ，以赚取额外 50.000 GTA$ 与 1.000 RP 奖励。
+可被 UFO 捕获时，本网站的游戏时钟组件下会有  标识。被 UFO 捕获即可获得 UFO 主题平角裤与。若您在被捕获时未注册为老大（保镖事务所、摩托帮）或担任副手，您将有 50% 的概率进入桑库多堡垒军事基地的秘密地下实验室。实验室中有一个箱子。首次开启时可获得武器电击棒与灰色太空入侵者；此后再次开启时可获得 25.000 GTA$（若您曾在前 60 分钟内于此处获得过此奖励，则只能获得 2.000 GTA$）与 1.000 RP 奖励。要逃离实验室，您必须按正确顺序拉下 4 根控制杆。每根控制杆都有各自对应的独特图案。拉控制杆的顺序则以这些图案出现在实验室内的次数而决定。成功逃离实验室，您将获得 ??? T 恤、25.000 GTA$ 与 1.000 RP 奖励。若您未能在 10 分钟内逃离，或拉下错误的控制杆达到 3 次，实验室将释放毒气将您迷晕，您将无法获得成功逃离的奖励。
+总计收益（不包括实验室内的奖励）：540.000 GTA$、27.000 RP`;
+            const imageUrl = `https://gta-maps.antwen.com/collectibles_images/ufo/ufo_${index + 1}.webp`;
+            
+            const popup = document.createElement('div');
+            popup.className = 'ufo-popup';
+            popup.style.cssText = `
+                position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+                background: #fff; border: 3px solid #9C27B0; border-radius: 12px; padding: 18px;
+                z-index: 10000; max-width: 520px; max-height: 80vh; box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+                font-family: Arial, sans-serif; text-align: left; overflow-y: auto;`;
+
+            popup.innerHTML = `
+                <div style="margin-bottom: 14px; font-size: 20px; font-weight: bold; color: #7B1FA2; text-align:center;">${title}</div>
+                <img src="${imageUrl}" alt="UFO观光图片" style="max-width: 100%; height: auto; border-radius: 6px; margin: 8px 0; display:block;"/>
+                <div style="margin: 10px 0; padding: 10px; background: #F3E5F5; border-radius: 8px; color: #4A148C; font-size: 13px; line-height: 1.6;">
+                    ${content}
+                </div>
+                <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px;">
+                    <button id="hide-ufo-btn" style="padding: 10px 18px; background: #4CAF50; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">隐藏</button>
+                    <button id="show-ufo-btn" style="padding: 10px 18px; background: #2196F3; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">显示</button>
+                    <button id="close-ufo-btn" style="padding: 10px 18px; background: #f44336; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">关闭</button>
+                </div>
+            `;
+
+            const hideBtn = popup.querySelector('#hide-ufo-btn');
+            const showBtn = popup.querySelector('#show-ufo-btn');
+            const closeBtn = popup.querySelector('#close-ufo-btn');
+
+            function resolveTargetAndIndex() {
+                const el = document.querySelector(`.item-marker[data-type="ufo"][data-index="${index}"]`);
+                return { el, globalIndex: index };
+            }
+
+            hideBtn.addEventListener('click', () => {
+                const { el } = resolveTargetAndIndex();
+                if (!el) return;
+                el.style.opacity = '0.25';
+            });
+
+            showBtn.addEventListener('click', () => {
+                const { el } = resolveTargetAndIndex();
+                if (!el) return;
+                el.style.opacity = '1';
+            });
+
+            closeBtn.addEventListener('click', () => popup.remove());
+            popup.addEventListener('click', (e) => e.stopPropagation());
+            setTimeout(() => {
+                const closePopupHandler = (e) => {
+                    if (!popup.contains(e.target)) { popup.remove(); document.removeEventListener('click', closePopupHandler); }
+                };
+                document.addEventListener('click', closePopupHandler);
+            }, 50);
+
+            document.body.appendChild(popup);
+        }
+
+        // 万圣节杀人狂弹窗
+        function showHalloweenSlasherPopup(item, index) {
+            const title = `🎃 ${item.type}`;
+            const content = `杀人狂可能会在 早上 100至早上 600 之间出现在对应区域。每次出现都有 50% 的概率被克隆杀人狂替代。`;
+            const imageUrl = 'https://gta-maps.antwen.com/collectibles_images/halloween_slashers/halloween_slashers.webp';
+            
+            // 为不同种类的杀人狂设置不同的颜色
+            let borderColor, titleColor, bgColor;
+            switch(item.type) {
+                case 'clown':
+                    borderColor = '#FF9800'; // 橙色
+                    titleColor = '#E65100';
+                    bgColor = '#FFF3E0';
+                    break;
+                case 'psycho':
+                    borderColor = '#F44336'; // 红色
+                    titleColor = '#C62828';
+                    bgColor = '#FFEBEE';
+                    break;
+                case 'driver':
+                    borderColor = '#9C27B0'; // 紫色
+                    titleColor = '#7B1FA2';
+                    bgColor = '#F3E5F5';
+                    break;
+                case 'sackslasher':
+                    borderColor = '#607D8B'; // 蓝灰色
+                    titleColor = '#37474F';
+                    bgColor = '#ECEFF1';
+                    break;
+                default:
+                    borderColor = '#795548'; // 棕色
+                    titleColor = '#5D4037';
+                    bgColor = '#EFEBE9';
+            }
+            
+            const popup = document.createElement('div');
+            popup.className = 'halloween-slasher-popup';
+            popup.style.cssText = `
+                position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+                background: #fff; border: 3px solid ${borderColor}; border-radius: 12px; padding: 18px;
+                z-index: 10000; max-width: 520px; max-height: 80vh; box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+                font-family: Arial, sans-serif; text-align: left; overflow-y: auto;`;
+
+            popup.innerHTML = `
+                <div style="margin-bottom: 14px; font-size: 20px; font-weight: bold; color: ${titleColor}; text-align:center;">${title}</div>
+                <img src="${imageUrl}" alt="万圣节杀人狂图片" style="max-width: 100%; height: auto; border-radius: 6px; margin: 8px 0; display:block;"/>
+                <div style="margin: 10px 0; padding: 10px; background: ${bgColor}; border-radius: 8px; color: ${titleColor}; font-size: 13px; line-height: 1.6;">
+                    ${content}
+                </div>
+                <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px;">
+                    <button id="hide-halloween-slasher-btn" style="padding: 10px 18px; background: #4CAF50; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">隐藏</button>
+                    <button id="show-halloween-slasher-btn" style="padding: 10px 18px; background: #2196F3; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">显示</button>
+                    <button id="close-halloween-slasher-btn" style="padding: 10px 18px; background: #f44336; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">关闭</button>
+                </div>
+            `;
+
+            const hideBtn = popup.querySelector('#hide-halloween-slasher-btn');
+            const showBtn = popup.querySelector('#show-halloween-slasher-btn');
+            const closeBtn = popup.querySelector('#close-halloween-slasher-btn');
+
+            function resolveTargetAndIndex() {
+                const el = document.querySelector(`.item-marker[data-type="halloween_slashers"][data-index="${index}"]`);
+                return { el, globalIndex: index };
+            }
+
+            hideBtn.addEventListener('click', () => {
+                const { el } = resolveTargetAndIndex();
+                if (!el) return;
+                el.style.opacity = '0.25';
+            });
+
+            showBtn.addEventListener('click', () => {
+                const { el } = resolveTargetAndIndex();
+                if (!el) return;
+                el.style.opacity = '1';
+            });
+
+            closeBtn.addEventListener('click', () => popup.remove());
+            popup.addEventListener('click', (e) => e.stopPropagation());
+            setTimeout(() => {
+                const closePopupHandler = (e) => {
+                    if (!popup.contains(e.target)) { popup.remove(); document.removeEventListener('click', closePopupHandler); }
+                };
+                document.addEventListener('click', closePopupHandler);
+            }, 50);
+
+            document.body.appendChild(popup);
+        }
+
+        // 鬼上身动物弹窗
+        function showPossessedAnimalPopup(item, index) {
+            const animalName = item.animalType === 'boar' ? '野猪' : 
+                              item.animalType === 'cougar' ? '美洲狮' : 
+                              item.animalType === 'coyote' ? '郊狼' : 
+                              item.animalType === 'deer' ? '鹿' : 
+                              item.animalType === 'pug' ? '哈巴狗' : 
+                              item.animalType;
+            const title = `🐺 ${animalName}`;
+            const content = `鬼上身的动物在晚上 800至次日早上 100之间活跃。`;
+            
+            // 根据动物类型选择图片
+            let imageUrl;
+            if (item.animalType === 'boar') {
+                imageUrl = 'https://gta-maps.antwen.com/collectibles_images/possessed_animals/possessed_animals_boar.webp';
+            } else if (item.animalType === 'cougar') {
+                imageUrl = 'https://gta-maps.antwen.com/collectibles_images/possessed_animals/possessed_animals_cougar.webp';
+            } else {
+                // 默认使用野猪图片
+                imageUrl = 'https://gta-maps.antwen.com/collectibles_images/possessed_animals/possessed_animals_boar.webp';
+            }
+            
+            // 为不同种类的动物设置不同的颜色
+            let borderColor, titleColor, bgColor;
+            switch(item.animalType) {
+                case 'boar':
+                    borderColor = '#8D6E63'; // 棕色
+                    titleColor = '#5D4037';
+                    bgColor = '#EFEBE9';
+                    break;
+                case 'cougar':
+                    borderColor = '#FF5722'; // 橙红色
+                    titleColor = '#D84315';
+                    bgColor = '#FFF3E0';
+                    break;
+                case 'coyote':
+                    borderColor = '#795548'; // 深棕色
+                    titleColor = '#4E342E';
+                    bgColor = '#F3E5F5';
+                    break;
+                case 'deer':
+                    borderColor = '#4CAF50'; // 绿色
+                    titleColor = '#2E7D32';
+                    bgColor = '#E8F5E8';
+                    break;
+                case 'pug':
+                    borderColor = '#9C27B0'; // 紫色
+                    titleColor = '#6A1B9A';
+                    bgColor = '#F3E5F5';
+                    break;
+                default:
+                    borderColor = '#607D8B'; // 蓝灰色
+                    titleColor = '#37474F';
+                    bgColor = '#ECEFF1';
+            }
+            
+            const popup = document.createElement('div');
+            popup.className = 'possessed-animal-popup';
+            popup.style.cssText = `
+                position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+                background: #fff; border: 3px solid ${borderColor}; border-radius: 12px; padding: 18px;
+                z-index: 10000; max-width: 520px; max-height: 80vh; box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+                font-family: Arial, sans-serif; text-align: left; overflow-y: auto;`;
+
+            popup.innerHTML = `
+                <div style="margin-bottom: 14px; font-size: 20px; font-weight: bold; color: ${titleColor}; text-align:center;">${title}</div>
+                <img src="${imageUrl}" alt="鬼上身动物图片" style="max-width: 100%; height: auto; border-radius: 6px; margin: 8px 0; display:block;"/>
+                <div style="margin: 10px 0; padding: 10px; background: ${bgColor}; border-radius: 8px; color: ${titleColor}; font-size: 13px; line-height: 1.6;">
+                    ${content}
+                </div>
+                <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px;">
+                    <button id="hide-possessed-animal-btn" style="padding: 10px 18px; background: #4CAF50; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">隐藏</button>
+                    <button id="show-possessed-animal-btn" style="padding: 10px 18px; background: #2196F3; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">显示</button>
+                    <button id="close-possessed-animal-btn" style="padding: 10px 18px; background: #f44336; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">关闭</button>
+                </div>
+            `;
+
+            const hideBtn = popup.querySelector('#hide-possessed-animal-btn');
+            const showBtn = popup.querySelector('#show-possessed-animal-btn');
+            const closeBtn = popup.querySelector('#close-possessed-animal-btn');
+
+            function resolveTargetAndIndex() {
+                const el = document.querySelector(`.item-marker[data-type="possessed_animals"][data-index="${index}"]`);
+                return { el, globalIndex: index };
+            }
+
+            hideBtn.addEventListener('click', () => {
+                const { el } = resolveTargetAndIndex();
+                if (!el) return;
+                el.style.opacity = '0.25';
+            });
+
+            showBtn.addEventListener('click', () => {
+                const { el } = resolveTargetAndIndex();
+                if (!el) return;
+                el.style.opacity = '1';
+            });
+
+            closeBtn.addEventListener('click', () => popup.remove());
+            popup.addEventListener('click', (e) => e.stopPropagation());
+            setTimeout(() => {
+                const closePopupHandler = (e) => {
+                    if (!popup.contains(e.target)) { popup.remove(); document.removeEventListener('click', closePopupHandler); }
+                };
+                document.addEventListener('click', closePopupHandler);
+            }, 50);
+
+            document.body.appendChild(popup);
+        }
+
+        // 社区边界弹窗
+        function showCommunityOutreachPopup(item, index) {
+            const title = `🏘️ 社区边界 #${index + 1}`;
+            const content = `该事件既没有任务目标，也没有完成奖励。不过，您可以藉此免费试驾非凡 艳妇 D10 追逐和威拉德 边界宗派。`;
+            const imageUrl = `https://gta-maps.antwen.com/collectibles_images/community_outreach/community_outreach_${index + 1}.webp`;
+            
+            const popup = document.createElement('div');
+            popup.className = 'community-outreach-popup';
+            popup.style.cssText = `
+                position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+                background: #fff; border: 3px solid #4CAF50; border-radius: 12px; padding: 18px;
+                z-index: 10000; max-width: 520px; max-height: 80vh; box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+                font-family: Arial, sans-serif; text-align: left; overflow-y: auto;`;
+
+            popup.innerHTML = `
+                <div style="margin-bottom: 14px; font-size: 20px; font-weight: bold; color: #2E7D32; text-align:center;">${title}</div>
+                <img src="${imageUrl}" alt="社区边界图片" style="max-width: 100%; height: auto; border-radius: 6px; margin: 8px 0; display:block;"/>
+                <div style="margin: 10px 0; padding: 10px; background: #E8F5E8; border-radius: 8px; color: #2E7D32; font-size: 13px; line-height: 1.6;">
+                    ${content}
+                </div>
+                <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px;">
+                    <button id="hide-community-outreach-btn" style="padding: 10px 18px; background: #4CAF50; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">隐藏</button>
+                    <button id="show-community-outreach-btn" style="padding: 10px 18px; background: #2196F3; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">显示</button>
+                    <button id="close-community-outreach-btn" style="padding: 10px 18px; background: #f44336; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">关闭</button>
+                </div>
+            `;
+
+            const hideBtn = popup.querySelector('#hide-community-outreach-btn');
+            const showBtn = popup.querySelector('#show-community-outreach-btn');
+            const closeBtn = popup.querySelector('#close-community-outreach-btn');
+
+            function resolveTargetAndIndex() {
+                const el = document.querySelector(`.item-marker[data-type="community_outreach"][data-index="${index}"]`);
+                return { el, globalIndex: index };
+            }
+
+            hideBtn.addEventListener('click', () => {
+                const { el } = resolveTargetAndIndex();
+                if (!el) return;
+                el.style.opacity = '0.25';
+            });
+
+            showBtn.addEventListener('click', () => {
+                const { el } = resolveTargetAndIndex();
+                if (!el) return;
+                el.style.opacity = '1';
+            });
+
+            closeBtn.addEventListener('click', () => popup.remove());
+            popup.addEventListener('click', (e) => e.stopPropagation());
+            setTimeout(() => {
+                const closePopupHandler = (e) => {
+                    if (!popup.contains(e.target)) { popup.remove(); document.removeEventListener('click', closePopupHandler); }
+                };
+                document.addEventListener('click', closePopupHandler);
+            }, 50);
+
+            document.body.appendChild(popup);
+        }
+
+        // 外贸出口载具弹窗
+        function showExoticExportsPopup(item, index, type) {
+            const title = `🚗 外贸出口载具${type === 'exotic_exports1' ? '1' : '2'} #${index + 1}`;
+            
+            // 构建车辆列表内容
+            let vehicleListContent = '';
+            if (item.vehicleList && item.vehicleList.length > 0) {
+                vehicleListContent = item.vehicleList.map(vehicle => `• ${vehicle.trim()}`).join('<br>');
+            } else {
+                vehicleListContent = '暂无车辆数据';
+            }
+            
+            const content = `
+                <div style="margin-bottom: 10px;">
+                    <strong>今日外贸出口载具列表：</strong><br>
+                    ${vehicleListContent}
+                </div>
+                <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #ddd;">
+                    该活动将在完成一个改车铺合约后解锁。您每天可以找到并交付 10 辆外贸载具，这 10 辆外贸载具以特定顺序生成。每送达一辆外贸载具，您将获得 20.000 GTA$、1.000 RP 与 50 REP 奖励。若在一天内交付全部 10 辆外贸载具，还可获得额外 100.000 GTA$ 的奖励。
+                </div>
+            `;
+            
+            const popup = document.createElement('div');
+            popup.className = 'exotic-exports-popup';
+            popup.style.cssText = `
+                position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+                background: #fff; border: 3px solid #2196F3; border-radius: 12px; padding: 18px;
+                z-index: 10000; max-width: 520px; max-height: 80vh; box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+                font-family: Arial, sans-serif; text-align: left; overflow-y: auto;`;
+
+            popup.innerHTML = `
+                <div style="margin-bottom: 14px; font-size: 20px; font-weight: bold; color: #1976D2; text-align:center;">${title}</div>
+                <div style="margin: 10px 0; padding: 10px; background: #E3F2FD; border-radius: 8px; color: #1565C0; font-size: 13px; line-height: 1.6;">
+                    ${content}
+                </div>
+                <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px;">
+                    <button id="hide-exotic-exports-btn" style="padding: 10px 18px; background: #4CAF50; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">隐藏</button>
+                    <button id="show-exotic-exports-btn" style="padding: 10px 18px; background: #2196F3; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">显示</button>
+                    <button id="close-exotic-exports-btn" style="padding: 10px 18px; background: #f44336; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">关闭</button>
+                </div>
+            `;
+
+            const hideBtn = popup.querySelector('#hide-exotic-exports-btn');
+            const showBtn = popup.querySelector('#show-exotic-exports-btn');
+            const closeBtn = popup.querySelector('#close-exotic-exports-btn');
+
+            function resolveTargetAndIndex() {
+                const el = document.querySelector(`.item-marker[data-type="${type}"][data-index="${index}"]`);
                 return { el, globalIndex: index };
             }
 
@@ -9015,6 +9912,33 @@
             };
             
             document.body.style.backgroundColor = backgroundColorMap[style] || '#1a1a1a';
+        }
+        
+        // 更新鬼上身动物圆圈大小以响应缩放变化
+        function updatePossessedAnimalsCircleSizes(zoom) {
+            if (!activeItemTypes.has('possessed_animals') || !itemData.possessed_animals) return;
+            
+            const level = getLevelByZoom(zoom);
+            if (!level) return;
+            
+            const totalWidth = level.cols * TILE_SIZE;
+            const totalHeight = level.rows * TILE_SIZE;
+            
+            // 更新所有鬼上身动物圆圈的大小
+            document.querySelectorAll('.possessed-animal-circle').forEach(marker => {
+                const index = parseInt(marker.dataset.index);
+                const animal = itemData.possessed_animals[index];
+                if (!animal) return;
+                
+                // 重新计算圆圈大小
+                const gameWidth = GAME_RIGHT - GAME_LEFT; // 9000
+                const pixelRadius = (animal.radius / gameWidth) * totalWidth;
+                const circleSize = pixelRadius * 2; // 直径
+                
+                // 更新圆圈大小
+                marker.style.width = `${circleSize}px`;
+                marker.style.height = `${circleSize}px`;
+            });
         }
         
         // 样式选择事件

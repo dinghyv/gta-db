@@ -67,6 +67,8 @@
                 radial-gradient(circle at 20% 50%, rgba(120, 119, 198, 0.1) 0%, transparent 50%),
                 radial-gradient(circle at 80% 80%, rgba(0, 212, 255, 0.1) 0%, transparent 50%),
                 radial-gradient(circle at 40% 20%, rgba(255, 107, 53, 0.1) 0%, transparent 50%);
+            background-attachment: fixed;
+            background-size: 100% 100%;
             color: var(--text-light);
             font-family: 'Segoe UI', 'Impact', 'Arial Black', sans-serif;
             min-height: 100vh;
@@ -305,35 +307,63 @@
             margin-top: 15px;
         }
 
+        /* 工具栏（位于标题下方） */
+        .tools-toolbar {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            margin: 10px auto 6px;
+            padding: 0 12px;
+            position: relative;
+            z-index: 10;
+            max-width: 1200px;
+        }
+        .tools-toolbar .nav-button {
+            padding: 6px 12px;
+            font-size: 13px;
+            border-radius: 16px;
+        }
+
         /* 区域选择器 */
         .region-selector {
             display: flex;
             gap: 30px;
             flex-wrap: wrap;
             justify-content: center;
-            align-items: center;
+            align-items: stretch;
             position: relative;
             z-index: 10;
             max-width: 1200px;
             padding: 20px;
+            margin: 0 auto;
         }
 
         /* 卡片样式 */
         .region-card {
-            background: rgba(26, 26, 26, 0.85);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: linear-gradient(135deg, 
+                rgba(26, 26, 26, 0.9) 0%, 
+                rgba(35, 35, 35, 0.8) 50%, 
+                rgba(26, 26, 26, 0.9) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.15);
             border-radius: 20px;
             padding: 35px;
             text-align: center;
             cursor: pointer;
             transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             backdrop-filter: blur(20px);
-            min-width: 320px;
             box-shadow: var(--shadow-lg);
             position: relative;
             overflow: hidden;
             opacity: 0;
             transform: translateY(50px);
+            display: flex;
+            flex-direction: column;
+            /* 确保所有卡片等高等宽 */
+            flex: 1 1 320px;
+            max-width: 350px;
+            min-height: 500px;
         }
 
         .region-card::before {
@@ -359,6 +389,11 @@
             background: linear-gradient(90deg, #667eea, #00d4ff);
         }
 
+        /* 扩展：按三列循环应用装饰与配色，支持更多卡片 */
+        .region-card:nth-child(3n+1)::before { background: var(--gradient-accent); }
+        .region-card:nth-child(3n+2)::before { background: var(--gradient-secondary); }
+        .region-card:nth-child(3n+3)::before { background: linear-gradient(90deg, #667eea, #00d4ff); }
+
         .region-card:hover {
             transform: translateY(-15px) scale(1.03);
             box-shadow: var(--shadow-xl), 0 0 30px rgba(0, 212, 255, 0.3);
@@ -375,11 +410,30 @@
             border-color: #667eea;
         }
 
+        /* 扩展：循环 hover 配色 */
+        .region-card:nth-child(3n+2):hover {
+            box-shadow: var(--shadow-xl), 0 0 30px rgba(255, 107, 53, 0.3);
+            border-color: var(--secondary-accent);
+        }
+        .region-card:nth-child(3n+3):hover {
+            box-shadow: var(--shadow-xl), 0 0 30px rgba(102, 126, 234, 0.3);
+            border-color: #667eea;
+        }
+
         .region-card .icon {
             font-size: 5rem;
             margin-bottom: 25px;
             display: block;
             transition: transform 0.3s ease;
+        }
+
+        /* 图片类图标尺寸统一 */
+        .region-card img.icon {
+            width: 5rem;
+            height: 5rem;
+            object-fit: contain;
+            display: block;
+            margin: 0 auto 25px;
         }
 
         .region-card:hover .icon {
@@ -405,6 +459,20 @@
         }
 
         .region-card:nth-child(3) h2 {
+            color: var(--tertiary-accent);
+            text-shadow: 2px 2px 0 #000, 3px 3px 5px rgba(255, 204, 0, 0.5);
+        }
+
+        /* 扩展：标题配色循环 */
+        .region-card:nth-child(3n+1) h2 {
+            color: var(--primary-accent);
+            text-shadow: 2px 2px 0 #000, 3px 3px 5px rgba(0, 212, 255, 0.5);
+        }
+        .region-card:nth-child(3n+2) h2 {
+            color: var(--secondary-accent);
+            text-shadow: 2px 2px 0 #000, 3px 3px 5px rgba(255, 107, 53, 0.5);
+        }
+        .region-card:nth-child(3n+3) h2 {
             color: var(--tertiary-accent);
             text-shadow: 2px 2px 0 #000, 3px 3px 5px rgba(255, 204, 0, 0.5);
         }
@@ -461,6 +529,8 @@
             position: relative;
             overflow: hidden;
             z-index: 1;
+            margin-top: auto;
+            align-self: center;
         }
 
         .enter-btn:before {
@@ -509,32 +579,42 @@
             box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
         }
 
-        /* 页脚样式 */
+        /* 扩展：循环按钮配色 */
+        .region-card:nth-child(3n+2) .enter-btn { background: var(--gradient-secondary); }
+        .region-card:nth-child(3n+2) .enter-btn:before { background: linear-gradient(135deg, #ffcc00 0%, #ff6b35 100%); }
+        .region-card:nth-child(3n+2) .enter-btn:hover { box-shadow: 0 10px 25px rgba(255, 107, 53, 0.4); }
+        .region-card:nth-child(3n+3) .enter-btn { background: linear-gradient(135deg, #667eea 0%, #00d4ff 100%); }
+        .region-card:nth-child(3n+3) .enter-btn:before { background: linear-gradient(135deg, #00d4ff 0%, #667eea 100%); }
+        .region-card:nth-child(3n+3) .enter-btn:hover { box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4); }
+
+        /* CHET官网卡片特殊样式 - 调整内容位置 */
+        .region-card:last-child {
+            justify-content: flex-start;
+        }
+
+        .region-card:last-child .icon {
+            margin-top: 35px;
+        }
+
+        /* 页脚样式（放在内容末尾） */
         .footer {
-            /* 固定在视口底部，确保在短内容页面也可见 */
-            position: fixed;
-            left: 0;
-            right: 0;
-            bottom: 15px;
+            position: static;
             text-align: center;
             color: var(--text-dim);
             font-size: 0.9rem;
-            z-index: 30;
-            pointer-events: auto;
-            background: rgba(10,10,10,0.35);
-            padding: 6px 12px;
-            backdrop-filter: blur(6px);
+            padding: 24px 12px 36px;
             display: flex;
             justify-content: center;
             align-items: center;
         }
 
+        
+
         /* 键盘提示（默认左侧竖向排列） */
         .keyboard-hints {
             position: absolute;
             left: 25px;
-            top: 50%;
-            transform: translateY(-50%);
+            bottom: 50px;
             display: flex;
             gap: 12px;
             flex-direction: column;
@@ -599,7 +679,7 @@
 
         /* 背景装饰 */
         .background-decoration {
-            position: absolute;
+            position: fixed;
             width: 100%;
             height: 100%;
             top: 0;
@@ -609,6 +689,7 @@
             /* 不拦截触摸事件，避免覆盖移动端滚动 */
             pointer-events: none;
         }
+
 
         .decoration-circle {
             position: absolute;
@@ -641,6 +722,8 @@
             left: -100px;
         }
 
+        
+
         /* 响应式设计 */
         @media (max-width: 768px) {
             .header h1 {
@@ -651,6 +734,7 @@
                 flex-direction: column;
                 gap: 25px;
                 padding: 20px;
+                align-items: center;
             }
             
             .region-card {
@@ -686,9 +770,11 @@
             }
 
             .region-card {
+                flex: 1 1 100%;
                 min-width: auto;
                 width: calc(100% - 32px);
                 max-width: 720px;
+                min-height: auto;
                 padding: 18px;
                 margin: 0 auto;
                 border-radius: 16px;
@@ -698,9 +784,9 @@
                 width: 100%;
                 padding: 12px 16px;
             }
-            /* 给页面底部足够空间，避免固定 footer 遮挡最后一部分内容 */
+            /* 移动端底部间距 */
             .region-selector {
-                padding-bottom: 120px;
+                padding-bottom: 24px;
             }
             /* 移动端：把卡片内的特性列表文字居中显示 */
             .region-card .features {
@@ -730,6 +816,7 @@
                 padding: 12px 0 24px;
                 font-size: 0.9rem;
             }
+            
         }
     </style>
 </head>
@@ -782,6 +869,15 @@
         <p>实用GTA工具</p>
     </div>
 
+    <!-- 标题下方工具栏 -->
+    <div class="tools-toolbar">
+        <a href="admin.html" class="nav-button">🛠️ API面板</a>
+        <a href="svg.html" class="nav-button">🧩 SVG工具</a>
+        <a href="json.html" class="nav-button">🧾 JSON工具</a>
+        <a href="webp.html" class="nav-button">🖼️ WebP工具</a>
+        <a href="md5.html" class="nav-button">🔐 加密工具</a>
+    </div>
+
     <!-- 区域选择器 -->
     <div class="region-selector">
         <!-- 洛圣都卡片 -->
@@ -828,6 +924,51 @@
             </ul>
             <button class="enter-btn">浏览车辆</button>
         </div>
+
+        <!-- RDO 收藏家地图卡片 -->
+        <div class="region-card" onclick="window.location.href='rar-map/collector'">
+            <span class="icon">🪙</span>
+            <h2>RDO 收藏家地图</h2>
+            <p>每日收藏品位置与路径规划</p>
+            <ul class="features">
+                <li>自动切换每日收藏品</li>
+                <li>按类别筛选与一键隐藏</li>
+                <li>交互式地图与标记</li>
+                <li>路线规划辅助</li>
+                <li>状态持久化</li>
+            </ul>
+            <button class="enter-btn">打开收藏家地图</button>
+        </div>
+
+        <!-- RDO 地图卡片 -->
+        <div class="region-card" onclick="window.location.href='rar-map/main'">
+            <span class="icon">🗺️</span>
+            <h2>RDO 地图</h2>
+            <p>荒野大镖客线上模式全功能地图</p>
+            <ul class="features">
+                <li>动物、采集物与随机事件</li>
+                <li>营地与快递站点</li>
+                <li>宝藏与挑战位置</li>
+                <li>夜晚/天气图层</li>
+                <li>移动端友好</li>
+            </ul>
+            <button class="enter-btn">进入RDO地图</button>
+        </div>
+
+        <!-- Chet 官网卡片 -->
+        <div class="region-card" onclick="window.location.href='chet.html'">
+            <img src="/src/assets/chet-logo.png" alt="Chet" class="icon">
+            <h2>Chet 官网</h2>
+            <p>访问 Chet 的功能与文档</p>
+            <ul class="features">
+                <li>帮会介绍</li>
+                <li>成员展示</li>
+                <li>莫证人之家</li>
+                <li>快速报名</li>
+                <li>其实屁用没有</li>
+            </ul>
+            <button class="enter-btn">打开 Chet 官网</button>
+        </div>
     </div>
 
     <!-- 键盘快捷键提示 -->
@@ -843,6 +984,18 @@
         <div class="key-hint">
             <span class="key">3</span>
             <span>车辆数据库</span>
+        </div>
+        <div class="key-hint">
+            <span class="key">4</span>
+            <span>RDO 收藏家</span>
+        </div>
+        <div class="key-hint">
+            <span class="key">5</span>
+            <span>RDO 地图</span>
+        </div>
+        <div class="key-hint">
+            <span class="key">6</span>
+            <span>Chet 官网</span>
         </div>
     </div>
 
@@ -860,6 +1013,12 @@
                 window.location.href = 'cayo-perico-map.html';
             } else if (e.key === '3') {
                 window.location.href = 'vehicles.html';
+            } else if (e.key === '4') {
+                window.location.href = 'rar-map/collector';
+            } else if (e.key === '5') {
+                window.location.href = 'rar-map/main';
+            } else if (e.key === '6') {
+                window.location.href = 'chet.html';
             }
         });
 

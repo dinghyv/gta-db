@@ -545,7 +545,7 @@
 
             // 按需配置任一即可生效
             const CONFIG = {
-                GOOGLE_APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbypPShsmZ9-kmMdFRK_Q8bvsujMwnpjXuUaL-IsnxrLjvbpL_wfA-kV3WcXTrgdSGv_/exec', // 形如 https://script.google.com/macros/s/XXXXX/exec
+                GOOGLE_APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbzBJpWdfC2ZeMkWlPR2lXhevEL3i4_2R-ft18nziaUxh6A8lZyd_fD8NLyreVvrez4A/exec', // 形如 https://script.google.com/macros/s/XXXXX/exec
                 DISCORD_WEBHOOK_URL: '', // 形如 https://discord.com/api/webhooks/...
                 FORMSPREE_URL: '' // 形如 https://formspree.io/f/xxxxxxx
             };
@@ -571,7 +571,39 @@
 
             async function submitToGoogleAppsScript(payload) {
                 if (!CONFIG.GOOGLE_APPS_SCRIPT_URL) return false;
-                return postJSON(CONFIG.GOOGLE_APPS_SCRIPT_URL, payload);
+                // 通过隐藏表单提交，避免触发跨域预检（CORS preflight）
+                const iframeName = 'gas_hidden_iframe';
+                let iframe = document.getElementById(iframeName);
+                if (!iframe) {
+                    iframe = document.createElement('iframe');
+                    iframe.name = iframeName;
+                    iframe.id = iframeName;
+                    iframe.style.display = 'none';
+                    document.body.appendChild(iframe);
+                }
+
+                const tempForm = document.createElement('form');
+                tempForm.style.display = 'none';
+                tempForm.method = 'POST';
+                tempForm.action = CONFIG.GOOGLE_APPS_SCRIPT_URL;
+                tempForm.target = iframeName;
+
+                Object.entries(payload).forEach(([key, value]) => {
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = key;
+                    input.value = String(value ?? '');
+                    tempForm.appendChild(input);
+                });
+
+                document.body.appendChild(tempForm);
+                try {
+                    tempForm.submit();
+                    // 无法读取跨域响应，视作已提交
+                    return true;
+                } finally {
+                    setTimeout(() => { try { document.body.removeChild(tempForm); } catch {} }, 1000);
+                }
             }
 
             async function submitToDiscord(payload) {

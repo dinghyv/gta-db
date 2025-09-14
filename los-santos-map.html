@@ -1120,7 +1120,13 @@
             casino: './src/assets/casino.svg',
             car_meet: './src/assets/lscm.svg',
             premium_deluxe_motorsport: './src/assets/sem.svg',
-            luxury_autos: './src/assets/lux.svg'
+            luxury_autos: './src/assets/lux.svg',
+            // 沉睡的保安
+            drunk_guard: './src/assets/drunk_guard.svg',
+            // 金属探测器
+            metal_detector: './src/assets/metal.svg',
+            // 走私贩飞机
+            smuggler_plane: './src/assets/smuggler_plane.svg'
         };
 
         // 物品数据（从JSON文件加载）
@@ -1157,7 +1163,10 @@
             madrazo_hits: [],
             police_rescue_patrick_mcreary: { spawn: [], dropoff: [] },
             random_missions: {},
-            drug_vehicle: []
+            drug_vehicle: [],
+            drunk_guard: [],
+            metal_detector: [],
+            smuggler_plane: []
         };
 
         // 车行位置数据
@@ -1237,7 +1246,10 @@
             { value: 'madrazo_hits', text: '玛德拉索雇凶' },
             { value: 'police_rescue_patrick_mcreary', text: '帕特里克救援', icon: './src/assets/patrick.svg' },
             { value: 'random_missions', text: '🎲 随机任务', icon: './src/assets/random.svg' },
-            { value: 'drug_vehicle', text: '🚗 毒品载具', icon: './src/assets/drug_vehicle.svg' }
+            { value: 'drug_vehicle', text: '🚗 毒品载具', icon: './src/assets/drug_vehicle.svg' },
+            { value: 'drunk_guard', text: '🛌 沉睡的保安', icon: './src/assets/drunk_guard.svg' },
+            { value: 'metal_detector', text: '🧭 金属探测器', icon: './src/assets/metal.svg' },
+            { value: 'smuggler_plane', text: '✈️ 走私贩飞机', icon: './src/assets/smuggler_plane.svg' }
         ];
         const loader = document.getElementById('loader');
         const tilePaneDom = document.getElementById('tile-pane');
@@ -1456,6 +1468,17 @@
                     }
                 });
 
+                // 显式覆盖：metal_detector 来自 data（一次）
+                try {
+                    if (Array.isArray(data.metal_detector)) {
+                        itemData.metal_detector = data.metal_detector.map((item, index) => ({
+                            x: item.x,
+                            y: item.y,
+                            name: `金属探测器 ${index + 1}`
+                        }));
+                    }
+                } catch (e) {}
+
                 // 单独处理 treasure_hunt_dba_revolver 结构
                 if (data.treasure_hunt_dba_revolver) {
                     try {
@@ -1648,6 +1671,50 @@
                     } catch (error) {
                         console.error('加载spray数据失败');
                         itemData.spray = [];
+                    }
+                    
+                    // 额外加载：沉睡的保安（drunk_guard）
+                    try {
+                        if (cardsData && Array.isArray(cardsData.drunk_guard)) {
+                            itemData.drunk_guard = cardsData.drunk_guard.map((item, index) => ({
+                                x: item.x || item[0],
+                                y: item.y || item[1],
+                                name: `沉睡的保安 ${index + 1}`
+                            }));
+                            console.log(`drunk_guard 数据加载成功，共${itemData.drunk_guard.length}个位置`);
+                        }
+                    } catch (error) {
+                        console.error('加载drunk_guard数据失败');
+                        itemData.drunk_guard = [];
+                    }
+                    
+                    // 额外加载：金属探测器（metal_detector）
+                    try {
+                        if (cardsData && Array.isArray(cardsData.metal_detector)) {
+                            itemData.metal_detector = cardsData.metal_detector.map((item, index) => ({
+                                x: item.x || item[0],
+                                y: item.y || item[1],
+                                name: `金属探测器 ${index + 1}`
+                            }));
+                            console.log(`metal_detector 数据加载成功（二次加载覆盖）：${itemData.metal_detector.length} 个位置`);
+                        }
+                    } catch (error) {
+                        console.error('加载metal_detector数据失败');
+                        itemData.metal_detector = [];
+                    }
+
+                    // 额外加载：走私贩飞机（smuggler_plane）
+                    try {
+                        if (cardsData && Array.isArray(cardsData.smuggler_plane)) {
+                            itemData.smuggler_plane = cardsData.smuggler_plane.map((group, index) => ({
+                                triggerpoint: group.triggerpoint,
+                                routes: group.routes
+                            }));
+                            console.log(`smuggler_plane 数据加载成功：${itemData.smuggler_plane.length} 组`);
+                        }
+                    } catch (error) {
+                        console.error('加载smuggler_plane数据失败');
+                        itemData.smuggler_plane = [];
                     }
                     
                     // 单独加载dead_drop数据（从zones.json）
@@ -2201,7 +2268,7 @@
             // 为每个激活的类型创建标记
             activeItemTypes.forEach(type => {
                 // 跳过有特殊渲染逻辑的类型
-                if (type === 'media_sticks' || type === 'maude_bounty_targets' || type === 'serial_killer_slasher' || type === 'movie_props' || type === 'treasure_hunt_dba_revolver' || type === 'stash_houses' || type === 'madrazo_hits' || type === 'police_rescue_patrick_mcreary' || type === 'random_missions' || type === 'drug_vehicle') return;
+                if (type === 'media_sticks' || type === 'maude_bounty_targets' || type === 'serial_killer_slasher' || type === 'movie_props' || type === 'treasure_hunt_dba_revolver' || type === 'stash_houses' || type === 'madrazo_hits' || type === 'police_rescue_patrick_mcreary' || type === 'random_missions' || type === 'drug_vehicle' || type === 'smuggler_plane') return;
                 
                 if (!itemData[type] || !Array.isArray(itemData[type])) return;
                 itemData[type].forEach((item, index) => {
@@ -2437,6 +2504,101 @@
                     
                     tilePaneDom.appendChild(marker);
                     itemMarkers.push({ type: 'media_sticks', index: index, el: marker });
+                });
+            }
+
+            // 特殊：走私贩飞机渲染（triggerpoint + routes + 红线）
+            if (activeItemTypes.has('smuggler_plane')) {
+                const groups = itemData.smuggler_plane || [];
+                groups.forEach((group, gIndex) => {
+                    const tp = group.triggerpoint; // [x, y]
+                    const routes = Array.isArray(group.routes) ? group.routes : [];
+                    if (Array.isArray(tp) && tp.length === 2) {
+                        const percentX = (tp[0] - GAME_LEFT) / (GAME_RIGHT - GAME_LEFT);
+                        const percentY = (GAME_TOP - tp[1]) / (GAME_TOP - GAME_BOTTOM);
+                        const itemX = percentX * totalWidth;
+                        const itemY = percentY * totalHeight;
+                        const marker = document.createElement('div');
+                        marker.className = 'item-marker smuggler-triggerpoint-marker';
+                        marker.dataset.type = 'smuggler_plane';
+                        marker.dataset.index = String(gIndex);
+                        marker.style.position = 'absolute';
+                        marker.style.left = `${itemX}px`;
+                        marker.style.top = `${itemY}px`;
+                        marker.style.transform = 'translate(-50%, -50%)';
+                        marker.style.cursor = 'pointer';
+                        marker.style.zIndex = '670';
+                        const img = document.createElement('img');
+                        img.src = './src/assets/smuggler_plane.svg';
+                        img.style.width = '28px';
+                        img.style.height = '28px';
+                        marker.appendChild(img);
+                        marker.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            showSmugglerPlanePopup(group, gIndex);
+                        });
+                        tilePaneDom.appendChild(marker);
+                        itemMarkers.push({ type: 'smuggler_plane', index: gIndex, el: marker });
+                    }
+                    // routes: array of arrays of [x,y]; draw marker at each and a red line from triggerpoint
+                    routes.forEach((route, rIndex) => {
+                        if (Array.isArray(route) && route.length > 0 && Array.isArray(route[0]) && route[0].length === 2) {
+                            const rx = route[0][0];
+                            const ry = route[0][1];
+                            const percentX = (rx - GAME_LEFT) / (GAME_RIGHT - GAME_LEFT);
+                            const percentY = (GAME_TOP - ry) / (GAME_TOP - GAME_BOTTOM);
+                            const itemX = percentX * totalWidth;
+                            const itemY = percentY * totalHeight;
+                            const marker = document.createElement('div');
+                            marker.className = 'item-marker smuggler-route-marker';
+                            marker.dataset.type = 'smuggler_plane_route';
+                            marker.dataset.index = String(gIndex);
+                            marker.dataset.routeIndex = String(rIndex);
+                            marker.style.position = 'absolute';
+                            marker.style.left = `${itemX}px`;
+                            marker.style.top = `${itemY}px`;
+                            marker.style.transform = 'translate(-50%, -50%)';
+                            marker.style.cursor = 'pointer';
+                            marker.style.zIndex = '670';
+                            const img = document.createElement('img');
+                            img.src = './src/assets/smuggler_plane2.svg';
+                            img.style.width = '28px';
+                            img.style.height = '28px';
+                            marker.appendChild(img);
+                            marker.addEventListener('click', (e) => {
+                                e.stopPropagation();
+                                showSmugglerPlanePopup(group, gIndex);
+                            });
+                            tilePaneDom.appendChild(marker);
+                            itemMarkers.push({ type: 'smuggler_plane_route', index: gIndex, el: marker });
+
+                            // 红线：用 div 绘制一条连接 tp 与 route 点的线
+                            if (Array.isArray(tp) && tp.length === 2) {
+                                const tpPX = (tp[0] - GAME_LEFT) / (GAME_RIGHT - GAME_LEFT) * totalWidth;
+                                const tpPY = (GAME_TOP - tp[1]) / (GAME_TOP - GAME_BOTTOM) * totalHeight;
+                                const dx = itemX - tpPX;
+                                const dy = itemY - tpPY;
+                                const length = Math.sqrt(dx*dx + dy*dy);
+                                const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+                                const line = document.createElement('div');
+                                line.className = 'smuggler-connector-line';
+                                line.dataset.type = 'smuggler_plane_line';
+                                line.dataset.index = String(gIndex);
+                                line.dataset.routeIndex = String(rIndex);
+                                line.style.position = 'absolute';
+                                line.style.left = `${tpPX}px`;
+                                line.style.top = `${tpPY}px`;
+                                line.style.width = `${length}px`;
+                                line.style.height = '2px';
+                                line.style.background = 'red';
+                                line.style.transformOrigin = '0 0';
+                                line.style.transform = `rotate(${angle}deg)`;
+                                line.style.zIndex = '660';
+                                tilePaneDom.appendChild(line);
+                                itemMarkers.push({ type: 'smuggler_plane_line', index: gIndex, el: line });
+                            }
+                        }
+                    });
                 });
             }
 
@@ -2772,6 +2934,55 @@
                         }
                         if (item) break;
                     }
+                } else if (type === 'smuggler_plane') {
+                    const group = itemData.smuggler_plane && itemData.smuggler_plane[index];
+                    if (group && Array.isArray(group.triggerpoint) && group.triggerpoint.length === 2) {
+                        const x = group.triggerpoint[0];
+                        const y = group.triggerpoint[1];
+                        const percentX = (x - GAME_LEFT) / (GAME_RIGHT - GAME_LEFT);
+                        const percentY = (GAME_TOP - y) / (GAME_TOP - GAME_BOTTOM);
+                        const itemX = percentX * totalWidth;
+                        const itemY = percentY * totalHeight;
+                        el.style.left = `${itemX}px`;
+                        el.style.top = `${itemY}px`;
+                    }
+                    return;
+                } else if (type === 'smuggler_plane_route') {
+                    const group = itemData.smuggler_plane && itemData.smuggler_plane[index];
+                    const routeIndex = el.dataset && el.dataset.routeIndex ? parseInt(el.dataset.routeIndex, 10) : -1;
+                    if (group && Array.isArray(group.routes) && group.routes[routeIndex] && group.routes[routeIndex][0] && group.routes[routeIndex][0].length === 2) {
+                        const x = group.routes[routeIndex][0][0];
+                        const y = group.routes[routeIndex][0][1];
+                        const percentX = (x - GAME_LEFT) / (GAME_RIGHT - GAME_LEFT);
+                        const percentY = (GAME_TOP - y) / (GAME_TOP - GAME_BOTTOM);
+                        const itemX = percentX * totalWidth;
+                        const itemY = percentY * totalHeight;
+                        el.style.left = `${itemX}px`;
+                        el.style.top = `${itemY}px`;
+                    }
+                    return;
+                } else if (type === 'smuggler_plane_line') {
+                    const group = itemData.smuggler_plane && itemData.smuggler_plane[index];
+                    const routeIndex = el.dataset && el.dataset.routeIndex ? parseInt(el.dataset.routeIndex, 10) : -1;
+                    if (group && Array.isArray(group.triggerpoint) && group.triggerpoint.length === 2 && group.routes && group.routes[routeIndex] && group.routes[routeIndex][0]) {
+                        const tpX = group.triggerpoint[0];
+                        const tpY = group.triggerpoint[1];
+                        const rtX = group.routes[routeIndex][0][0];
+                        const rtY = group.routes[routeIndex][0][1];
+                        const tpPX = (tpX - GAME_LEFT) / (GAME_RIGHT - GAME_LEFT) * totalWidth;
+                        const tpPY = (GAME_TOP - tpY) / (GAME_TOP - GAME_BOTTOM) * totalHeight;
+                        const rPX = (rtX - GAME_LEFT) / (GAME_RIGHT - GAME_LEFT) * totalWidth;
+                        const rPY = (GAME_TOP - rtY) / (GAME_TOP - GAME_BOTTOM) * totalHeight;
+                        const dx = rPX - tpPX;
+                        const dy = rPY - tpPY;
+                        const length = Math.sqrt(dx*dx + dy*dy);
+                        const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+                        el.style.left = `${tpPX}px`;
+                        el.style.top = `${tpPY}px`;
+                        el.style.width = `${length}px`;
+                        el.style.transform = `rotate(${angle}deg)`;
+                    }
+                    return;
                 } else {
                     item = itemData[type] && itemData[type][index];
                 }
@@ -5409,6 +5620,15 @@
             
             // 检测是否点击在毒品载具附近
             checkDrugVehicleClick(gameX, gameY);
+
+            // 检测是否点击在沉睡的保安附近
+            checkDrunkGuardClick(gameX, gameY);
+
+            // 检测是否点击在金属探测器附近
+            checkMetalDetectorClick(gameX, gameY);
+
+            // 检测是否点击在走私贩飞机附近
+            checkSmugglerPlaneClick(gameX, gameY);
         });
 
         // 检测武器厢型车点击
@@ -6554,6 +6774,82 @@
             }
         }
 
+        // 检测沉睡的保安点击（坐标检测）
+        function checkDrunkGuardClick(clickX, clickY) {
+            const DRUNK_GUARD_RADIUS = 100; // 检测半径100单位
+            
+            if (activeItemTypes.has('drunk_guard') && Array.isArray(itemData.drunk_guard)) {
+                const nearby = itemData.drunk_guard.find((g) => {
+                    const dx = g.x - clickX;
+                    const dy = g.y - clickY;
+                    return Math.sqrt(dx * dx + dy * dy) <= DRUNK_GUARD_RADIUS;
+                });
+                
+                if (nearby) {
+                    const index = itemData.drunk_guard.findIndex(g => g.x === nearby.x && g.y === nearby.y);
+                    console.log('点击了沉睡的保安附近:', nearby);
+                    showDrunkGuardPopup(nearby, index);
+                    return;
+                }
+            }
+        }
+
+        // 检测金属探测器点击（坐标检测）
+        function checkMetalDetectorClick(clickX, clickY) {
+            const METAL_DETECTOR_RADIUS = 100; // 检测半径100单位
+            
+            if (activeItemTypes.has('metal_detector') && Array.isArray(itemData.metal_detector)) {
+                const nearby = itemData.metal_detector.find((m) => {
+                    const dx = m.x - clickX;
+                    const dy = m.y - clickY;
+                    return Math.sqrt(dx * dx + dy * dy) <= METAL_DETECTOR_RADIUS;
+                });
+                
+                if (nearby) {
+                    const index = itemData.metal_detector.findIndex(m => m.x === nearby.x && m.y === nearby.y);
+                    console.log('点击了金属探测器附近:', nearby);
+                    showMetalDetectorPopup(nearby, index);
+                    return;
+                }
+            }
+        }
+
+        // 检测走私贩飞机点击（坐标检测）
+        function checkSmugglerPlaneClick(clickX, clickY) {
+            const RADIUS = 120; // 检测半径（游戏坐标）
+            if (!activeItemTypes.has('smuggler_plane') || !Array.isArray(itemData.smuggler_plane)) return;
+            const groups = itemData.smuggler_plane;
+
+            for (let i = 0; i < groups.length; i++) {
+                const group = groups[i];
+                // 检查 triggerpoint
+                if (Array.isArray(group.triggerpoint) && group.triggerpoint.length === 2) {
+                    const dx = group.triggerpoint[0] - clickX;
+                    const dy = group.triggerpoint[1] - clickY;
+                    if (Math.sqrt(dx*dx + dy*dy) <= RADIUS) {
+                        showSmugglerPlanePopup(group, i);
+                        return;
+                    }
+                }
+                // 检查 routes 的首点
+                if (Array.isArray(group.routes)) {
+                    for (let r = 0; r < group.routes.length; r++) {
+                        const route = group.routes[r];
+                        if (Array.isArray(route) && route[0] && route[0].length === 2) {
+                            const rx = route[0][0];
+                            const ry = route[0][1];
+                            const dx = rx - clickX;
+                            const dy = ry - clickY;
+                            if (Math.sqrt(dx*dx + dy*dy) <= RADIUS) {
+                                showSmugglerPlanePopup(group, i);
+                                return;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         // 毒品载具弹窗
         function showDrugVehiclePopup(item, index) {
             const title = `🚗 毒品载具 #${index + 1}`;
@@ -6603,6 +6899,164 @@
                 el.style.opacity = '1';
             });
 
+            closeBtn.addEventListener('click', () => popup.remove());
+            popup.addEventListener('click', (e) => e.stopPropagation());
+            setTimeout(() => {
+                const closePopupHandler = (e) => {
+                    if (!popup.contains(e.target)) { popup.remove(); document.removeEventListener('click', closePopupHandler); }
+                };
+                document.addEventListener('click', closePopupHandler);
+            }, 50);
+
+            document.body.appendChild(popup);
+        }
+
+        // 沉睡的保安弹窗
+        function showDrunkGuardPopup(item, index) {
+            const title = `🛌 沉睡的保安 #${index + 1}`;
+            const content = `搜刮他（键盘上的E ）以获得 7.007 GTA$ 和佩里科岛金发老大办公室的抽屉钥匙。抽屉里面有一把 佩里科手枪。`;
+            const imageUrl = 'https://gta-maps.antwen.com/collectibles_images/drunk_guard/drunk_guard.webp';
+            
+            const popup = document.createElement('div');
+            popup.className = 'drunk-guard-popup';
+            popup.style.cssText = `
+                position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+                background: #fff; border: 3px solid #795548; border-radius: 12px; padding: 18px;
+                z-index: 10000; max-width: 520px; max-height: 80vh; box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+                font-family: Arial, sans-serif; text-align: left; overflow-y: auto;`;
+
+            popup.innerHTML = `
+                <div style="margin-bottom: 14px; font-size: 20px; font-weight: bold; color: #5D4037; text-align:center;">${title}</div>
+                <img src="${imageUrl}" alt="沉睡的保安图片" style="max-width: 100%; height: auto; border-radius: 6px; margin: 8px 0; display:block;"/>
+                <div style="margin: 10px 0; padding: 10px; background: #efebe9; border-radius: 8px; color: #3e2723; font-size: 13px; line-height: 1.6;">
+                    ${content}
+                </div>
+                <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px;">
+                    <button id="hide-drunk-guard-btn" style="padding: 10px 18px; background: #4CAF50; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">隐藏</button>
+                    <button id="show-drunk-guard-btn" style="padding: 10px 18px; background: #2196F3; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">显示</button>
+                    <button id="close-drunk-guard-btn" style="padding: 10px 18px; background: #f44336; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">关闭</button>
+                </div>
+            `;
+
+            const hideBtn = popup.querySelector('#hide-drunk-guard-btn');
+            const showBtn = popup.querySelector('#show-drunk-guard-btn');
+            const closeBtn = popup.querySelector('#close-drunk-guard-btn');
+
+            function resolveTargetAndIndex() {
+                const el = document.querySelector(`.item-marker[data-type="drunk_guard"][data-index="${index}"]`);
+                return { el, globalIndex: index };
+            }
+
+            hideBtn.addEventListener('click', () => {
+                const { el } = resolveTargetAndIndex();
+                if (!el) return;
+                el.style.opacity = '0.25';
+            });
+
+            showBtn.addEventListener('click', () => {
+                const { el } = resolveTargetAndIndex();
+                if (!el) return;
+                el.style.opacity = '1';
+            });
+
+            closeBtn.addEventListener('click', () => popup.remove());
+            popup.addEventListener('click', (e) => e.stopPropagation());
+            setTimeout(() => {
+                const closePopupHandler = (e) => {
+                    if (!popup.contains(e.target)) { popup.remove(); document.removeEventListener('click', closePopupHandler); }
+                };
+                document.addEventListener('click', closePopupHandler);
+            }, 50);
+
+            document.body.appendChild(popup);
+        }
+
+        // 金属探测器弹窗（带编号图片）
+        function showMetalDetectorPopup(item, index) {
+            const title = `🧭 金属探测器 #${index + 1}`;
+            const content = `您可以使用金属探测器在 佩里科岛 上定位 地下藏匿品 - 。<br/>搜索骷髅可获得 5.000 至 10.000 GTA$ 不等的现金奖励。`;
+            const imgUrl = `https://gta-maps.antwen.com/collectibles_images/metal_detector/metal_detector_${index + 1}.webp`;
+            
+            const popup = document.createElement('div');
+            popup.className = 'metal-detector-popup';
+            popup.style.cssText = `
+                position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+                background: #fff; border: 3px solid #607D8B; border-radius: 12px; padding: 18px;
+                z-index: 10000; max-width: 520px; max-height: 80vh; box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+                font-family: Arial, sans-serif; text-align: left; overflow-y: auto;`;
+
+            popup.innerHTML = `
+                <div style="margin-bottom: 14px; font-size: 20px; font-weight: bold; color: #455A64; text-align:center;">${title}</div>
+                <img src="${imgUrl}" alt="金属探测器图片" style="max-width: 100%; height: auto; border-radius: 6px; margin: 8px 0; display:block;"/>
+                <div style="margin: 10px 0; padding: 10px; background: #ECEFF1; border-radius: 8px; color: #263238; font-size: 13px; line-height: 1.6;">
+                    ${content}
+                </div>
+                <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px;">
+                    <button id="hide-metal-btn" style="padding: 10px 18px; background: #4CAF50; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">隐藏</button>
+                    <button id="show-metal-btn" style="padding: 10px 18px; background: #2196F3; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">显示</button>
+                    <button id="close-metal-btn" style="padding: 10px 18px; background: #f44336; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">关闭</button>
+                </div>
+            `;
+
+            const hideBtn = popup.querySelector('#hide-metal-btn');
+            const showBtn = popup.querySelector('#show-metal-btn');
+            const closeBtn = popup.querySelector('#close-metal-btn');
+
+            function resolveTargetAndIndex() {
+                const el = document.querySelector(`.item-marker[data-type="metal_detector"][data-index="${index}"]`);
+                return { el, globalIndex: index };
+            }
+
+            hideBtn.addEventListener('click', () => {
+                const { el } = resolveTargetAndIndex();
+                if (!el) return;
+                el.style.opacity = '0.25';
+            });
+
+            showBtn.addEventListener('click', () => {
+                const { el } = resolveTargetAndIndex();
+                if (!el) return;
+                el.style.opacity = '1';
+            });
+
+            closeBtn.addEventListener('click', () => popup.remove());
+            popup.addEventListener('click', (e) => e.stopPropagation());
+            setTimeout(() => {
+                const closePopupHandler = (e) => {
+                    if (!popup.contains(e.target)) { popup.remove(); document.removeEventListener('click', closePopupHandler); }
+                };
+                document.addEventListener('click', closePopupHandler);
+            }, 50);
+
+            document.body.appendChild(popup);
+        }
+
+        // 走私贩飞机弹窗
+        function showSmugglerPlanePopup(item, index) {
+            const title = `✈️ 走私贩飞机 #${index + 1}`;
+            const content = `在飞机坠毁处收集装有 25.000 GTA$ 和 2.000 RP 的公文包。`;
+            const imageUrl = 'https://gta-maps.antwen.com/collectibles_images/smuggler_plane/smuggler_plane.webp';
+            
+            const popup = document.createElement('div');
+            popup.className = 'smuggler-plane-popup';
+            popup.style.cssText = `
+                position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+                background: #fff; border: 3px solid #FF5252; border-radius: 12px; padding: 18px;
+                z-index: 10000; max-width: 520px; max-height: 80vh; box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+                font-family: Arial, sans-serif; text-align: left; overflow-y: auto;`;
+
+            popup.innerHTML = `
+                <div style="margin-bottom: 14px; font-size: 20px; font-weight: bold; color: #D32F2F; text-align:center;">${title}</div>
+                <img src="${imageUrl}" alt="走私贩飞机图片" style="max-width: 100%; height: auto; border-radius: 6px; margin: 8px 0; display:block;"/>
+                <div style="margin: 10px 0; padding: 10px; background: #FFEBEE; border-radius: 8px; color: #3e2723; font-size: 13px; line-height: 1.6;">
+                    ${content}
+                </div>
+                <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px;">
+                    <button id="close-smuggler-plane-btn" style="padding: 10px 18px; background: #f44336; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">关闭</button>
+                </div>
+            `;
+
+            const closeBtn = popup.querySelector('#close-smuggler-plane-btn');
             closeBtn.addEventListener('click', () => popup.remove());
             popup.addEventListener('click', (e) => e.stopPropagation());
             setTimeout(() => {

@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CHET - 官方网站 | GTA权威抢劫玩家组织</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" crossorigin="anonymous" />
+    <style>
+        :root {
+            --gta-bg-dark: #291a0a;
+            --gta-bg-medium: rgba(35, 25, 15, 0.95);
+            --gta-bg-light: rgba(55, 40, 25, 0.7);
+            --gta-primary: #e65100;
+            --gta-primary-glow: rgba(230, 81, 0, 0.7);
+            --gta-secondary: #ff9800;
+            --gta-border: #bf360c;
+            --gta-border-light: #ff7043;
+            --gta-text: #ffffff;
+            --gta-text-secondary: #ffe0b2;
+            --gta-accent: #ffab40;
+            --bg-darker: var(--gta-bg-medium);
+            --primary-color: var(--gta-primary);
+            --primary-dark: #bf360c;
+            --accent-color: var(--gta-accent);
+            --border-color: var(--gta-border);
+            --text-secondary: var(--gta-text-secondary);
+            --transition: all 0.15s ease;
+
+            --background-dark: #0a0a0a;
+            --surface-dark: #1a1a1a;
+            --surface-light: #262626;
+            --primary-accent: #00d4ff;
+            --secondary-accent: #ff6b35;
+            --tertiary-accent: #ffcc00;
+            --text-light: #ffffff;
+            --text-muted: #a0a0a0;
+            --text-dim: #666666;
+            --success: #00ff88;
+            --warning: #ffaa00;
+            --danger: #ff4757;
+            --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --gradient-accent: linear-gradient(135deg, #00d4ff 0%, #00ff88 100%);
+            --gradient-secondary: linear-gradient(135deg, #ff6b35 0%, #ffcc00 100%);
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
+            --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.4);
+            --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.5);
+            --shadow-xl: 0 16px 64px rgba(0, 0, 0, 0.6);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            background: var(--background-dark);
+            background-image:
+                radial-gradient(circle at 20% 50%, rgba(120, 119, 198, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(0, 212, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 40% 20%, rgba(255, 107, 53, 0.1) 0%, transparent 50%);
+            color: var(--text-light);
+            font-family: 'Segoe UI', 'Impact', 'Arial Black', sans-serif;
+            min-height: 100vh;
+            /* 顶部留白，避免固定导航遮挡内容 */
+            padding-top: 72px;
+        }
+
+        /* GTA风格导航栏（与 index.html 完全一致） */
+        .gta-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(90deg, rgba(35, 15, 10, 0.7) 0%, rgba(230, 81, 0, 0.7) 100%);
+            border-bottom: 2px solid #ff7043;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+        .gta-nav .nav-left { display: flex; gap: 15px; align-items: center; flex-grow: 1; }
+        .gta-title {
+            font-family: 'Impact', sans-serif; color: white; font-size: 24px; text-transform: uppercase; letter-spacing: 1px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5); margin: 0; display: flex; align-items: center; background: rgba(0,0,0,0.2);
+            padding: 5px 15px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1);
+        }
+        .gta-title i { margin-right: 8px; color: var(--gta-primary); }
+        .gta-title .brand-logo { height: 22px; width: 22px; margin-right: 8px; border-radius: 4px; object-fit: contain; vertical-align: middle; box-shadow: 0 0 0 1px rgba(255,255,255,0.15) inset; }
+        .gta-nav .nav-right { display: flex; gap: 15px; }
+        .nav-button {
+            background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2); padding: 8px 16px; border-radius: 20px;
+            cursor: pointer; font-size: 14px; font-weight: bold; transition: all 0.3s ease; text-transform: uppercase; letter-spacing: 0.5px;
+            display: flex; align-items: center; gap: 8px; text-decoration: none; box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+        .nav-button:hover { background: var(--gta-primary); color: var(--gta-bg-dark); box-shadow: 0 0 15px var(--gta-primary-glow); transform: translateY(-1px); border-color: var(--gta-accent); }
+        .nav-button.back-button { background: var(--gta-secondary); border-color: var(--gta-secondary); }
+        .nav-links { display: flex; gap: 15px; margin-left: 0; align-items: center; }
+        .nav-links a { color: white; text-decoration: none; font-size: 14px; padding: 5px 10px; border-radius: 4px; transition: background-color 0.2s; }
+        .nav-links a:hover { background-color: rgba(255,255,255,.1); }
+        .nav-buttons-desktop { display: flex; gap: 15px; }
+        .nav-buttons-mobile { display: none; }
+        .mobile-menu { display: none; position: absolute; top: 56px; right: 12px; background: linear-gradient(90deg, rgba(35,15,10,0.95) 0%, rgba(230,81,0,0.95) 100%); border: 1px solid #ff7043; padding: 10px; border-radius: 8px; z-index: 1100; box-shadow: 0 8px 22px rgba(50,30,20,.5); flex-direction: column; gap: 8px; min-width: 160px; backdrop-filter: blur(6px); }
+        .mobile-menu.show { display: flex; }
+        @media (max-width:768px) {
+            .nav-links { display: none; }
+            .nav-buttons-desktop { display: none; }
+            .nav-buttons-mobile { display: block; }
+            .gta-nav { padding: 8px 12px; flex-wrap: nowrap; align-items: center; }
+            .gta-title { font-size: 18px; padding: 6px 10px; white-space: nowrap; }
+            .mobile-menu .nav-button, .mobile-menu .nav-link { display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,.06); color: white; padding: 8px 10px; border-radius: 8px; text-decoration: none; border: none; cursor: pointer; }
+        }
+
+        /* 页面头部 */
+        .page-header { margin-top: 0; text-align: center; padding: 32px 16px 8px; position: relative; z-index: 10; }
+        .page-header h1 { font-size: 3rem; font-family: 'Impact', 'Arial Black', sans-serif; letter-spacing: 2px; }
+        .page-header p { color: var(--text-muted); margin-top: 8px; }
+        .org-logo { width: 96px; height: 96px; object-fit: contain; display: block; margin: 0 auto 12px; border-radius: 12px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 8px 24px rgba(0,0,0,.45); }
+
+        /* 容器与卡片 */
+        .container { width: 100%; max-width: 1200px; margin: 0 auto; padding: 16px; }
+        .section { margin: 24px 0; background: rgba(26,26,26,0.85); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; box-shadow: var(--shadow-lg); backdrop-filter: blur(10px); overflow: hidden; }
+        .section-header { display: flex; align-items: center; gap: 10px; padding: 16px 18px; border-bottom: 1px solid rgba(255,255,255,0.08); background: rgba(0,0,0,0.2); }
+        .section-header h2 { font-family: 'Impact','Arial Black',sans-serif; letter-spacing: 1px; font-size: 1.6rem; }
+        .section-content { padding: 18px; }
+
+        /* 成员网格 */
+        .members-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; }
+        .member-card { background: rgba(30,30,30,0.9); border: 1px solid rgba(255,255,255,0.1); border-radius: 14px; padding: 16px; text-align: center; transition: transform .2s, box-shadow .2s, border-color .2s; }
+        .member-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-xl), 0 0 24px rgba(230,81,0,.25); border-color: var(--gta-border-light); }
+        .avatar { width: 72px; height: 72px; margin: 0 auto 10px; border-radius: 50%; overflow: hidden; border: 2px solid rgba(255,255,255,0.15); background: radial-gradient(circle at 30% 30%, #444 0%, #222 60%, #111 100%); display: flex; align-items: center; justify-content: center; font-weight: 900; color: #fff; letter-spacing: .5px; }
+        .avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .member-id { font-weight: 700; letter-spacing: .5px; }
+        .member-role { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+
+        /* 规则样式 */
+        .rules { display: grid; grid-template-columns: 1fr; gap: 16px; }
+        .rule-block { background: rgba(20,20,20,0.8); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; overflow: hidden; }
+        .rule-title { background: linear-gradient(90deg, rgba(35,15,10,.6) 0%, rgba(230,81,0,.45) 100%); padding: 12px 14px; font-weight: 800; letter-spacing: .5px; border-bottom: 1px solid rgba(255,255,255,0.08); }
+        .rule-content { padding: 12px 16px; color: var(--text-secondary); }
+        .rule-content ul { padding-left: 18px; margin: 6px 0; }
+        .rule-content li { margin: 4px 0; line-height: 1.6; }
+
+        /* 报名 */
+        .apply-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .input { width: 100%; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); color: #fff; padding: 10px 12px; border-radius: 10px; outline: none; transition: var(--transition); }
+        .input:focus { border-color: var(--gta-border-light); box-shadow: 0 0 0 3px rgba(230,81,0,.2); }
+        .btn { background: linear-gradient(135deg, #ff6b35 0%, #ffcc00 100%); border: none; color: #000; font-weight: 900; letter-spacing: .5px; padding: 10px 14px; border-radius: 999px; cursor: pointer; transition: transform .15s ease, box-shadow .15s ease; }
+        .btn:hover { transform: translateY(-1px); box-shadow: 0 10px 22px rgba(255, 107, 53, 0.35); }
+        .btn.secondary { background: var(--gradient-accent); color: #000; }
+        .helper { color: var(--text-muted); font-size: 12px; margin-top: 6px; }
+
+        /* 背景装饰与页脚（与 index 风格一致） */
+        .background-decoration { position: fixed; width: 100%; height: 100%; top: 0; left: 0; z-index: 0; overflow: hidden; pointer-events: none; }
+        .decoration-circle { position: absolute; border-radius: 50%; filter: blur(100px); opacity: 0.08; }
+        .decoration-circle:nth-child(1) { width: 520px; height: 520px; background: var(--primary-accent); top: -250px; right: -150px; }
+        .decoration-circle:nth-child(2) { width: 640px; height: 640px; background: var(--secondary-accent); bottom: -300px; left: -200px; }
+        .decoration-circle:nth-child(3) { width: 440px; height: 440px; background: var(--tertiary-accent); top: 30%; left: -120px; }
+
+        .footer { position: static; left: 0; right: 0; bottom: 0; text-align: center; color: var(--text-dim); font-size: 0.9rem; z-index: 30; pointer-events: auto; background: rgba(10,10,10,0.35); padding: 12px; backdrop-filter: blur(6px); margin-top: 16px; }
+
+        @media (max-width: 1024px) { .members-grid { grid-template-columns: repeat(4, 1fr); } .apply-grid { grid-template-columns: 1fr; } .form-row { grid-template-columns: 1fr; } }
+        @media (max-width: 640px) { .members-grid { grid-template-columns: repeat(2, 1fr); } .page-header h1 { font-size: 2.2rem; } .org-logo { width: 72px; height: 72px; } }
+    </style>
+</head>
+<body>
+    <!-- 导航（完全复用 index 结构） -->
+    <div class="gta-nav">
+        <div class="nav-left">
+            <h1 class="gta-title"><img class="brand-logo" src="src/assets/chet-logo.png" alt="CHET" onerror="this.style.display='none'">CHET</h1>
+            <div class="nav-links">
+                <a href="https://www.antwen.com" target="_blank">安稳</a>
+                <a href="https://s.antwen.com" target="_blank">在线文件</a>
+            </div>
+        </div>
+        <div class="nav-right">
+            <div class="nav-buttons-desktop">
+                <a href="los-santos-map.html" class="nav-button">🏙️ 洛圣都</a>
+                <a href="cayo-perico-map.html" class="nav-button">🏝️ 佩里科岛</a>
+                <a href="vehicles.html" class="nav-button">🚗 车辆数据库</a>
+            </div>
+            <div class="nav-buttons-mobile">
+                <button class="menu-toggle" id="mobile-menu-toggle">
+                    <i class="fas fa-bars"></i> 更多
+                </button>
+                <div class="mobile-menu" id="mobile-menu">
+                    <a href="los-santos-map.html" class="nav-button">🏙️ 洛圣都</a>
+                    <a href="cayo-perico-map.html" class="nav-button">🏝️ 佩里科岛</a>
+                    <a href="vehicles.html" class="nav-button">🚗 车辆数据库</a>
+                    <a href="https://www.antwen.com" target="_blank" class="nav-link">🔗 安稳</a>
+                    <a href="https://s.antwen.com" target="_blank" class="nav-link">☁️ 在线文件</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 背景装饰 -->
+    <div class="background-decoration">
+        <div class="decoration-circle"></div>
+        <div class="decoration-circle"></div>
+        <div class="decoration-circle"></div>
+    </div>
+
+    <!-- 标题 -->
+    <div class="page-header container">
+        <img class="org-logo" src="src/assets/chet-logo.png" alt="CHET Logo" onerror="this.style.display='none'">
+        <h1><span class="text-[var(--tertiary-accent)]">CHET</span> 官方网站</h1>
+        <p>GTA领域最权威的玩家组织｜精通全系抢劫任务｜严谨与热爱并存</p>
+    </div>
+
+    <div class="container">
+        <!-- 关于CHET -->
+        <section class="section">
+            <div class="section-header">
+                <span>🏴‍☠️</span>
+                <h2>关于 CHET</h2>
+            </div>
+            <div class="section-content">
+                <p style="line-height:1.8;color:var(--text-secondary)">CHET 是由资深 GTA 玩家自发组织而成的高水准团体，致力于研究与实践各类抢劫任务的极限玩法与团队协作标准。我们坚持高标准、强协作、重礼仪，欢迎志同道合的玩家加入。</p>
+            </div>
+        </section>
+
+        <!-- 成员展示（10个位置） -->
+        <section class="section">
+            <div class="section-header">
+                <span>👥</span>
+                <h2>核心成员</h2>
+            </div>
+            <div class="section-content">
+                <div class="members-grid">
+                    <div class="member-card">
+                        <div class="avatar"><img src="src/assets/chet/richard.png" alt="头像"></div>
+                        <div class="member-id">理查德</div>
+                        <div class="member-role">抢劫专家</div>
+                    </div>
+                    <div class="member-card">
+                        <div class="avatar"><img src="src/assets/chet/yoyo.png" alt="头像"></div>
+                        <div class="member-id">Anonym</div>
+                        <div class="member-role">战术指挥</div>
+                    </div>
+                    <div class="member-card">
+                        <div class="avatar"><img src="src/assets/chet/cut.jpg" alt="头像"></div>
+                        <div class="member-id">Cutliy</div>
+                        <div class="member-role">搞笑担当</div>
+                    </div>
+                    <div class="member-card">
+                        <div class="avatar"><img src="src/assets/chet/ljx.jpg" alt="头像"></div>
+                        <div class="member-id">🤔</div>
+                        <div class="member-role">C帮大佬</div>
+                    </div>
+                    <div class="member-card">
+                        <div class="avatar"><img src="src/assets/chet/hongren.jpg" alt="头像"></div>
+                        <div class="member-id">红纫</div>
+                        <div class="member-role">E#大神</div>
+                    </div>
+                    <div class="member-card">
+                        <div class="avatar"><img src="src/assets/chet/catlfy.jpg" alt="头像"></div>
+                        <div class="member-id">新加坡大神</div>
+                        <div class="member-role">破坏黑客</div>
+                    </div>
+                    <div class="member-card">
+                        <div class="avatar"><img src="src/assets/chet/km.jpg" alt="头像"></div>
+                        <div class="member-id">KirisameMarisa45</div>
+                        <div class="member-role">断网高手</div>
+                    </div>
+                    <div class="member-card">
+                        <div class="avatar"><img src="src/assets/chet/mj.png" alt="头像"></div>
+                        <div class="member-id">速冻饺子</div>
+                        <div class="member-role">上厕所要带纸</div>
+                    </div>
+                    <div class="member-card">
+                        <div class="avatar"><img src="src/assets/chet/genshin.png" alt="头像"></div>
+                        <div class="member-id">元神哥</div>
+                        <div class="member-role">60级</div>
+                    </div>
+                    <div class="member-card">
+                        <div class="avatar"><img src="src/assets/chet/421.jpg" alt="头像"></div>
+                        <div class="member-id">Dinghy_421</div>
+                        <div class="member-role">你是?</div>
+                    </div>
+                </div>
+                <p class="helper">以上为展示位, 期待您的加入!</p>
+            </div>
+        </section>
+
+        <!-- 考核规则 -->
+        <section class="section" id="rules">
+            <div class="section-header">
+                <span>📜</span>
+                <h2>CHET考核标准细则（10/09/2025）</h2>
+            </div>
+            <div class="section-content rules">
+                <div class="rule-block">
+                    <div class="rule-title">通用要求</div>
+                    <div class="rule-content">
+                        <ul>
+                            <li>1. 全部任务必须在困难模式下完成RE重开挑战。</li>
+                            <li>2. 视频需要展示考核者的任务全过程，且视频必须为剪辑版本。考核必须提交对应视频至CHET官方群聊</li>
+                            <li>3. 请将视频上传至公开平台（bilibili）。</li>
+                            <li>4. 不会卡潜水重甲/重甲一票否决。</li>
+                            <li>5. 速通精英🍐玩家一票否决。</li>
+                            <li>6. 考核细则解释权贵CHET官方群聊管理员组所有。</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="rule-block">
+                    <div class="rule-title">全福银行</div>
+                    <div class="rule-content">
+                        <p><strong>队伍二选一</strong></p>
+                        <p><strong>硬性要求：</strong></p>
+                        <ul>
+                            <li>1. 任务建议在阿尔塔或者正直大道开</li>
+                            <li>2. 1分钟以上上骷髅马（出门到拉车门）</li>
+                            <li>3. 路上必须摔两次及以上</li>
+                            <li>4. 贪吃蛇必须每一图撞墙且二图不能走近路</li>
+                            <li>5. 车手路上必须撞车大于等于3次</li>
+                            <li>6. 任务时间必须达到8分钟及以上</li>
+                        </ul>
+                        <p><strong>车手：</strong></p>
+                        <ul>
+                            <li>1. 瞎几把开并忍受漫长的等待环节，到银行的路上不允许压路肩偷速。</li>
+                            <li>2. 最后直升机前必须加速驶过吊盘在地下来回盘旋，不允许直接吸入</li>
+                        </ul>
+                        <p><strong>钻孔：</strong></p>
+                        <ul>
+                            <li>1. 钻孔时间大于等于一分三十秒。</li>
+                            <li>2. 出银行必须贴近骷髅马完全静止再上车。</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="rule-block">
+                    <div class="rule-title">越狱</div>
+                    <div class="rule-content">
+                        <p><strong>硬性要求：</strong></p>
+                        <ul>
+                            <li>1. 任务建议在七叶树2045开。</li>
+                            <li>2. 禁止埋雷，埋一颗就重考。</li>
+                            <li>3. 禁用义警，必须用骷髅马或半履战车。</li>
+                            <li>4. 囚犯飞板必须摔一次。</li>
+                            <li>5. 狱警必须被打死一次。</li>
+                            <li>6. 飞行员必须撞爆一次。禁止降落在监狱门口，禁飞区。</li>
+                            <li>7. 飞行员必须和天煞在空中博弈四圈再落地，禁止在山丘上刷抖音不参与合作。</li>
+                            <li>8. 破坏必须驾驶直升机把队友切死一次。</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="rule-block">
+                    <div class="rule-title">人道</div>
+                    <div class="rule-content">
+                        <p><strong>硬性要求：</strong></p>
+                        <ul>
+                            <li>1. 任务建议在七叶树2045开。</li>
+                            <li>2. 两个地面必须穿全甲。</li>
+                            <li>3. 禁止上义警主驾驶，必须上副驾让糖b带你飞。</li>
+                            <li>4. 禁二坡左出，必须右出同时撞上树梢在空中转体720度然后时停落地。</li>
+                            <li>5. 沙漠飞海前必须撞油罐炸死一次。</li>
+                            <li>6. 主驾驶义警必须先跳伞不管副驾，沉海一次为最佳。</li>
+                            <li>7. 落水之后不允许往回游上岸叫车，必须在海中游向女武神。</li>
+                            <li>8. 上飞机后禁止地面往后面开枪，浪费子弹而且还吵主驾驶和枪手的耳朵。</li>
+                            <li>9. 飞行员到达黄点之后枪手不允许跳下飞机。</li>
+                            <li>10. 两个地面必须跳伞落在人道实验室护栏外面。</li>
+                            <li>11. 飞行员埋雷后必须全部炸到女武神，如果炸死自己加分。</li>
+                            <li>12. 在室内禁止卡加速，全程使用加特林前进，不能使用原子能和爆炸喷以及连发魔怔火箭炮。 、</li>
+                            <li>13. 全程飞行员和枪手不允许埋雷以及离开飞机。</li>
+                            <li>14. 在撤离过程中必须被秃鹰锁定击中4发导弹及以上。</li>
+                            <li>15. 任务全程不能少于12分钟。</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="rule-block">
+                    <div class="rule-title">首轮</div>
+                    <div class="rule-content">
+                        <ul>
+                            <li>1. 任务建议在正直大道开。</li>
+                            <li>2. 出门上车必须南边和北边一台车，否则重考。</li>
+                            <li>3. 到点后不允许埋雷，埋一颗重考。</li>
+                            <li>4. 车手必须在第三波完整把小地图红点全部杀完才允许拉门上车。</li>
+                            <li>5. 义警推车每一组必须完成钻屁股5次及以上，否则重考。</li>
+                            <li>6. 崔佛必须接上车。</li>
+                            <li>7. 卡车到任务点前不允许走桥梁，必须从沟里靠动力爬坡上去吃点。</li>
+                            <li>8. 任务全程不能少于13分钟。</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="rule-block">
+                    <div class="rule-title">太平洋</div>
+                    <div class="rule-content">
+                        <ul>
+                            <li>1. 任务建议在2044/2045开。</li>
+                            <li>2. 如果要在2045开，出门只有一辆摩托，那么只有一个人可以驾驶摩托去银行，剩余三个人不允许下坡找车，必须跑步前往，全程不允许偷速。</li>
+                            <li>3. 出门最好被路人车撞倒一次，不死有加分。</li>
+                            <li>4. 摩托飞坡撞栏杆摔车有加分。</li>
+                            <li>5. 允许卡摩托/义警进入银行大厅。</li>
+                            <li>6. 黑客/破坏原子能必须弹死靠铁门最近的一个npc，否则重考。</li>
+                            <li>7. 允许人群控制埋雷，第一、二颗雷必须炸到自己。</li>
+                            <li>8. 埋好雷之后第二个人控必须第一时间跑上楼把雷全部踩掉，要不重考。</li>
+                            <li>9. 黑客破解必须失误两次及以上出。</li>
+                            <li>10. 出银行之前人控需要使用连发火箭炮把银行内所有npc炸死。</li>
+                            <li>11. 出银行后第一时间四人为一个小组向前偷速推进，走推荐路线不允许翻墙。</li>
+                            <li>12. 到达摩托车后允许双人一车墩地/直升机。</li>
+                            <li>13. 如果要采用西线/中线跑发，则必须做到全程摔车大于等于三次，并保证不死不拖累队友。</li>
+                            <li>14. 西线军事基地前飞坡必须摔。</li>
+                            <li>15. 中线飞河必须摔。</li>
+                            <li>16. 西线必须去中线跳伞点跳伞，中线必须去西线跳伞点跳伞。</li>
+                            <li>17. 两条线跳伞都不允许延迟开伞，脱离摩托车之后第一时间开伞滑翔。</li>
+                            <li>18. 先到小艇的玩家必须使用加特林机枪扫射跳得慢玩家的伞。</li>
+                            <li>19. 逃离时必须将小艇开上岸，四人用原子能第一时间重新弹回河里，逃离。</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="rule-block">
+                    <div class="rule-title">末日将至</div>
+                    <div class="rule-content">
+                        <ul>
+                            <li>1. 进游戏前房主必须设置为保真模式，队友设置为性能模式再进任务，一旦发现房主为主力网即刻取消考核资格。</li>
+                            <li>2. 选车时主力不可选择义警作为载具只能选摩托车类，副手要跟主力一起上摩托车且车辆选择选项必须调整到无载具才可开启任务。</li>
+                            <li>3. 出设施时摩托车主人不可打开互动菜单开启引擎必须开上摩托车启动然后出发去拿任务载具（整个拿车过程必须1分钟以上，如果快了视为考核失败）</li>
+                            <li>4. 必须选用可汗贾利作为任务载具且必须与队友在同一载具，不可单独前往任务点等候队友！（这是团队精神的体现）</li>
+                            <li>5. 开坦克进隧道时需全程开第一人称向后方开炮提速，隧道人头由队友使用机枪来打，如果坦克炮打中敌人造成击杀需重考！</li>
+                            <li>6. 坦克到隧道尽头时需立马下车切出烟花发射器击杀4个重甲兵队友则需切出信号枪给重甲造成灼烧伤害</li>
+                            <li>7. 从下坦克到ai门前整体用时限制在30分钟内，遇到尽头重甲兵需用原子能枪弹爆油罐造成击杀（清弹药箱顺序需从左隧道→右隧道→左隧道）</li>
+                            <li>8. 进ai门之后需和队友切出火箭筒无差别射击敌人（1楼红色灯门的光头不要打防止你破解完可以直接上天基炮）</li>
+                            <li>9. 破解时需一个一个的把目标点消除，不准提前移动反射条，破解平均用时需2分钟以上</li>
+                            <li>10. 4个破解完后再跳下去一楼清第8点提到的光头最后再上3楼天基炮，开炮时要先往目标旁空射一发对敌人造成震慑第二发再打目标上</li>
+                            <li>11. 最后冲隧道时注意一定要与队友从头到尾使用原子能通过，且每条小隧道内的炸药箱一定要用原子能炸掉，⚠️：拿飞行背包的cg一定不可跳过</li>
+                            <li>12. 飞推进者时不可快速起飞，全程不可收起落架，导弹需要切换成无锁定模式但是也不可发射导弹，在面前的敌人需以全油门的方式撞爆他们，同上，击杀埃万·赫兹也需要全油门使用飞行器撞爆他，最后落地时一定要保证推进者是平躺着在地面的，只要是垂直落都视为考核失败</li>
+                            <li>13. 等待结算期间也一定不可以跳过莱斯特与iaa探员的cg要有始有终，最后结算时间在1小时以上，人头在20个以下为及格</li>
+                            <li>14. 考核时请自己寻找帮手不要找考官，考核的视频需要发b站上。</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 报名表与群聊链接 -->
+        <section class="section" id="apply">
+            <div class="section-header">
+                <span>📝</span>
+                <h2>报名加入 CHET</h2>
+            </div>
+            <div class="section-content apply-grid">
+                <form id="apply-form" class="section" style="background:transparent;border:none;box-shadow:none;padding:0">
+                    <div class="section-content" style="padding:0">
+                        <div class="form-row">
+                            <input class="input" name="playerId" placeholder="玩家ID（必填）" required />
+                            <input class="input" name="platform" placeholder="平台/区服（例：PS5/Xbox）" />
+                        </div>
+                        <div class="form-row" style="margin-top:12px">
+                            <input class="input" name="skills" placeholder="擅长抢劫（例：人道/太平洋/末日）" />
+                            <input class="input" name="bili" placeholder="B站主页或考核视频链接（必填）" required />
+                        </div>
+                        <div class="form-row" style="margin-top:12px">
+                            <input class="input" name="contact" placeholder="QQ号" />
+                            <input class="input" name="playtime" placeholder="常在线时间（例：晚8点-11点）" />
+                        </div>
+                        <textarea class="input" name="notes" rows="4" style="margin-top:12px" placeholder="备注（可选）"></textarea>
+                        <div style="display:flex; gap:10px; margin-top:12px; flex-wrap: wrap;">
+                            <button type="submit" class="btn" id="submit-apply">提交报名</button>
+                            <a class="btn secondary" id="group-link" href="https://qm.qq.com/q/UzIKgVSNUe" target="_blank">加入 CHET 官方群聊</a>
+                        </div>
+                        <div id="apply-status" class="helper" style="margin-top:8px"></div>
+                        <div class="helper">可直接在线提交, 提交后请加群</div>
+                    </div>
+                </form>
+
+                <div class="section" style="background:rgba(20,20,20,.75);">
+                    <div class="section-header">
+                        <span>ℹ️</span>
+                        <h2>报名须知</h2>
+                    </div>
+                    <div class="section-content" style="line-height:1.8;color:var(--text-secondary)">
+                        <ul>
+                            <li>请仔细阅读上方《考核标准细则》，按要求准备视频并上传至 bilibili。</li>
+                            <li>报名信息务必真实、有效；通过初筛后管理员将联系你约考核时间。</li>
+                            <li>严禁作弊与恶意扰乱考核流程，情节严重者将列入黑名单。</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="footer">© 2025 CHET | 非官方玩家组织 | 本站与 Rockstar 无直接关联</div>
+    </div>
+
+    <script>
+        // 移动菜单
+        (function(){
+            const toggle = document.getElementById('mobile-menu-toggle');
+            const menu = document.getElementById('mobile-menu');
+            if (toggle && menu) {
+                toggle.addEventListener('click', () => menu.classList.toggle('show'));
+                document.addEventListener('click', (e) => {
+                    if (!toggle.contains(e.target) && !menu.contains(e.target)) menu.classList.remove('show');
+                });
+            }
+        })();
+
+        // 复制报名信息
+        (function(){
+            const btn = document.getElementById('copy-apply');
+            const form = document.getElementById('apply-form');
+            if (!btn || !form) return;
+            btn.addEventListener('click', async () => {
+                const data = new FormData(form);
+                const fields = {
+                    '玩家ID': data.get('playerId') || '',
+                    '平台/区服': data.get('platform') || '',
+                    '擅长抢劫': data.get('skills') || '',
+                    'B站主页/视频': data.get('bili') || '',
+                    '联系方式': data.get('contact') || '',
+                    '常在线时间': data.get('playtime') || '',
+                    '备注': data.get('notes') || ''
+                };
+                if (!fields['玩家ID'] || !fields['B站主页/视频']) {
+                    alert('请填写必填项：玩家ID、B站主页或视频链接');
+                    return;
+                }
+                const text = Object.entries(fields).map(([k,v]) => `${k}：${String(v).trim()}`).join('\n');
+                try {
+                    await navigator.clipboard.writeText(text);
+                    alert('报名信息已复制，前往群聊粘贴即可');
+                } catch (e) {
+                    // 兼容不支持剪贴板的环境
+                    const ta = document.createElement('textarea');
+                    ta.value = text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+                    alert('报名信息已复制，前往群聊粘贴即可');
+                }
+            });
+        })();
+
+        // 在线提交（Google Apps Script / Discord Webhook / Formspree）
+        ;(function(){
+            const form = document.getElementById('apply-form');
+            const status = document.getElementById('apply-status');
+            if (!form) return;
+
+            // 按需配置任一即可生效
+            const CONFIG = {
+                GOOGLE_APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbypPShsmZ9-kmMdFRK_Q8bvsujMwnpjXuUaL-IsnxrLjvbpL_wfA-kV3WcXTrgdSGv_/exec', // 形如 https://script.google.com/macros/s/XXXXX/exec
+                DISCORD_WEBHOOK_URL: '', // 形如 https://discord.com/api/webhooks/...
+                FORMSPREE_URL: '' // 形如 https://formspree.io/f/xxxxxxx
+            };
+
+            function buildPayload() {
+                const data = new FormData(form);
+                const payload = {
+                    playerId: data.get('playerId') || '',
+                    platform: data.get('platform') || '',
+                    skills: data.get('skills') || '',
+                    bili: data.get('bili') || '',
+                    contact: data.get('contact') || '',
+                    playtime: data.get('playtime') || '',
+                    notes: data.get('notes') || ''
+                };
+                return payload;
+            }
+
+            async function postJSON(url, body) {
+                const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+                return res.ok;
+            }
+
+            async function submitToGoogleAppsScript(payload) {
+                if (!CONFIG.GOOGLE_APPS_SCRIPT_URL) return false;
+                return postJSON(CONFIG.GOOGLE_APPS_SCRIPT_URL, payload);
+            }
+
+            async function submitToDiscord(payload) {
+                if (!CONFIG.DISCORD_WEBHOOK_URL) return false;
+                const content = [
+                    `玩家ID：${payload.playerId}`,
+                    `平台/区服：${payload.platform}`,
+                    `擅长抢劫：${payload.skills}`,
+                    `B站主页/视频：${payload.bili}`,
+                    `QQ号：${payload.contact}`,
+                    `常在线时间：${payload.playtime}`,
+                    `备注：${payload.notes}`
+                ].join('\n');
+                const body = { content };
+                const res = await fetch(CONFIG.DISCORD_WEBHOOK_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+                return res.ok;
+            }
+
+            async function submitToFormspree(payload) {
+                if (!CONFIG.FORMSPREE_URL) return false;
+                const res = await fetch(CONFIG.FORMSPREE_URL, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }, body: JSON.stringify(payload) });
+                return res.ok;
+            }
+
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const data = new FormData(form);
+                const playerId = (data.get('playerId') || '').toString().trim();
+                const bili = (data.get('bili') || '').toString().trim();
+                if (!playerId || !bili) {
+                    alert('请填写必填项：玩家ID、B站主页或视频链接');
+                    return;
+                }
+
+                status.textContent = '提交中，请稍候…';
+                const payload = buildPayload();
+
+                // 优先级：Google → Discord → Formspree
+                let ok = false;
+                try { ok = await submitToGoogleAppsScript(payload); } catch {}
+                if (!ok) { try { ok = await submitToDiscord(payload); } catch {} }
+                if (!ok) { try { ok = await submitToFormspree(payload); } catch {} }
+
+                if (ok) {
+                    status.textContent = '提交成功！我们将尽快与您联系。';
+                    form.reset();
+                } else {
+                    status.textContent = '未配置在线提交通道或网络异常。已为你复制文本后可直接到群聊报名。';
+                }
+            });
+        })();
+    </script>
+</body>
+</html>
+
+

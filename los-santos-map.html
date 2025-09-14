@@ -1126,7 +1126,19 @@
             // 金属探测器
             metal_detector: './src/assets/metal.svg',
             // 走私贩飞机
-            smuggler_plane: './src/assets/smuggler_plane.svg'
+            smuggler_plane: './src/assets/smuggler_plane.svg',
+            // 走私贩踪迹
+            smuggler_trail: './src/assets/smuggler_trail.svg',
+            // 犯罪现场
+            crime_scenes: './src/assets/crime_scenes.svg',
+            // 商店抢劫
+            store_robbery: './src/assets/store_robbery.svg',
+            // 车队
+            convoy: './src/assets/convoy.svg',
+            // 车队终点
+            convoy_final: './src/assets/convoy_final.svg',
+            // 装甲运钞车
+            armored_truck: './src/assets/armored_truck.svg'
         };
 
         // 物品数据（从JSON文件加载）
@@ -1166,7 +1178,13 @@
             drug_vehicle: [],
             drunk_guard: [],
             metal_detector: [],
-            smuggler_plane: []
+            smuggler_plane: [],
+            smuggler_trail: [],
+            crime_scenes: [],
+            store_robbery: [],
+            convoy: [],
+            convoy_final: [],
+            armored_truck: []
         };
 
         // 车行位置数据
@@ -1249,7 +1267,12 @@
             { value: 'drug_vehicle', text: '🚗 毒品载具', icon: './src/assets/drug_vehicle.svg' },
             { value: 'drunk_guard', text: '🛌 沉睡的保安', icon: './src/assets/drunk_guard.svg' },
             { value: 'metal_detector', text: '🧭 金属探测器', icon: './src/assets/metal.svg' },
-            { value: 'smuggler_plane', text: '✈️ 走私贩飞机', icon: './src/assets/smuggler_plane.svg' }
+            { value: 'smuggler_plane', text: '✈️ 走私贩飞机', icon: './src/assets/smuggler_plane.svg' },
+            { value: 'smuggler_trail', text: '🛤️ 走私贩踪迹', icon: './src/assets/smuggler_trail.svg' },
+            { value: 'crime_scenes', text: '🔍 犯罪现场', icon: './src/assets/crime_scenes.svg' },
+            { value: 'store_robbery', text: '🏪 商店抢劫', icon: './src/assets/store_robbery.svg' },
+            { value: 'convoy', text: '🚛 车队', icon: './src/assets/convoy.svg' },
+            { value: 'armored_truck', text: '💰 装甲运钞车', icon: './src/assets/armored_truck.svg' }
         ];
         const loader = document.getElementById('loader');
         const tilePaneDom = document.getElementById('tile-pane');
@@ -1715,6 +1738,110 @@
                     } catch (error) {
                         console.error('加载smuggler_plane数据失败');
                         itemData.smuggler_plane = [];
+                    }
+                    
+                    // 额外加载：走私贩踪迹（smuggler_trail）
+                    try {
+                        if (cardsData && Array.isArray(cardsData.smuggler_trail)) {
+                            itemData.smuggler_trail = cardsData.smuggler_trail.map((group, index) => ({
+                                triggerpoint: group.triggerpoint,
+                                routes: group.routes
+                            }));
+                            console.log(`smuggler_trail 数据加载成功：${itemData.smuggler_trail.length} 组`);
+                        }
+                    } catch (error) {
+                        console.error('加载smuggler_trail数据失败');
+                        itemData.smuggler_trail = [];
+                    }
+                    
+                    // 额外加载：犯罪现场（crime_scenes）
+                    try {
+                        if (cardsData && Array.isArray(cardsData.crime_scenes)) {
+                            itemData.crime_scenes = cardsData.crime_scenes.map((item, index) => ({
+                                x: item.x,
+                                y: item.y,
+                                name: `犯罪现场 ${index + 1}`
+                            }));
+                            console.log(`crime_scenes 数据加载成功：${itemData.crime_scenes.length} 个犯罪现场位置`);
+                            console.log('crime_scenes 数据示例:', itemData.crime_scenes[0]);
+                        } else {
+                            console.log('crime_scenes 数据未找到或格式不正确');
+                        }
+                    } catch (error) {
+                        console.error('加载crime_scenes数据失败:', error);
+                        itemData.crime_scenes = [];
+                    }
+                    
+                    // 额外加载：商店抢劫（store_robbery）
+                    try {
+                        if (cardsData && Array.isArray(cardsData.store_robbery)) {
+                            itemData.store_robbery = cardsData.store_robbery.map((item, index) => ({
+                                x: item.x,
+                                y: item.y,
+                                name: `商店抢劫 ${index + 1}`
+                            }));
+                            console.log(`store_robbery 数据加载成功：${itemData.store_robbery.length} 个商店抢劫位置`);
+                            console.log('store_robbery 数据示例:', itemData.store_robbery[0]);
+                        } else {
+                            console.log('store_robbery 数据未找到或格式不正确');
+                        }
+                    } catch (error) {
+                        console.error('加载store_robbery数据失败:', error);
+                        itemData.store_robbery = [];
+                    }
+                    
+                    // 额外加载：车队（convoy）
+                    try {
+                        if (cardsData && Array.isArray(cardsData.convoy)) {
+                            itemData.convoy = cardsData.convoy.map((convoy, index) => ({
+                                triggerpoint: convoy.triggerpoint,
+                                routes: convoy.routes,
+                                name: `车队 ${index + 1}`
+                            }));
+                            console.log(`convoy 数据加载成功：${itemData.convoy.length} 个车队位置`);
+                            console.log('convoy 数据示例:', itemData.convoy[0]);
+                        } else {
+                            console.log('convoy 数据未找到或格式不正确');
+                        }
+                    } catch (error) {
+                        console.error('加载convoy数据失败:', error);
+                        itemData.convoy = [];
+                    }
+                    
+                    // 额外加载：车队终点（convoy_final）
+                    try {
+                        if (cardsData && Array.isArray(cardsData.convoy_final)) {
+                            itemData.convoy_final = cardsData.convoy_final.map((point, index) => ({
+                                x: point[0],
+                                y: point[1],
+                                name: `车队终点 ${index + 1}`
+                            }));
+                            console.log(`convoy_final 数据加载成功：${itemData.convoy_final.length} 个车队终点位置`);
+                            console.log('convoy_final 数据示例:', itemData.convoy_final[0]);
+                        } else {
+                            console.log('convoy_final 数据未找到或格式不正确');
+                        }
+                    } catch (error) {
+                        console.error('加载convoy_final数据失败:', error);
+                        itemData.convoy_final = [];
+                    }
+                    
+                    // 额外加载：装甲运钞车（armored_truck）
+                    try {
+                        if (cardsData && Array.isArray(cardsData.armored_truck)) {
+                            itemData.armored_truck = cardsData.armored_truck.map((item, index) => ({
+                                x: item.x,
+                                y: item.y,
+                                name: `装甲运钞车 ${index + 1}`
+                            }));
+                            console.log(`armored_truck 数据加载成功：${itemData.armored_truck.length} 个装甲运钞车位置`);
+                            console.log('armored_truck 数据示例:', itemData.armored_truck[0]);
+                        } else {
+                            console.log('armored_truck 数据未找到或格式不正确');
+                        }
+                    } catch (error) {
+                        console.error('加载armored_truck数据失败:', error);
+                        itemData.armored_truck = [];
                     }
                     
                     // 单独加载dead_drop数据（从zones.json）
@@ -2227,6 +2354,11 @@
                 img.style.width = '32px';
                 img.style.height = '32px';
                 marker.appendChild(img);
+                
+                // 调试信息
+                if (type === 'crime_scenes') {
+                    console.log('创建crime_scenes标记，图标路径:', itemIcons[type]);
+                }
             }
             
             // 添加点击事件：使用标记自身的 type/index
@@ -2268,7 +2400,12 @@
             // 为每个激活的类型创建标记
             activeItemTypes.forEach(type => {
                 // 跳过有特殊渲染逻辑的类型
-                if (type === 'media_sticks' || type === 'maude_bounty_targets' || type === 'serial_killer_slasher' || type === 'movie_props' || type === 'treasure_hunt_dba_revolver' || type === 'stash_houses' || type === 'madrazo_hits' || type === 'police_rescue_patrick_mcreary' || type === 'random_missions' || type === 'drug_vehicle' || type === 'smuggler_plane') return;
+                if (type === 'media_sticks' || type === 'maude_bounty_targets' || type === 'serial_killer_slasher' || type === 'movie_props' || type === 'treasure_hunt_dba_revolver' || type === 'stash_houses' || type === 'madrazo_hits' || type === 'police_rescue_patrick_mcreary' || type === 'random_missions' || type === 'drug_vehicle' || type === 'smuggler_plane' || type === 'smuggler_trail' || type === 'convoy') return;
+                
+                // 调试信息
+                if (type === 'crime_scenes') {
+                    console.log('正在渲染crime_scenes标记，数据:', itemData[type]);
+                }
                 
                 if (!itemData[type] || !Array.isArray(itemData[type])) return;
                 itemData[type].forEach((item, index) => {
@@ -2599,6 +2736,263 @@
                             }
                         }
                     });
+                });
+            }
+
+            // 特殊：走私贩踪迹渲染（triggerpoint + routes + 蓝线）
+            if (activeItemTypes.has('smuggler_trail')) {
+                const groups = itemData.smuggler_trail || [];
+                groups.forEach((group, gIndex) => {
+                    const tp = group.triggerpoint; // [x, y]
+                    const routes = Array.isArray(group.routes) ? group.routes : [];
+                    if (Array.isArray(tp) && tp.length === 2) {
+                        const percentX = (tp[0] - GAME_LEFT) / (GAME_RIGHT - GAME_LEFT);
+                        const percentY = (GAME_TOP - tp[1]) / (GAME_TOP - GAME_BOTTOM);
+                        const itemX = percentX * totalWidth;
+                        const itemY = percentY * totalHeight;
+                        const marker = document.createElement('div');
+                        marker.className = 'item-marker smuggler-trail-triggerpoint-marker';
+                        marker.dataset.type = 'smuggler_trail';
+                        marker.dataset.index = String(gIndex);
+                        marker.style.position = 'absolute';
+                        marker.style.left = `${itemX}px`;
+                        marker.style.top = `${itemY}px`;
+                        marker.style.transform = 'translate(-50%, -50%)';
+                        marker.style.cursor = 'pointer';
+                        marker.style.zIndex = '670';
+                        const img = document.createElement('img');
+                        img.src = './src/assets/smuggler_trail.svg';
+                        img.style.width = '28px';
+                        img.style.height = '28px';
+                        marker.appendChild(img);
+                        marker.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            showSmugglerTrailPopup(group, gIndex);
+                        });
+                        tilePaneDom.appendChild(marker);
+                        itemMarkers.push({ type: 'smuggler_trail', index: gIndex, el: marker });
+                    }
+                    // routes: array of arrays of [x,y]; draw numbered markers and blue lines connecting them in sequence
+                    routes.forEach((route, rIndex) => {
+                        if (Array.isArray(route) && route.length > 0 && Array.isArray(route[0]) && route[0].length === 2) {
+                            const rx = route[0][0];
+                            const ry = route[0][1];
+                            const percentX = (rx - GAME_LEFT) / (GAME_RIGHT - GAME_LEFT);
+                            const percentY = (GAME_TOP - ry) / (GAME_TOP - GAME_BOTTOM);
+                            const itemX = percentX * totalWidth;
+                            const itemY = percentY * totalHeight;
+                            
+                            // 创建数字标记
+                            const marker = document.createElement('div');
+                            marker.className = 'item-marker smuggler-trail-route-marker';
+                            marker.dataset.type = 'smuggler_trail_route';
+                            marker.dataset.index = String(gIndex);
+                            marker.dataset.routeIndex = String(rIndex);
+                            marker.style.position = 'absolute';
+                            marker.style.left = `${itemX}px`;
+                            marker.style.top = `${itemY}px`;
+                            marker.style.transform = 'translate(-50%, -50%)';
+                            marker.style.cursor = 'pointer';
+                            marker.style.zIndex = '670';
+                            marker.style.width = '24px';
+                            marker.style.height = '24px';
+                            marker.style.borderRadius = '50%';
+                            marker.style.backgroundColor = '#2196F3';
+                            marker.style.border = '2px solid #fff';
+                            marker.style.display = 'flex';
+                            marker.style.alignItems = 'center';
+                            marker.style.justifyContent = 'center';
+                            marker.style.fontSize = '12px';
+                            marker.style.fontWeight = 'bold';
+                            marker.style.color = '#fff';
+                            marker.textContent = String(rIndex + 1);
+                            
+                            marker.addEventListener('click', (e) => {
+                                e.stopPropagation();
+                                showSmugglerTrailPopup(group, gIndex);
+                            });
+                            tilePaneDom.appendChild(marker);
+                            itemMarkers.push({ type: 'smuggler_trail_route', index: gIndex, el: marker });
+
+                            // 蓝线：连接triggerpoint到第一个route点，然后按顺序连接route点
+                            if (Array.isArray(tp) && tp.length === 2) {
+                                const tpPX = (tp[0] - GAME_LEFT) / (GAME_RIGHT - GAME_LEFT) * totalWidth;
+                                const tpPY = (GAME_TOP - tp[1]) / (GAME_TOP - GAME_BOTTOM) * totalHeight;
+                                
+                                let startX, startY;
+                                
+                                if (rIndex === 0) {
+                                    // 第一个route点：从triggerpoint连接
+                                    startX = tpPX;
+                                    startY = tpPY;
+                                } else {
+                                    // 后续route点：从前一个route点连接
+                                    const prevRoute = routes[rIndex - 1];
+                                    if (Array.isArray(prevRoute) && prevRoute[0] && prevRoute[0].length === 2) {
+                                        const prevX = prevRoute[0][0];
+                                        const prevY = prevRoute[0][1];
+                                        const prevPercentX = (prevX - GAME_LEFT) / (GAME_RIGHT - GAME_LEFT);
+                                        const prevPercentY = (GAME_TOP - prevY) / (GAME_TOP - GAME_BOTTOM);
+                                        startX = prevPercentX * totalWidth;
+                                        startY = prevPercentY * totalHeight;
+                                    } else {
+                                        return; // 如果前一个route无效，跳过
+                                    }
+                                }
+                                
+                                const dx = itemX - startX;
+                                const dy = itemY - startY;
+                                const length = Math.sqrt(dx*dx + dy*dy);
+                                const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+                                
+                                const line = document.createElement('div');
+                                line.className = 'smuggler-trail-connector-line';
+                                line.dataset.type = 'smuggler_trail_line';
+                                line.dataset.index = String(gIndex);
+                                line.dataset.routeIndex = String(rIndex);
+                                line.style.position = 'absolute';
+                                line.style.left = `${startX}px`;
+                                line.style.top = `${startY}px`;
+                                line.style.width = `${length}px`;
+                                line.style.height = '2px';
+                                line.style.background = 'blue';
+                                line.style.transformOrigin = '0 0';
+                                line.style.transform = `rotate(${angle}deg)`;
+                                line.style.zIndex = '660';
+                                tilePaneDom.appendChild(line);
+                                itemMarkers.push({ type: 'smuggler_trail_line', index: gIndex, el: line });
+                            }
+                        }
+                    });
+                });
+            }
+
+            // 特殊：车队渲染（triggerpoint + routes + 红线 + 终点）
+            if (activeItemTypes.has('convoy')) {
+                const groups = itemData.convoy || [];
+                groups.forEach((group, gIndex) => {
+                    const tp = group.triggerpoint; // [x, y, "convoy_0"]
+                    const routes = Array.isArray(group.routes) ? group.routes : [];
+                    if (Array.isArray(tp) && tp.length >= 2) {
+                        const percentX = (tp[0] - GAME_LEFT) / (GAME_RIGHT - GAME_LEFT);
+                        const percentY = (GAME_TOP - tp[1]) / (GAME_TOP - GAME_BOTTOM);
+                        const itemX = percentX * totalWidth;
+                        const itemY = percentY * totalHeight;
+                        const marker = document.createElement('div');
+                        marker.className = 'item-marker convoy-triggerpoint-marker';
+                        marker.dataset.type = 'convoy';
+                        marker.dataset.index = String(gIndex);
+                        marker.style.position = 'absolute';
+                        marker.style.left = `${itemX}px`;
+                        marker.style.top = `${itemY}px`;
+                        marker.style.transform = 'translate(-50%, -50%)';
+                        marker.style.cursor = 'pointer';
+                        marker.style.zIndex = '670';
+                        marker.style.width = '28px';
+                        marker.style.height = '28px';
+                        marker.style.display = 'flex';
+                        marker.style.alignItems = 'center';
+                        marker.style.justifyContent = 'center';
+                        const img = document.createElement('img');
+                        img.src = './src/assets/convoy.svg';
+                        img.style.width = '28px';
+                        img.style.height = '28px';
+                        img.style.display = 'block';
+                        img.style.pointerEvents = 'none';
+                        marker.appendChild(img);
+                        marker.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            showConvoyPopup(group, gIndex);
+                        });
+                        tilePaneDom.appendChild(marker);
+                        itemMarkers.push({ type: 'convoy', index: gIndex, el: marker });
+                    }
+                    // routes: array of arrays of [x,y]; draw red lines connecting them in sequence
+                    routes.forEach((route, rIndex) => {
+                        if (Array.isArray(route) && route.length > 1) {
+                            // 绘制路线中每个点之间的连线
+                            for (let i = 0; i < route.length - 1; i++) {
+                                const startPoint = route[i];
+                                const endPoint = route[i + 1];
+                                if (Array.isArray(startPoint) && startPoint.length === 2 && 
+                                    Array.isArray(endPoint) && endPoint.length === 2) {
+                                    
+                                    const startPercentX = (startPoint[0] - GAME_LEFT) / (GAME_RIGHT - GAME_LEFT);
+                                    const startPercentY = (GAME_TOP - startPoint[1]) / (GAME_TOP - GAME_BOTTOM);
+                                    const startX = startPercentX * totalWidth;
+                                    const startY = startPercentY * totalHeight;
+                                    
+                                    const endPercentX = (endPoint[0] - GAME_LEFT) / (GAME_RIGHT - GAME_LEFT);
+                                    const endPercentY = (GAME_TOP - endPoint[1]) / (GAME_TOP - GAME_BOTTOM);
+                                    const endX = endPercentX * totalWidth;
+                                    const endY = endPercentY * totalHeight;
+                                    
+                                    const dx = endX - startX;
+                                    const dy = endY - startY;
+                                    const length = Math.sqrt(dx*dx + dy*dy);
+                                    const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+                                    
+                                    const line = document.createElement('div');
+                                    line.className = 'convoy-route-line';
+                                    line.dataset.type = 'convoy_line';
+                                    line.dataset.index = String(gIndex);
+                                    line.dataset.routeIndex = String(rIndex);
+                                    line.dataset.segmentIndex = String(i);
+                                    line.style.position = 'absolute';
+                                    line.style.left = `${startX}px`;
+                                    line.style.top = `${startY}px`;
+                                    line.style.width = `${length}px`;
+                                    line.style.height = '3px';
+                                    line.style.background = 'red';
+                                    line.style.transformOrigin = '0 0';
+                                    line.style.transform = `rotate(${angle}deg)`;
+                                    line.style.zIndex = '660';
+                                    tilePaneDom.appendChild(line);
+                                    itemMarkers.push({ type: 'convoy_line', index: gIndex, el: line });
+                                }
+                            }
+                        }
+                    });
+                });
+
+                // 同时渲染车队终点（整合到车队功能中）
+                const convoyFinals = itemData.convoy_final || [];
+                convoyFinals.forEach((final, index) => {
+                    if (typeof final.x === 'undefined' || typeof final.y === 'undefined') return;
+                    const percentX = (final.x - GAME_LEFT) / (GAME_RIGHT - GAME_LEFT);
+                    const percentY = (GAME_TOP - final.y) / (GAME_TOP - GAME_BOTTOM);
+                    const itemX = percentX * totalWidth;
+                    const itemY = percentY * totalHeight;
+                    
+                    // 创建车队终点标记
+                    const marker = document.createElement('div');
+                    marker.className = 'item-marker convoy-final-marker';
+                    marker.dataset.type = 'convoy_final';
+                    marker.dataset.index = index;
+                    marker.style.position = 'absolute';
+                    marker.style.left = `${itemX}px`;
+                    marker.style.top = `${itemY}px`;
+                    marker.style.transform = 'translate(-50%, -50%)';
+                    marker.style.cursor = 'pointer';
+                    marker.style.zIndex = '670';
+                    marker.style.width = '28px';
+                    marker.style.height = '28px';
+                    marker.style.display = 'flex';
+                    marker.style.alignItems = 'center';
+                    marker.style.justifyContent = 'center';
+                    const img = document.createElement('img');
+                    img.src = './src/assets/convoy_final.svg';
+                    img.style.width = '28px';
+                    img.style.height = '28px';
+                    img.style.display = 'block';
+                    img.style.pointerEvents = 'none';
+                    marker.appendChild(img);
+                    marker.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        showConvoyFinalPopup(final, index);
+                    });
+                    tilePaneDom.appendChild(marker);
+                    itemMarkers.push({ type: 'convoy_final', index: index, el: marker });
                 });
             }
 
@@ -2981,6 +3375,160 @@
                         el.style.top = `${tpPY}px`;
                         el.style.width = `${length}px`;
                         el.style.transform = `rotate(${angle}deg)`;
+                    }
+                    return;
+                } else if (type === 'smuggler_trail') {
+                    const group = itemData.smuggler_trail && itemData.smuggler_trail[index];
+                    if (group && Array.isArray(group.triggerpoint) && group.triggerpoint.length === 2) {
+                        const x = group.triggerpoint[0];
+                        const y = group.triggerpoint[1];
+                        const percentX = (x - GAME_LEFT) / (GAME_RIGHT - GAME_LEFT);
+                        const percentY = (GAME_TOP - y) / (GAME_TOP - GAME_BOTTOM);
+                        const itemX = percentX * totalWidth;
+                        const itemY = percentY * totalHeight;
+                        el.style.left = `${itemX}px`;
+                        el.style.top = `${itemY}px`;
+                    }
+                    return;
+                } else if (type === 'smuggler_trail_route') {
+                    const group = itemData.smuggler_trail && itemData.smuggler_trail[index];
+                    const routeIndex = el.dataset && el.dataset.routeIndex ? parseInt(el.dataset.routeIndex, 10) : -1;
+                    if (group && Array.isArray(group.routes) && group.routes[routeIndex] && group.routes[routeIndex][0] && group.routes[routeIndex][0].length === 2) {
+                        const x = group.routes[routeIndex][0][0];
+                        const y = group.routes[routeIndex][0][1];
+                        const percentX = (x - GAME_LEFT) / (GAME_RIGHT - GAME_LEFT);
+                        const percentY = (GAME_TOP - y) / (GAME_TOP - GAME_BOTTOM);
+                        const itemX = percentX * totalWidth;
+                        const itemY = percentY * totalHeight;
+                        el.style.left = `${itemX}px`;
+                        el.style.top = `${itemY}px`;
+                        // 确保数字标记的样式正确
+                        el.style.width = '24px';
+                        el.style.height = '24px';
+                        el.style.borderRadius = '50%';
+                        el.style.backgroundColor = '#2196F3';
+                        el.style.border = '2px solid #fff';
+                        el.style.display = 'flex';
+                        el.style.alignItems = 'center';
+                        el.style.justifyContent = 'center';
+                        el.style.fontSize = '12px';
+                        el.style.fontWeight = 'bold';
+                        el.style.color = '#fff';
+                        el.textContent = String(routeIndex + 1);
+                    }
+                    return;
+                } else if (type === 'smuggler_trail_line') {
+                    const group = itemData.smuggler_trail && itemData.smuggler_trail[index];
+                    const routeIndex = el.dataset && el.dataset.routeIndex ? parseInt(el.dataset.routeIndex, 10) : -1;
+                    if (group && Array.isArray(group.triggerpoint) && group.triggerpoint.length === 2 && group.routes && group.routes[routeIndex] && group.routes[routeIndex][0]) {
+                        const tpX = group.triggerpoint[0];
+                        const tpY = group.triggerpoint[1];
+                        const rtX = group.routes[routeIndex][0][0];
+                        const rtY = group.routes[routeIndex][0][1];
+                        const tpPX = (tpX - GAME_LEFT) / (GAME_RIGHT - GAME_LEFT) * totalWidth;
+                        const tpPY = (GAME_TOP - tpY) / (GAME_TOP - GAME_BOTTOM) * totalHeight;
+                        const rPX = (rtX - GAME_LEFT) / (GAME_RIGHT - GAME_LEFT) * totalWidth;
+                        const rPY = (GAME_TOP - rtY) / (GAME_TOP - GAME_BOTTOM) * totalHeight;
+                        
+                        let startX, startY;
+                        
+                        if (routeIndex === 0) {
+                            // 第一个route点：从triggerpoint连接
+                            startX = tpPX;
+                            startY = tpPY;
+                        } else {
+                            // 后续route点：从前一个route点连接
+                            const prevRoute = group.routes[routeIndex - 1];
+                            if (Array.isArray(prevRoute) && prevRoute[0] && prevRoute[0].length === 2) {
+                                const prevX = prevRoute[0][0];
+                                const prevY = prevRoute[0][1];
+                                const prevPercentX = (prevX - GAME_LEFT) / (GAME_RIGHT - GAME_LEFT);
+                                const prevPercentY = (GAME_TOP - prevY) / (GAME_TOP - GAME_BOTTOM);
+                                startX = prevPercentX * totalWidth;
+                                startY = prevPercentY * totalHeight;
+                            } else {
+                                return; // 如果前一个route无效，跳过
+                            }
+                        }
+                        
+                        const dx = rPX - startX;
+                        const dy = rPY - startY;
+                        const length = Math.sqrt(dx*dx + dy*dy);
+                        const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+                        
+                        el.style.left = `${startX}px`;
+                        el.style.top = `${startY}px`;
+                        el.style.width = `${length}px`;
+                        el.style.transform = `rotate(${angle}deg)`;
+                    }
+                    return;
+                } else if (type === 'convoy') {
+                    const group = itemData.convoy && itemData.convoy[index];
+                    if (group && Array.isArray(group.triggerpoint) && group.triggerpoint.length >= 2) {
+                        const x = group.triggerpoint[0];
+                        const y = group.triggerpoint[1];
+                        const percentX = (x - GAME_LEFT) / (GAME_RIGHT - GAME_LEFT);
+                        const percentY = (GAME_TOP - y) / (GAME_TOP - GAME_BOTTOM);
+                        const itemX = percentX * totalWidth;
+                        const itemY = percentY * totalHeight;
+                        el.style.left = `${itemX}px`;
+                        el.style.top = `${itemY}px`;
+                    }
+                    return;
+                } else if (type === 'convoy_final') {
+                    const final = itemData.convoy_final && itemData.convoy_final[index];
+                    if (final && typeof final.x !== 'undefined' && typeof final.y !== 'undefined') {
+                        const percentX = (final.x - GAME_LEFT) / (GAME_RIGHT - GAME_LEFT);
+                        const percentY = (GAME_TOP - final.y) / (GAME_TOP - GAME_BOTTOM);
+                        const itemX = percentX * totalWidth;
+                        const itemY = percentY * totalHeight;
+                        el.style.left = `${itemX}px`;
+                        el.style.top = `${itemY}px`;
+                    }
+                    return;
+                } else if (type === 'convoy_line') {
+                    const group = itemData.convoy && itemData.convoy[index];
+                    const routeIndex = el.dataset && el.dataset.routeIndex ? parseInt(el.dataset.routeIndex, 10) : -1;
+                    const segmentIndex = el.dataset && el.dataset.segmentIndex ? parseInt(el.dataset.segmentIndex, 10) : -1;
+                    if (group && Array.isArray(group.routes) && group.routes[routeIndex] && Array.isArray(group.routes[routeIndex]) && group.routes[routeIndex].length > segmentIndex + 1) {
+                        const route = group.routes[routeIndex];
+                        const startPoint = route[segmentIndex];
+                        const endPoint = route[segmentIndex + 1];
+                        if (Array.isArray(startPoint) && startPoint.length === 2 && Array.isArray(endPoint) && endPoint.length === 2) {
+                            const startPercentX = (startPoint[0] - GAME_LEFT) / (GAME_RIGHT - GAME_LEFT);
+                            const startPercentY = (GAME_TOP - startPoint[1]) / (GAME_TOP - GAME_BOTTOM);
+                            const startX = startPercentX * totalWidth;
+                            const startY = startPercentY * totalHeight;
+                            
+                            const endPercentX = (endPoint[0] - GAME_LEFT) / (GAME_RIGHT - GAME_LEFT);
+                            const endPercentY = (GAME_TOP - endPoint[1]) / (GAME_TOP - GAME_BOTTOM);
+                            const endX = endPercentX * totalWidth;
+                            const endY = endPercentY * totalHeight;
+                            
+                            const dx = endX - startX;
+                            const dy = endY - startY;
+                            const length = Math.sqrt(dx*dx + dy*dy);
+                            const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+                            
+                            el.style.left = `${startX}px`;
+                            el.style.top = `${startY}px`;
+                            el.style.width = `${length}px`;
+                            el.style.height = '3px';
+                            el.style.background = 'red';
+                            el.style.transformOrigin = '0 0';
+                            el.style.transform = `rotate(${angle}deg)`;
+                        }
+                    }
+                    return;
+                } else if (type === 'armored_truck') {
+                    const armoredTruck = itemData.armored_truck && itemData.armored_truck[index];
+                    if (armoredTruck && typeof armoredTruck.x !== 'undefined' && typeof armoredTruck.y !== 'undefined') {
+                        const percentX = (armoredTruck.x - GAME_LEFT) / (GAME_RIGHT - GAME_LEFT);
+                        const percentY = (GAME_TOP - armoredTruck.y) / (GAME_TOP - GAME_BOTTOM);
+                        const itemX = percentX * totalWidth;
+                        const itemY = percentY * totalHeight;
+                        el.style.left = `${itemX}px`;
+                        el.style.top = `${itemY}px`;
                     }
                     return;
                 } else {
@@ -5629,6 +6177,21 @@
 
             // 检测是否点击在走私贩飞机附近
             checkSmugglerPlaneClick(gameX, gameY);
+
+            // 检测是否点击在走私贩踪迹附近
+            checkSmugglerTrailClick(gameX, gameY);
+
+            // 检测是否点击在犯罪现场附近
+            checkCrimeScenesClick(gameX, gameY);
+
+            // 检测是否点击在商店抢劫附近
+            checkStoreRobberyClick(gameX, gameY);
+
+            // 检测是否点击在车队附近
+            checkConvoyClick(gameX, gameY);
+
+            // 检测是否点击在装甲运钞车附近
+            checkArmoredTruckClick(gameX, gameY);
         });
 
         // 检测武器厢型车点击
@@ -6850,6 +7413,157 @@
             }
         }
 
+        // 检测走私贩踪迹点击（坐标检测）
+        function checkSmugglerTrailClick(clickX, clickY) {
+            const RADIUS = 120; // 检测半径（游戏坐标）
+            if (!activeItemTypes.has('smuggler_trail') || !Array.isArray(itemData.smuggler_trail)) return;
+            const groups = itemData.smuggler_trail;
+
+            for (let i = 0; i < groups.length; i++) {
+                const group = groups[i];
+                // 检查 triggerpoint
+                if (Array.isArray(group.triggerpoint) && group.triggerpoint.length === 2) {
+                    const dx = group.triggerpoint[0] - clickX;
+                    const dy = group.triggerpoint[1] - clickY;
+                    if (Math.sqrt(dx*dx + dy*dy) <= RADIUS) {
+                        showSmugglerTrailPopup(group, i);
+                        return;
+                    }
+                }
+                // 检查 routes 的首点
+                if (Array.isArray(group.routes)) {
+                    for (let r = 0; r < group.routes.length; r++) {
+                        const route = group.routes[r];
+                        if (Array.isArray(route) && route[0] && route[0].length === 2) {
+                            const rx = route[0][0];
+                            const ry = route[0][1];
+                            const dx = rx - clickX;
+                            const dy = ry - clickY;
+                            if (Math.sqrt(dx*dx + dy*dy) <= RADIUS) {
+                                showSmugglerTrailPopup(group, i);
+                                return;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // 检测犯罪现场点击（坐标检测）
+        function checkCrimeScenesClick(clickX, clickY) {
+            const CRIME_SCENES_RADIUS = 100; // 检测半径100单位
+            
+            // 检查当前是否显示犯罪现场（支持多选）
+            if (activeItemTypes.has('crime_scenes') && itemData.crime_scenes) {
+                // 检查点击位置是否在任意犯罪现场附近
+                const nearbyCrimeScene = itemData.crime_scenes.find(crimeScene => {
+                    const distance = Math.sqrt(Math.pow(crimeScene.x - clickX, 2) + Math.pow(crimeScene.y - clickY, 2));
+                    return distance <= CRIME_SCENES_RADIUS;
+                });
+
+                if (nearbyCrimeScene) {
+                    console.log('点击了犯罪现场附近:', nearbyCrimeScene.name);
+                    // 找到对应的索引
+                    const crimeSceneIndex = itemData.crime_scenes.findIndex(crimeScene => 
+                        crimeScene.x === nearbyCrimeScene.x && crimeScene.y === nearbyCrimeScene.y
+                    );
+                    showCrimeScenesPopup(nearbyCrimeScene, crimeSceneIndex);
+                }
+            }
+        }
+
+        // 检测商店抢劫点击（坐标检测）
+        function checkStoreRobberyClick(clickX, clickY) {
+            const STORE_ROBBERY_RADIUS = 100; // 检测半径100单位
+            
+            // 检查当前是否显示商店抢劫（支持多选）
+            if (activeItemTypes.has('store_robbery') && itemData.store_robbery) {
+                // 检查点击位置是否在任意商店抢劫附近
+                const nearbyStoreRobbery = itemData.store_robbery.find(storeRobbery => {
+                    const distance = Math.sqrt(Math.pow(storeRobbery.x - clickX, 2) + Math.pow(storeRobbery.y - clickY, 2));
+                    return distance <= STORE_ROBBERY_RADIUS;
+                });
+
+                if (nearbyStoreRobbery) {
+                    console.log('点击了商店抢劫附近:', nearbyStoreRobbery.name);
+                    // 找到对应的索引
+                    const storeRobberyIndex = itemData.store_robbery.findIndex(storeRobbery => 
+                        storeRobbery.x === nearbyStoreRobbery.x && storeRobbery.y === nearbyStoreRobbery.y
+                    );
+                    showStoreRobberyPopup(nearbyStoreRobbery, storeRobberyIndex);
+                }
+            }
+        }
+
+        // 检测车队点击（坐标检测）
+        function checkConvoyClick(clickX, clickY) {
+            const CONVOY_RADIUS = 100; // 检测半径100单位
+            
+            // 检查当前是否显示车队（支持多选）
+            if (activeItemTypes.has('convoy') && itemData.convoy) {
+                // 检查点击位置是否在任意车队附近
+                const nearbyConvoy = itemData.convoy.find((convoy, index) => {
+                    const tp = convoy.triggerpoint;
+                    if (Array.isArray(tp) && tp.length >= 2) {
+                        const distance = Math.sqrt(Math.pow(tp[0] - clickX, 2) + Math.pow(tp[1] - clickY, 2));
+                        return distance <= CONVOY_RADIUS;
+                    }
+                    return false;
+                });
+
+                if (nearbyConvoy) {
+                    console.log('点击了车队附近:', nearbyConvoy.name);
+                    // 找到对应的索引
+                    const convoyIndex = itemData.convoy.findIndex(convoy => 
+                        convoy.triggerpoint === nearbyConvoy.triggerpoint
+                    );
+                    showConvoyPopup(nearbyConvoy, convoyIndex);
+                    return;
+                }
+            }
+
+            // 同时检查车队终点
+            if (activeItemTypes.has('convoy') && itemData.convoy_final) {
+                // 检查点击位置是否在任意车队终点附近
+                const nearbyConvoyFinal = itemData.convoy_final.find(convoyFinal => {
+                    const distance = Math.sqrt(Math.pow(convoyFinal.x - clickX, 2) + Math.pow(convoyFinal.y - clickY, 2));
+                    return distance <= CONVOY_RADIUS;
+                });
+
+                if (nearbyConvoyFinal) {
+                    console.log('点击了车队终点附近:', nearbyConvoyFinal.name);
+                    // 找到对应的索引
+                    const convoyFinalIndex = itemData.convoy_final.findIndex(convoyFinal => 
+                        convoyFinal.x === nearbyConvoyFinal.x && convoyFinal.y === nearbyConvoyFinal.y
+                    );
+                    showConvoyFinalPopup(nearbyConvoyFinal, convoyFinalIndex);
+                }
+            }
+        }
+
+        // 检测装甲运钞车点击（坐标检测）
+        function checkArmoredTruckClick(clickX, clickY) {
+            const ARMORED_TRUCK_RADIUS = 100; // 检测半径100单位
+            
+            // 检查当前是否显示装甲运钞车（支持多选）
+            if (activeItemTypes.has('armored_truck') && itemData.armored_truck) {
+                // 检查点击位置是否在任意装甲运钞车附近
+                const nearbyArmoredTruck = itemData.armored_truck.find(armoredTruck => {
+                    const distance = Math.sqrt(Math.pow(armoredTruck.x - clickX, 2) + Math.pow(armoredTruck.y - clickY, 2));
+                    return distance <= ARMORED_TRUCK_RADIUS;
+                });
+
+                if (nearbyArmoredTruck) {
+                    console.log('点击了装甲运钞车附近:', nearbyArmoredTruck.name);
+                    // 找到对应的索引
+                    const armoredTruckIndex = itemData.armored_truck.findIndex(armoredTruck => 
+                        armoredTruck.x === nearbyArmoredTruck.x && armoredTruck.y === nearbyArmoredTruck.y
+                    );
+                    showArmoredTruckPopup(nearbyArmoredTruck, armoredTruckIndex);
+                }
+            }
+        }
+
         // 毒品载具弹窗
         function showDrugVehiclePopup(item, index) {
             const title = `🚗 毒品载具 #${index + 1}`;
@@ -7057,6 +7771,368 @@
             `;
 
             const closeBtn = popup.querySelector('#close-smuggler-plane-btn');
+            closeBtn.addEventListener('click', () => popup.remove());
+            popup.addEventListener('click', (e) => e.stopPropagation());
+            setTimeout(() => {
+                const closePopupHandler = (e) => {
+                    if (!popup.contains(e.target)) { popup.remove(); document.removeEventListener('click', closePopupHandler); }
+                };
+                document.addEventListener('click', closePopupHandler);
+            }, 50);
+
+            document.body.appendChild(popup);
+        }
+
+        // 走私贩踪迹弹窗
+        function showSmugglerTrailPopup(item, index) {
+            const title = `🛤️ 走私贩踪迹 #${index + 1}`;
+            const content = `沿着由几个烟雾信号标记的轨迹，您将找到一个装有25.000 GTA$和2.000 RP的箱子。`;
+            const imageUrl = 'https://gta-maps.antwen.com/collectibles_images/smuggler_trail/smuggler_trail.webp';
+            
+            const popup = document.createElement('div');
+            popup.className = 'smuggler-trail-popup';
+            popup.style.cssText = `
+                position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+                background: #fff; border: 3px solid #2196F3; border-radius: 12px; padding: 18px;
+                z-index: 10000; max-width: 520px; max-height: 80vh; box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+                font-family: Arial, sans-serif; text-align: left; overflow-y: auto;`;
+
+            popup.innerHTML = `
+                <div style="margin-bottom: 14px; font-size: 20px; font-weight: bold; color: #1976D2; text-align:center;">${title}</div>
+                <img src="${imageUrl}" alt="走私贩踪迹图片" style="max-width: 100%; height: auto; border-radius: 6px; margin: 8px 0; display:block;"/>
+                <div style="margin: 10px 0; padding: 10px; background: #E3F2FD; border-radius: 8px; color: #3e2723; font-size: 13px; line-height: 1.6;">
+                    ${content}
+                </div>
+                <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px;">
+                    <button id="hide-smuggler-trail-btn" style="padding: 10px 18px; background: #4CAF50; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">隐藏</button>
+                    <button id="show-smuggler-trail-btn" style="padding: 10px 18px; background: #2196F3; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">显示</button>
+                    <button id="close-smuggler-trail-btn" style="padding: 10px 18px; background: #f44336; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">关闭</button>
+                </div>
+            `;
+
+            const hideBtn = popup.querySelector('#hide-smuggler-trail-btn');
+            const showBtn = popup.querySelector('#show-smuggler-trail-btn');
+            const closeBtn = popup.querySelector('#close-smuggler-trail-btn');
+
+            function resolveTargetAndIndex() {
+                const el = document.querySelector(`.item-marker[data-type="smuggler_trail"][data-index="${index}"]`);
+                return { el, globalIndex: index };
+            }
+
+            hideBtn.addEventListener('click', () => {
+                const { el } = resolveTargetAndIndex();
+                if (!el) return;
+                el.style.opacity = '0.25';
+            });
+
+            showBtn.addEventListener('click', () => {
+                const { el } = resolveTargetAndIndex();
+                if (!el) return;
+                el.style.opacity = '1';
+            });
+
+            closeBtn.addEventListener('click', () => popup.remove());
+            popup.addEventListener('click', (e) => e.stopPropagation());
+            setTimeout(() => {
+                const closePopupHandler = (e) => {
+                    if (!popup.contains(e.target)) { popup.remove(); document.removeEventListener('click', closePopupHandler); }
+                };
+                document.addEventListener('click', closePopupHandler);
+            }, 50);
+
+            document.body.appendChild(popup);
+        }
+
+        // 犯罪现场弹窗
+        function showCrimeScenesPopup(item, index) {
+            const title = `🔍 犯罪现场 #${index + 1}`;
+            const content = `前 5 次完成该随机事件时，每次您都将获得 5.000 GTA$、2.000 RP 与 1 个卡宾枪部件。集齐 5 个部件后，您将获得 50.000 GTA$ 与 制式卡宾步枪。此后，完成一次该随机事件可获得 25.000 GTA$ 与 2.000 RP 奖励。`;
+            const imageUrl = 'https://gta-maps.antwen.com/collectibles_images/crime_scenes/crime_scenes.webp';
+            
+            const popup = document.createElement('div');
+            popup.className = 'crime-scenes-popup';
+            popup.style.cssText = `
+                position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+                background: #fff; border: 3px solid #FF5722; border-radius: 12px; padding: 18px;
+                z-index: 10000; max-width: 520px; max-height: 80vh; box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+                font-family: Arial, sans-serif; text-align: left; overflow-y: auto;`;
+
+            popup.innerHTML = `
+                <div style="margin-bottom: 14px; font-size: 20px; font-weight: bold; color: #D84315; text-align:center;">${title}</div>
+                <img src="${imageUrl}" alt="犯罪现场图片" style="max-width: 100%; height: auto; border-radius: 6px; margin: 8px 0; display:block;"/>
+                <div style="margin: 10px 0; padding: 10px; background: #FFF3E0; border-radius: 8px; color: #3e2723; font-size: 13px; line-height: 1.6;">
+                    ${content}
+                </div>
+                <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px;">
+                    <button id="hide-crime-scenes-btn" style="padding: 10px 18px; background: #4CAF50; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">隐藏</button>
+                    <button id="show-crime-scenes-btn" style="padding: 10px 18px; background: #2196F3; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">显示</button>
+                    <button id="close-crime-scenes-btn" style="padding: 10px 18px; background: #f44336; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">关闭</button>
+                </div>
+            `;
+
+            const hideBtn = popup.querySelector('#hide-crime-scenes-btn');
+            const showBtn = popup.querySelector('#show-crime-scenes-btn');
+            const closeBtn = popup.querySelector('#close-crime-scenes-btn');
+
+            function resolveTargetAndIndex() {
+                const el = document.querySelector(`.item-marker[data-type="crime_scenes"][data-index="${index}"]`);
+                return { el, globalIndex: index };
+            }
+
+            hideBtn.addEventListener('click', () => {
+                const { el } = resolveTargetAndIndex();
+                if (!el) return;
+                el.style.opacity = '0.25';
+            });
+
+            showBtn.addEventListener('click', () => {
+                const { el } = resolveTargetAndIndex();
+                if (!el) return;
+                el.style.opacity = '1';
+            });
+
+            closeBtn.addEventListener('click', () => popup.remove());
+            popup.addEventListener('click', (e) => e.stopPropagation());
+            setTimeout(() => {
+                const closePopupHandler = (e) => {
+                    if (!popup.contains(e.target)) { popup.remove(); document.removeEventListener('click', closePopupHandler); }
+                };
+                document.addEventListener('click', closePopupHandler);
+            }, 50);
+
+            document.body.appendChild(popup);
+        }
+
+        // 商店抢劫弹窗
+        function showStoreRobberyPopup(item, index) {
+            const title = `🏪 商店抢劫 #${index + 1}`;
+            const content = `在 2 分钟内将被盗的现金还给商店，即可获得 20.000 GTA$ 与 2.500 RP 奖励。或者，您也可以选择将其据为己有：25.000 GTA$ 和 2 个通缉等级。`;
+            const imageUrl = 'https://gta-maps.antwen.com/collectibles_images/store_robbery/store_robbery.webp';
+            
+            const popup = document.createElement('div');
+            popup.className = 'store-robbery-popup';
+            popup.style.cssText = `
+                position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+                background: #fff; border: 3px solid #FF9800; border-radius: 12px; padding: 18px;
+                z-index: 10000; max-width: 520px; max-height: 80vh; box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+                font-family: Arial, sans-serif; text-align: left; overflow-y: auto;`;
+
+            popup.innerHTML = `
+                <div style="margin-bottom: 14px; font-size: 20px; font-weight: bold; color: #E65100; text-align:center;">${title}</div>
+                <img src="${imageUrl}" alt="商店抢劫图片" style="max-width: 100%; height: auto; border-radius: 6px; margin: 8px 0; display:block;"/>
+                <div style="margin: 10px 0; padding: 10px; background: #FFF8E1; border-radius: 8px; color: #3e2723; font-size: 13px; line-height: 1.6;">
+                    ${content}
+                </div>
+                <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px;">
+                    <button id="hide-store-robbery-btn" style="padding: 10px 18px; background: #4CAF50; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">隐藏</button>
+                    <button id="show-store-robbery-btn" style="padding: 10px 18px; background: #2196F3; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">显示</button>
+                    <button id="close-store-robbery-btn" style="padding: 10px 18px; background: #f44336; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">关闭</button>
+                </div>
+            `;
+
+            const hideBtn = popup.querySelector('#hide-store-robbery-btn');
+            const showBtn = popup.querySelector('#show-store-robbery-btn');
+            const closeBtn = popup.querySelector('#close-store-robbery-btn');
+
+            function resolveTargetAndIndex() {
+                const el = document.querySelector(`.item-marker[data-type="store_robbery"][data-index="${index}"]`);
+                return { el, globalIndex: index };
+            }
+
+            hideBtn.addEventListener('click', () => {
+                const { el } = resolveTargetAndIndex();
+                if (!el) return;
+                el.style.opacity = '0.25';
+            });
+
+            showBtn.addEventListener('click', () => {
+                const { el } = resolveTargetAndIndex();
+                if (!el) return;
+                el.style.opacity = '1';
+            });
+
+            closeBtn.addEventListener('click', () => popup.remove());
+            popup.addEventListener('click', (e) => e.stopPropagation());
+            setTimeout(() => {
+                const closePopupHandler = (e) => {
+                    if (!popup.contains(e.target)) { popup.remove(); document.removeEventListener('click', closePopupHandler); }
+                };
+                document.addEventListener('click', closePopupHandler);
+            }, 50);
+
+            document.body.appendChild(popup);
+        }
+
+        // 车队弹窗
+        function showConvoyPopup(item, index) {
+            const title = `🚛 车队 #${index + 1}`;
+            const content = `车队从起始点出发，沿着红色路线行驶。车队走完路线后，将随机选择一个终点位置继续行驶，并在抵达该位置后消失。<br><br>偷取车队载具并将其送至您的产业，您将获得原材料补给和 1.000 RP。<br><br>每个地点分别对应不同的载具与产业。<br><br>如果您没有对应的产业，可以把目标载具送至指定投放点，您将获得 25.000 GTA$ 与 1.000 RP。`;
+            
+            const popup = document.createElement('div');
+            popup.className = 'convoy-popup';
+            popup.style.cssText = `
+                position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+                background: #fff; border: 3px solid #F44336; border-radius: 12px; padding: 18px;
+                z-index: 10000; max-width: 520px; max-height: 80vh; box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+                font-family: Arial, sans-serif; text-align: left; overflow-y: auto;`;
+
+            popup.innerHTML = `
+                <div style="margin-bottom: 14px; font-size: 20px; font-weight: bold; color: #C62828; text-align:center;">${title}</div>
+                <div style="margin: 10px 0; padding: 10px; background: #FFEBEE; border-radius: 8px; color: #3e2723; font-size: 13px; line-height: 1.6;">
+                    ${content}
+                </div>
+                <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px;">
+                    <button id="hide-convoy-btn" style="padding: 10px 18px; background: #4CAF50; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">隐藏</button>
+                    <button id="show-convoy-btn" style="padding: 10px 18px; background: #2196F3; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">显示</button>
+                    <button id="close-convoy-btn" style="padding: 10px 18px; background: #f44336; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">关闭</button>
+                </div>
+            `;
+
+            const hideBtn = popup.querySelector('#hide-convoy-btn');
+            const showBtn = popup.querySelector('#show-convoy-btn');
+            const closeBtn = popup.querySelector('#close-convoy-btn');
+
+            function resolveTargetAndIndex() {
+                const el = document.querySelector(`.item-marker[data-type="convoy"][data-index="${index}"]`);
+                return { el, globalIndex: index };
+            }
+
+            hideBtn.addEventListener('click', () => {
+                const { el } = resolveTargetAndIndex();
+                if (!el) return;
+                el.style.opacity = '0.25';
+                // 同时隐藏对应的路线
+                const lines = document.querySelectorAll(`.convoy-route-line[data-index="${index}"]`);
+                lines.forEach(line => line.style.opacity = '0.25');
+            });
+
+            showBtn.addEventListener('click', () => {
+                const { el } = resolveTargetAndIndex();
+                if (!el) return;
+                el.style.opacity = '1';
+                // 同时显示对应的路线
+                const lines = document.querySelectorAll(`.convoy-route-line[data-index="${index}"]`);
+                lines.forEach(line => line.style.opacity = '1');
+            });
+
+            closeBtn.addEventListener('click', () => popup.remove());
+            popup.addEventListener('click', (e) => e.stopPropagation());
+            setTimeout(() => {
+                const closePopupHandler = (e) => {
+                    if (!popup.contains(e.target)) { popup.remove(); document.removeEventListener('click', closePopupHandler); }
+                };
+                document.addEventListener('click', closePopupHandler);
+            }, 50);
+
+            document.body.appendChild(popup);
+        }
+
+        // 车队终点弹窗
+        function showConvoyFinalPopup(item, index) {
+            const title = `🏁 车队终点 #${index + 1}`;
+            const content = `这是车队可能到达的终点位置之一。车队走完路线后，将随机选择一个终点位置继续行驶，并在抵达该位置后消失。<br><br>您可以在车队路线上拦截车队，或者在终点等候车队到达。`;
+            
+            const popup = document.createElement('div');
+            popup.className = 'convoy-final-popup';
+            popup.style.cssText = `
+                position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+                background: #fff; border: 3px solid #4CAF50; border-radius: 12px; padding: 18px;
+                z-index: 10000; max-width: 520px; max-height: 80vh; box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+                font-family: Arial, sans-serif; text-align: left; overflow-y: auto;`;
+
+            popup.innerHTML = `
+                <div style="margin-bottom: 14px; font-size: 20px; font-weight: bold; color: #388E3C; text-align:center;">${title}</div>
+                <div style="margin: 10px 0; padding: 10px; background: #E8F5E8; border-radius: 8px; color: #3e2723; font-size: 13px; line-height: 1.6;">
+                    ${content}
+                </div>
+                <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px;">
+                    <button id="hide-convoy-final-btn" style="padding: 10px 18px; background: #4CAF50; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">隐藏</button>
+                    <button id="show-convoy-final-btn" style="padding: 10px 18px; background: #2196F3; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">显示</button>
+                    <button id="close-convoy-final-btn" style="padding: 10px 18px; background: #4CAF50; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">关闭</button>
+                </div>
+            `;
+
+            const hideBtn = popup.querySelector('#hide-convoy-final-btn');
+            const showBtn = popup.querySelector('#show-convoy-final-btn');
+            const closeBtn = popup.querySelector('#close-convoy-final-btn');
+
+            function resolveTargetAndIndex() {
+                const el = document.querySelector(`.item-marker[data-type="convoy_final"][data-index="${index}"]`);
+                return { el, globalIndex: index };
+            }
+
+            hideBtn.addEventListener('click', () => {
+                const { el } = resolveTargetAndIndex();
+                if (!el) return;
+                el.style.opacity = '0.25';
+            });
+
+            showBtn.addEventListener('click', () => {
+                const { el } = resolveTargetAndIndex();
+                if (!el) return;
+                el.style.opacity = '1';
+            });
+
+            closeBtn.addEventListener('click', () => popup.remove());
+            popup.addEventListener('click', (e) => e.stopPropagation());
+            setTimeout(() => {
+                const closePopupHandler = (e) => {
+                    if (!popup.contains(e.target)) { popup.remove(); document.removeEventListener('click', closePopupHandler); }
+                };
+                document.addEventListener('click', closePopupHandler);
+            }, 50);
+
+            document.body.appendChild(popup);
+        }
+
+        // 装甲运钞车弹窗
+        function showArmoredTruckPopup(item, index) {
+            const title = `💰 装甲运钞车 #${index + 1}`;
+            const content = `使用黏弹炸开运钞车的后门以获取里面的现金——25.000 GTA$和1.000 RP。`;
+            const imageUrl = 'https://gta-maps.antwen.com/collectibles_images/armored_truck/armored_truck.webp';
+            
+            const popup = document.createElement('div');
+            popup.className = 'armored-truck-popup';
+            popup.style.cssText = `
+                position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+                background: #fff; border: 3px solid #9C27B0; border-radius: 12px; padding: 18px;
+                z-index: 10000; max-width: 520px; max-height: 80vh; box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+                font-family: Arial, sans-serif; text-align: left; overflow-y: auto;`;
+
+            popup.innerHTML = `
+                <div style="margin-bottom: 14px; font-size: 20px; font-weight: bold; color: #7B1FA2; text-align:center;">${title}</div>
+                <img src="${imageUrl}" alt="装甲运钞车图片" style="max-width: 100%; height: auto; border-radius: 6px; margin: 8px 0; display:block;"/>
+                <div style="margin: 10px 0; padding: 10px; background: #F3E5F5; border-radius: 8px; color: #3e2723; font-size: 13px; line-height: 1.6;">
+                    ${content}
+                </div>
+                <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px;">
+                    <button id="hide-armored-truck-btn" style="padding: 10px 18px; background: #4CAF50; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">隐藏</button>
+                    <button id="show-armored-truck-btn" style="padding: 10px 18px; background: #2196F3; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">显示</button>
+                    <button id="close-armored-truck-btn" style="padding: 10px 18px; background: #9C27B0; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">关闭</button>
+                </div>
+            `;
+
+            const hideBtn = popup.querySelector('#hide-armored-truck-btn');
+            const showBtn = popup.querySelector('#show-armored-truck-btn');
+            const closeBtn = popup.querySelector('#close-armored-truck-btn');
+
+            function resolveTargetAndIndex() {
+                const el = document.querySelector(`.item-marker[data-type="armored_truck"][data-index="${index}"]`);
+                return { el, globalIndex: index };
+            }
+
+            hideBtn.addEventListener('click', () => {
+                const { el } = resolveTargetAndIndex();
+                if (!el) return;
+                el.style.opacity = '0.25';
+            });
+
+            showBtn.addEventListener('click', () => {
+                const { el } = resolveTargetAndIndex();
+                if (!el) return;
+                el.style.opacity = '1';
+            });
+
             closeBtn.addEventListener('click', () => popup.remove());
             popup.addEventListener('click', (e) => e.stopPropagation());
             setTimeout(() => {

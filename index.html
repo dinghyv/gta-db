@@ -488,9 +488,9 @@
 
         .region-card .features {
             list-style: none;
-            text-align: left;
+            text-align: center;
             margin-bottom: 25px;
-            padding-left: 10px;
+            padding-left: 0;
         }
 
         .region-card .features li {
@@ -498,8 +498,10 @@
             margin-bottom: 8px;
             font-size: 0.95rem;
             position: relative;
-            padding-left: 20px;
+            padding-left: 0;
             transition: transform 0.2s ease;
+            text-align: center;
+            display: block;
         }
 
         .region-card:hover .features li {
@@ -507,12 +509,13 @@
         }
 
         .region-card .features li:before {
-            content: "✓";
-            position: absolute;
-            left: 0;
+            content: "✓ ";
+            position: static;
+            display: inline;
             color: var(--success);
             font-weight: bold;
             font-size: 1.1rem;
+            margin-right: 0;
         }
 
         /* 按钮样式 */

@@ -1007,9 +1007,9 @@
         <div class="nav-right">
             <!-- PC端显示 -->
             <div class="nav-buttons-desktop">
-                <a href="index.html" class="nav-button">🏠 首页</a>
-                <a href="cayo-perico-map.html" class="nav-button">🏝️ 佩里科岛</a>
-                <a href="vehicles.html" class="nav-button">🚗 车辆数据库</a>
+                <a href="../index.html" class="nav-button">🏠 首页</a>
+                <a href="cp.html" class="nav-button">🏝️ 佩里科岛</a>
+                <a href="../vehicles" class="nav-button">🚗 车辆数据库</a>
             </div>
             <!-- 移动端显示 -->
             <div class="nav-buttons-mobile">
@@ -1017,9 +1017,9 @@
                     <i class="fas fa-bars"></i> 更多
                 </button>
                 <div class="mobile-menu" id="mobile-menu">
-                    <a href="index.html" class="nav-button">🏠 首页</a>
-                    <a href="cayo-perico-map.html" class="nav-button">🏝️ 佩里科岛</a>
-                    <a href="vehicles.html" class="nav-button">🚗 车辆数据库</a>
+                    <a href="../index.html" class="nav-button">🏠 首页</a>
+                    <a href="cp.html" class="nav-button">🏝️ 佩里科岛</a>
+                    <a href="../vehicles" class="nav-button">🚗 车辆数据库</a>
                     <a href="https://www.antwen.com" target="_blank" class="nav-link">🔗 安稳</a>
                     <a href="https://s.antwen.com" target="_blank" class="nav-link">☁️ 在线文件</a>
                 </div>
@@ -1074,127 +1074,127 @@
 
         // 物品图标路径映射
         const itemIcons = {
-            hidden_caches: './src/assets/cache.png',
-            shipwrecked: './src/assets/shipwrecked.png',
-            gun_van: './src/assets/van.png',
-            dead_drop: './src/assets/dead_drop.svg',
-            stunt_jumps: './src/assets/stunt_jumps.svg',
-            spray: './src/assets/spray.svg',
-            ls_tags: './src/assets/ls_tags.svg',
-            street_dealers: './src/assets/dealer.png',
-            playing_cards: './src/assets/playing_cards.svg',
-            smoke_on_the_water_product: './src/assets/smoke_product.svg',
-            action_figures: './src/assets/action_figures.svg',
-            yuanbao: './src/assets/yuanbao.svg',
-            ld_organics_products: './src/assets/organic_farm.svg',
-            signal_jammers: './src/assets/signal_jammer.svg',
-            jack_o_lanterns: './src/assets/jack.svg',
-            payphone_hits: './src/assets/payphone.svg',
-            golf_holes: './src/assets/golf.svg',
-            snowmen: './src/assets/snowmen.svg',
-            rc_time_trial: './src/assets/rctt.png',
-            bike_time_trial: './src/assets/btt.png',
-            skydives: './src/assets/skydive.png',
-            gang_attacks: './src/assets/gang_attack.svg',
-            ghosts3: './src/assets/ge251.svg',
-            treasure_hunt_dba_revolver: './src/assets/th1.svg',
+            hidden_caches: '../src/assets/cache.png',
+            shipwrecked: '../src/assets/shipwrecked.png',
+            gun_van: '../src/assets/van.png',
+            dead_drop: '../src/assets/dead_drop.svg',
+            stunt_jumps: '../src/assets/stunt_jumps.svg',
+            spray: '../src/assets/spray.svg',
+            ls_tags: '../src/assets/ls_tags.svg',
+            street_dealers: '../src/assets/dealer.png',
+            playing_cards: '../src/assets/playing_cards.svg',
+            smoke_on_the_water_product: '../src/assets/smoke_product.svg',
+            action_figures: '../src/assets/action_figures.svg',
+            yuanbao: '../src/assets/yuanbao.svg',
+            ld_organics_products: '../src/assets/organic_farm.svg',
+            signal_jammers: '../src/assets/signal_jammer.svg',
+            jack_o_lanterns: '../src/assets/jack.svg',
+            payphone_hits: '../src/assets/payphone.svg',
+            golf_holes: '../src/assets/golf.svg',
+            snowmen: '../src/assets/snowmen.svg',
+            rc_time_trial: '../src/assets/rctt.png',
+            bike_time_trial: '../src/assets/btt.png',
+            skydives: '../src/assets/skydive.png',
+            gang_attacks: '../src/assets/gang_attack.svg',
+            ghosts3: '../src/assets/ge251.svg',
+            treasure_hunt_dba_revolver: '../src/assets/th1.svg',
             // 洛圣都杀人狂（选择器用 slasher.svg）
-            serial_killer_slasher: './src/assets/slasher.svg',
+            serial_killer_slasher: '../src/assets/slasher.svg',
             // 茉德悬赏目标图标
-            maude_bounty_targets: './src/assets/mp_static.svg', // 临时使用，后续需要创建专用图标
+            maude_bounty_targets: '../src/assets/mp_static.svg', // 临时使用，后续需要创建专用图标
             // 媒体记忆棒图标
-            media_sticks: './src/assets/media.svg',
+            media_sticks: '../src/assets/media.svg',
             // 藏匿屋图标
-            stash_houses: './src/assets/stash.svg',
+            stash_houses: '../src/assets/stash.svg',
             // 玛德拉索雇凶图标
-            madrazo_hits: './src/assets/hits.svg',
+            madrazo_hits: '../src/assets/hits.svg',
             // 帕特里克救援图标
-            police_rescue_patrick_mcreary: './src/assets/patrick.svg',
+            police_rescue_patrick_mcreary: '../src/assets/patrick.svg',
             // 随机任务图标
-            random_missions: './src/assets/random.svg',
+            random_missions: '../src/assets/random.svg',
             // 毒品载具图标
-            drug_vehicle: './src/assets/drug_vehicle.svg',
+            drug_vehicle: '../src/assets/drug_vehicle.svg',
             // 电影道具图标
-            movie_props: './src/assets/mp_static.svg',
+            movie_props: '../src/assets/mp_static.svg',
             // 车行图标
-            casino: './src/assets/casino.svg',
-            car_meet: './src/assets/lscm.svg',
-            premium_deluxe_motorsport: './src/assets/sem.svg',
-            luxury_autos: './src/assets/lux.svg',
+            casino: '../src/assets/casino.svg',
+            car_meet: '../src/assets/lscm.svg',
+            premium_deluxe_motorsport: '../src/assets/sem.svg',
+            luxury_autos: '../src/assets/lux.svg',
             // 沉睡的保安
-            drunk_guard: './src/assets/drunk_guard.svg',
+            drunk_guard: '../src/assets/drunk_guard.svg',
             // 金属探测器
-            metal_detector: './src/assets/metal.svg',
+            metal_detector: '../src/assets/metal.svg',
             // 走私贩飞机
-            smuggler_plane: './src/assets/smuggler_plane.svg',
+            smuggler_plane: '../src/assets/smuggler_plane.svg',
             // 走私贩踪迹
-            smuggler_trail: './src/assets/smuggler_trail.svg',
+            smuggler_trail: '../src/assets/smuggler_trail.svg',
             // 犯罪现场
-            crime_scenes: './src/assets/crime_scenes.svg',
+            crime_scenes: '../src/assets/crime_scenes.svg',
             // UFO观光
-            ufo: './src/assets/ufo.svg',
+            ufo: '../src/assets/ufo.svg',
             // 万圣节杀人狂
-            halloween_slashers: './src/assets/slasher.svg',
+            halloween_slashers: '../src/assets/slasher.svg',
             // 鬼上身的动物
-            possessed_animals: './src/assets/cerberus.svg',
+            possessed_animals: '../src/assets/cerberus.svg',
             // 地域犬
-            cerberus: './src/assets/cerberus.svg',
+            cerberus: '../src/assets/cerberus.svg',
             // 雪怪
-            yeti: './src/assets/what.svg',
+            yeti: '../src/assets/what.svg',
             // 社区边界
-            community_outreach: './src/assets/community_outreach.svg',
+            community_outreach: '../src/assets/community_outreach.svg',
             // 商店抢劫
-            store_robbery: './src/assets/store_robbery.svg',
+            store_robbery: '../src/assets/store_robbery.svg',
             // 车队
-            convoy: './src/assets/convoy.svg',
+            convoy: '../src/assets/convoy.svg',
             // 车队终点
-            convoy_final: './src/assets/convoy_final.svg',
+            convoy_final: '../src/assets/convoy_final.svg',
             // 装甲运钞车
-            armored_truck: './src/assets/armored_truck.svg',
+            armored_truck: '../src/assets/armored_truck.svg',
             // 外贸出口载具1
-            exotic_exports1: './src/assets/exotic_exports1.svg',
+            exotic_exports1: '../src/assets/exotic_exports1.svg',
             // 外贸出口载具2
-            exotic_exports2: './src/assets/exotic_exports2.svg',
+            exotic_exports2: '../src/assets/exotic_exports2.svg',
             // 节日快乐卡车
-            happy_holidays_hauler: './src/assets/happy.svg',
+            happy_holidays_hauler: '../src/assets/happy.svg',
             // 威泽尔大楼枪战
-            wea: './src/assets/wea.svg',
+            wea: '../src/assets/wea.svg',
             // 陆地迷幻仙人掌
-            ppl: './src/assets/ppl.svg',
+            ppl: '../src/assets/ppl.svg',
             // 水下迷幻仙人掌
-            ppw: './src/assets/ppw.svg',
+            ppw: '../src/assets/ppw.svg',
             // 地铁站
-            metro: './src/assets/metro.svg',
+            metro: '../src/assets/metro.svg',
             // 警察局
-            police: './src/assets/police.svg',
+            police: '../src/assets/police.svg',
             // 望远镜
-            v_telescopes: './src/assets/telescopes.svg',
+            v_telescopes: '../src/assets/telescopes.svg',
             // 消防局
-            fire_stations: './src/assets/fire.svg',
+            fire_stations: '../src/assets/fire.svg',
             // 医院
-            hospitals: './src/assets/hospitals.svg',
+            hospitals: '../src/assets/hospitals.svg',
             // 服装店
-            clothing: './src/assets/clothing.svg',
+            clothing: '../src/assets/clothing.svg',
             // 纹身店
-            tattoos: './src/assets/tattoos.svg',
+            tattoos: '../src/assets/tattoos.svg',
             // 理发店
-            barbers: './src/assets/barbers.svg',
+            barbers: '../src/assets/barbers.svg',
             // 武装国度
-            ammunation: './src/assets/ammunation.svg',
+            ammunation: '../src/assets/ammunation.svg',
             // 洛圣都改车王
-            mod_shop: './src/assets/mod_shop.svg',
+            mod_shop: '../src/assets/mod_shop.svg',
             // 洗车店
-            car_wash: './src/assets/car_wash.svg',
+            car_wash: '../src/assets/car_wash.svg',
             // 可抢劫的商店
-            shops_to_rob: './src/assets/shops_to_rob.svg',
+            shops_to_rob: '../src/assets/shops_to_rob.svg',
             // 加油站
-            gas_stations: './src/assets/gas_stations.svg',
+            gas_stations: '../src/assets/gas_stations.svg',
             // ATM机
-            atms: './src/assets/atms.svg',
+            atms: '../src/assets/atms.svg',
             // 霜碧售卖机
-            vend_sprunk: './src/assets/vend_sprunk.svg',
+            vend_sprunk: '../src/assets/vend_sprunk.svg',
             // 易可乐售卖机
-            vend_ecola: './src/assets/vend_ecola.svg'
+            vend_ecola: '../src/assets/vend_ecola.svg'
         };
 
         // 物品数据（从JSON文件加载）
@@ -1365,45 +1365,45 @@
             { value: 'media_sticks', text: '媒体记忆棒' },
             { value: 'stash_houses', text: '藏匿屋' },
             { value: 'madrazo_hits', text: '玛德拉索雇凶' },
-            { value: 'police_rescue_patrick_mcreary', text: '帕特里克救援', icon: './src/assets/patrick.svg' },
-            { value: 'random_missions', text: '🎲 随机任务', icon: './src/assets/random.svg' },
-            { value: 'drug_vehicle', text: '🚗 毒品载具', icon: './src/assets/drug_vehicle.svg' },
-            { value: 'drunk_guard', text: '🛌 沉睡的保安', icon: './src/assets/drunk_guard.svg' },
-            { value: 'metal_detector', text: '🧭 金属探测器', icon: './src/assets/metal.svg' },
-            { value: 'smuggler_plane', text: '✈️ 走私贩飞机', icon: './src/assets/smuggler_plane.svg' },
-            { value: 'smuggler_trail', text: '🛤️ 走私贩踪迹', icon: './src/assets/smuggler_trail.svg' },
-            { value: 'crime_scenes', text: '🔍 犯罪现场', icon: './src/assets/crime_scenes.svg' },
-            { value: 'ufo', text: '🛸 UFO观光', icon: './src/assets/ufo.svg' },
-            { value: 'halloween_slashers', text: '🎃 万圣节杀人狂', icon: './src/assets/slasher.svg' },
-            { value: 'possessed_animals', text: '🐺 鬼上身的动物', icon: './src/assets/cerberus.svg' },
-            { value: 'cerberus', text: '🐕 地域犬', icon: './src/assets/cerberus.svg' },
-            { value: 'yeti', text: '❄️ 雪怪', icon: './src/assets/what.svg' },
-            { value: 'happy_holidays_hauler', text: '🎄 节日快乐卡车', icon: './src/assets/happy.svg' },
-            { value: 'wea', text: '🏢 威泽尔大楼枪战', icon: './src/assets/wea.svg' },
-            { value: 'ppl', text: '🌵 陆地迷幻仙人掌', icon: './src/assets/ppl.svg' },
-            { value: 'ppw', text: '🌊 水下迷幻仙人掌', icon: './src/assets/ppw.svg' },
-            { value: 'metro', text: '🚇 地铁站', icon: './src/assets/metro.svg' },
-            { value: 'police', text: '🚔 警察局', icon: './src/assets/police.svg' },
-            { value: 'v_telescopes', text: '🔭 望远镜', icon: './src/assets/telescopes.svg' },
-            { value: 'fire_stations', text: '🚒 消防局', icon: './src/assets/fire.svg' },
-            { value: 'hospitals', text: '🏥 医院', icon: './src/assets/hospitals.svg' },
-            { value: 'clothing', text: '👕 服装店', icon: './src/assets/clothing.svg' },
-            { value: 'tattoos', text: '🎨 纹身店', icon: './src/assets/tattoos.svg' },
-            { value: 'barbers', text: '💇 理发店', icon: './src/assets/barbers.svg' },
-            { value: 'ammunation', text: '🔫 武装国度', icon: './src/assets/ammunation.svg' },
-            { value: 'mod_shop', text: '🔧 洛圣都改车王', icon: './src/assets/mod_shop.svg' },
-            { value: 'car_wash', text: '🧽 洗车店', icon: './src/assets/car_wash.svg' },
-            { value: 'shops_to_rob', text: '🏪 可抢劫的商店', icon: './src/assets/shops_to_rob.svg' },
-            { value: 'gas_stations', text: '⛽ 加油站', icon: './src/assets/gas_stations.svg' },
-            { value: 'atms', text: '💰 ATM机', icon: './src/assets/atms.svg' },
-            { value: 'vend_sprunk', text: '🥤 霜碧售卖机', icon: './src/assets/vend_sprunk.svg' },
-            { value: 'vend_ecola', text: '🥤 易可乐售卖机', icon: './src/assets/vend_ecola.svg' },
-            { value: 'community_outreach', text: '🏘️ 社区边界', icon: './src/assets/community_outreach.svg' },
-            { value: 'store_robbery', text: '🏪 商店抢劫', icon: './src/assets/store_robbery.svg' },
-            { value: 'convoy', text: '🚛 车队', icon: './src/assets/convoy.svg' },
-            { value: 'armored_truck', text: '💰 装甲运钞车', icon: './src/assets/armored_truck.svg' },
-            { value: 'exotic_exports1', text: '🚗 外贸出口载具1', icon: './src/assets/exotic_exports1.svg' },
-            { value: 'exotic_exports2', text: '🚗 外贸出口载具2', icon: './src/assets/exotic_exports2.svg' }
+            { value: 'police_rescue_patrick_mcreary', text: '帕特里克救援', icon: '../src/assets/patrick.svg' },
+            { value: 'random_missions', text: '🎲 随机任务', icon: '../src/assets/random.svg' },
+            { value: 'drug_vehicle', text: '🚗 毒品载具', icon: '../src/assets/drug_vehicle.svg' },
+            { value: 'drunk_guard', text: '🛌 沉睡的保安', icon: '../src/assets/drunk_guard.svg' },
+            { value: 'metal_detector', text: '🧭 金属探测器', icon: '../src/assets/metal.svg' },
+            { value: 'smuggler_plane', text: '✈️ 走私贩飞机', icon: '../src/assets/smuggler_plane.svg' },
+            { value: 'smuggler_trail', text: '🛤️ 走私贩踪迹', icon: '../src/assets/smuggler_trail.svg' },
+            { value: 'crime_scenes', text: '🔍 犯罪现场', icon: '../src/assets/crime_scenes.svg' },
+            { value: 'ufo', text: '🛸 UFO观光', icon: '../src/assets/ufo.svg' },
+            { value: 'halloween_slashers', text: '🎃 万圣节杀人狂', icon: '../src/assets/slasher.svg' },
+            { value: 'possessed_animals', text: '🐺 鬼上身的动物', icon: '../src/assets/cerberus.svg' },
+            { value: 'cerberus', text: '🐕 地域犬', icon: '../src/assets/cerberus.svg' },
+            { value: 'yeti', text: '❄️ 雪怪', icon: '../src/assets/what.svg' },
+            { value: 'happy_holidays_hauler', text: '🎄 节日快乐卡车', icon: '../src/assets/happy.svg' },
+            { value: 'wea', text: '🏢 威泽尔大楼枪战', icon: '../src/assets/wea.svg' },
+            { value: 'ppl', text: '🌵 陆地迷幻仙人掌', icon: '../src/assets/ppl.svg' },
+            { value: 'ppw', text: '🌊 水下迷幻仙人掌', icon: '../src/assets/ppw.svg' },
+            { value: 'metro', text: '🚇 地铁站', icon: '../src/assets/metro.svg' },
+            { value: 'police', text: '🚔 警察局', icon: '../src/assets/police.svg' },
+            { value: 'v_telescopes', text: '🔭 望远镜', icon: '../src/assets/telescopes.svg' },
+            { value: 'fire_stations', text: '🚒 消防局', icon: '../src/assets/fire.svg' },
+            { value: 'hospitals', text: '🏥 医院', icon: '../src/assets/hospitals.svg' },
+            { value: 'clothing', text: '👕 服装店', icon: '../src/assets/clothing.svg' },
+            { value: 'tattoos', text: '🎨 纹身店', icon: '../src/assets/tattoos.svg' },
+            { value: 'barbers', text: '💇 理发店', icon: '../src/assets/barbers.svg' },
+            { value: 'ammunation', text: '🔫 武装国度', icon: '../src/assets/ammunation.svg' },
+            { value: 'mod_shop', text: '🔧 洛圣都改车王', icon: '../src/assets/mod_shop.svg' },
+            { value: 'car_wash', text: '🧽 洗车店', icon: '../src/assets/car_wash.svg' },
+            { value: 'shops_to_rob', text: '🏪 可抢劫的商店', icon: '../src/assets/shops_to_rob.svg' },
+            { value: 'gas_stations', text: '⛽ 加油站', icon: '../src/assets/gas_stations.svg' },
+            { value: 'atms', text: '💰 ATM机', icon: '../src/assets/atms.svg' },
+            { value: 'vend_sprunk', text: '🥤 霜碧售卖机', icon: '../src/assets/vend_sprunk.svg' },
+            { value: 'vend_ecola', text: '🥤 易可乐售卖机', icon: '../src/assets/vend_ecola.svg' },
+            { value: 'community_outreach', text: '🏘️ 社区边界', icon: '../src/assets/community_outreach.svg' },
+            { value: 'store_robbery', text: '🏪 商店抢劫', icon: '../src/assets/store_robbery.svg' },
+            { value: 'convoy', text: '🚛 车队', icon: '../src/assets/convoy.svg' },
+            { value: 'armored_truck', text: '💰 装甲运钞车', icon: '../src/assets/armored_truck.svg' },
+            { value: 'exotic_exports1', text: '🚗 外贸出口载具1', icon: '../src/assets/exotic_exports1.svg' },
+            { value: 'exotic_exports2', text: '🚗 外贸出口载具2', icon: '../src/assets/exotic_exports2.svg' }
         ];
         const loader = document.getElementById('loader');
         const tilePaneDom = document.getElementById('tile-pane');
@@ -1588,7 +1588,7 @@
         // 加载物品数据
         async function loadItemData() {
             try {
-                const response = await fetch('./src/data/zones.json');
+                const response = await fetch('../src/data/zones.json');
                 const data = await response.json();
                 
                 // 将数据复制到itemData对象
@@ -1782,7 +1782,7 @@
                 
                 // 加载所有物品数据（从zones.json）
                 try {
-                    const cardsResponse = await fetch('./src/data/zones.json');
+                    const cardsResponse = await fetch('../src/data/zones.json');
                     const cardsData = await cardsResponse.json();
                     
                     // 加载playing_cards数据
@@ -2427,7 +2427,7 @@
                     
                 } catch (cardsError) {
                     console.warn('加载物品位置数据失败:', cardsError);
-                    console.log('尝试加载的URL:', './src/data/zones.json');
+                    console.log('尝试加载的URL:', '../src/data/zones.json');
                 }
                 
                 // 动态计算武器厢型车位置
@@ -2630,7 +2630,7 @@
                 } else {
                     console.warn('跳伞API返回数据格式异常，使用静态数据');
                     // 使用zones.json中的静态数据作为备用
-                    const zonesResponse = await fetch('./src/data/zones.json');
+                    const zonesResponse = await fetch('../src/data/zones.json');
                     const zonesData = await zonesResponse.json();
                     if (zonesData && Array.isArray(zonesData.skydives)) {
                         itemData.skydives = zonesData.skydives;
@@ -2642,7 +2642,7 @@
                 console.warn('获取跳伞位置失败，使用静态数据:', error);
                 try {
                     // 使用zones.json中的静态数据作为备用
-                    const zonesResponse = await fetch('./src/data/zones.json');
+                    const zonesResponse = await fetch('../src/data/zones.json');
                     const zonesData = await zonesResponse.json();
                     if (zonesData && Array.isArray(zonesData.skydives)) {
                         itemData.skydives = zonesData.skydives;
@@ -2786,7 +2786,7 @@
                 // 幽灵曝光：最后一个用 ge252.svg，其余 ge251.svg
                 const isLast = index === (itemData[type]?.length ?? 0) - 1;
                 const img = document.createElement('img');
-                img.src = isLast ? './src/assets/ge252.svg' : './src/assets/ge251.svg';
+                img.src = isLast ? '../src/assets/ge252.svg' : '../src/assets/ge251.svg';
                 img.style.width = '32px';
                 img.style.height = '32px';
                 marker.appendChild(img);
@@ -2809,44 +2809,44 @@
             } else if (type === 'treasure_hunt_dba_revolver_random') {
                 // 寻宝-随机线索: th1.svg
                 const img = document.createElement('img');
-                img.src = './src/assets/th1.svg';
+                img.src = '../src/assets/th1.svg';
                 img.style.width = '28px';
                 img.style.height = '28px';
                 marker.appendChild(img);
             } else if (type === 'treasure_hunt_dba_revolver_static') {
                 // 寻宝-固定线索: th2.svg
                 const img = document.createElement('img');
-                img.src = './src/assets/th2.svg';
+                img.src = '../src/assets/th2.svg';
                 img.style.width = '28px';
                 img.style.height = '28px';
                 marker.appendChild(img);
             } else if (type === 'serial_killer_slasher_first') {
                 // 杀人狂前四条线索：slasher.svg
                 const img = document.createElement('img');
-                img.src = './src/assets/slasher.svg';
+                img.src = '../src/assets/slasher.svg';
                 img.style.width = '32px';
                 img.style.height = '32px';
                 marker.appendChild(img);
             } else if (type === 'serial_killer_slasher_last') {
                 // 杀人狂最后一条线索：slasher2.svg
                 const img = document.createElement('img');
-                img.src = './src/assets/slasher2.svg';
+                img.src = '../src/assets/slasher2.svg';
                 img.style.width = '32px';
                 img.style.height = '32px';
                 marker.appendChild(img);
             } else if (type === 'movie_props') {
                 // 电影道具：根据子类型选择不同图标
                 const img = document.createElement('img');
-                let iconSrc = './src/assets/mp_static.svg'; // 默认图标
+                let iconSrc = '../src/assets/mp_static.svg'; // 默认图标
                 
                 if (item.type === 'fixed_position') {
-                    iconSrc = './src/assets/mp_static.svg';
+                    iconSrc = '../src/assets/mp_static.svg';
                 } else if (item.type === 'pony') {
-                    iconSrc = './src/assets/mp_pony.svg';
+                    iconSrc = '../src/assets/mp_pony.svg';
                 } else if (item.type === 'rebel') {
-                    iconSrc = './src/assets/mp_rebel.svg';
+                    iconSrc = '../src/assets/mp_rebel.svg';
                 } else if (item.type === 'rumpo') {
-                    iconSrc = './src/assets/mp_rumpo.svg';
+                    iconSrc = '../src/assets/mp_rumpo.svg';
                 }
                 
                 img.src = iconSrc;
@@ -3164,7 +3164,7 @@
                         marker.style.top = `${itemY}px`;
                         marker.style.width = '24px';
                         marker.style.height = '24px';
-                        marker.style.backgroundImage = 'url(./src/assets/cerberus.svg)';
+                        marker.style.backgroundImage = 'url(../src/assets/cerberus.svg)';
                         marker.style.backgroundSize = 'contain';
                         marker.style.backgroundRepeat = 'no-repeat';
                         marker.style.backgroundPosition = 'center';
@@ -3247,7 +3247,7 @@
                             clueMarker.style.top = `${itemY}px`;
                             clueMarker.style.width = '24px';
                             clueMarker.style.height = '24px';
-                            clueMarker.style.backgroundImage = 'url(./src/assets/what.svg)';
+                            clueMarker.style.backgroundImage = 'url(../src/assets/what.svg)';
                             clueMarker.style.backgroundSize = 'contain';
                             clueMarker.style.backgroundRepeat = 'no-repeat';
                             clueMarker.style.backgroundPosition = 'center';
@@ -3286,7 +3286,7 @@
                         triggerMarker.style.top = `${itemY}px`;
                         triggerMarker.style.width = '32px';
                         triggerMarker.style.height = '32px';
-                        triggerMarker.style.backgroundImage = 'url(./src/assets/happy.svg)';
+                        triggerMarker.style.backgroundImage = 'url(../src/assets/happy.svg)';
                         triggerMarker.style.backgroundSize = 'contain';
                         triggerMarker.style.backgroundRepeat = 'no-repeat';
                         triggerMarker.style.backgroundPosition = 'center';
@@ -3531,7 +3531,7 @@
                     
                     // 创建图标
                     const img = document.createElement('img');
-                    img.src = './src/assets/media.svg';
+                    img.src = '../src/assets/media.svg';
                     img.style.width = '32px';
                     img.style.height = '32px';
                     marker.appendChild(img);
@@ -3583,7 +3583,7 @@
                         marker.style.cursor = 'pointer';
                         marker.style.zIndex = '670';
                         const img = document.createElement('img');
-                        img.src = './src/assets/smuggler_plane.svg';
+                        img.src = '../src/assets/smuggler_plane.svg';
                         img.style.width = '28px';
                         img.style.height = '28px';
                         marker.appendChild(img);
@@ -3615,7 +3615,7 @@
                             marker.style.cursor = 'pointer';
                             marker.style.zIndex = '670';
                             const img = document.createElement('img');
-                            img.src = './src/assets/smuggler_plane2.svg';
+                            img.src = '../src/assets/smuggler_plane2.svg';
                             img.style.width = '28px';
                             img.style.height = '28px';
                             marker.appendChild(img);
@@ -3678,7 +3678,7 @@
                         marker.style.cursor = 'pointer';
                         marker.style.zIndex = '670';
                         const img = document.createElement('img');
-                        img.src = './src/assets/smuggler_trail.svg';
+                        img.src = '../src/assets/smuggler_trail.svg';
                         img.style.width = '28px';
                         img.style.height = '28px';
                         marker.appendChild(img);
@@ -3811,7 +3811,7 @@
                         marker.style.alignItems = 'center';
                         marker.style.justifyContent = 'center';
                         const img = document.createElement('img');
-                        img.src = './src/assets/convoy.svg';
+                        img.src = '../src/assets/convoy.svg';
                         img.style.width = '28px';
                         img.style.height = '28px';
                         img.style.display = 'block';
@@ -3898,7 +3898,7 @@
                     marker.style.alignItems = 'center';
                     marker.style.justifyContent = 'center';
                     const img = document.createElement('img');
-                    img.src = './src/assets/convoy_final.svg';
+                    img.src = '../src/assets/convoy_final.svg';
                     img.style.width = '28px';
                     img.style.height = '28px';
                     img.style.display = 'block';
@@ -3937,7 +3937,7 @@
                     
                     // 创建图标
                     const img = document.createElement('img');
-                    img.src = './src/assets/stash.svg';
+                    img.src = '../src/assets/stash.svg';
                     img.style.width = '32px';
                     img.style.height = '32px';
                     marker.appendChild(img);
@@ -3977,7 +3977,7 @@
                     
                     // 创建图标
                     const img = document.createElement('img');
-                    img.src = './src/assets/hits.svg';
+                    img.src = '../src/assets/hits.svg';
                     img.style.width = '32px';
                     img.style.height = '32px';
                     marker.appendChild(img);
@@ -4020,7 +4020,7 @@
                         
                         // 创建图标
                         const img = document.createElement('img');
-                        img.src = './src/assets/patrick.svg';
+                        img.src = '../src/assets/patrick.svg';
                         img.style.width = '32px';
                         img.style.height = '32px';
                         marker.appendChild(img);
@@ -4059,7 +4059,7 @@
                         
                         // 创建黄色图标
                         const img = document.createElement('img');
-                        img.src = './src/assets/patrick_drop.svg';
+                        img.src = '../src/assets/patrick_drop.svg';
                         img.style.width = '32px';
                         img.style.height = '32px';
                         marker.appendChild(img);
@@ -4116,7 +4116,7 @@
                         
                         // 创建图标
                         const img = document.createElement('img');
-                        img.src = './src/assets/random.svg';
+                        img.src = '../src/assets/random.svg';
                         img.style.width = '32px';
                         img.style.height = '32px';
                         marker.appendChild(img);
@@ -4158,7 +4158,7 @@
                     
                     // 创建图标
                     const img = document.createElement('img');
-                    img.src = './src/assets/drug_vehicle.svg';
+                    img.src = '../src/assets/drug_vehicle.svg';
                     img.style.width = '32px';
                     img.style.height = '32px';
                     marker.appendChild(img);
@@ -11125,7 +11125,7 @@
         function showGunVanWeapons() {
             // 加载labels.json数据
             let labelsData = {};
-            fetch('./src/data/labels.json')
+            fetch('../src/data/labels.json')
                 .then(response => response.json())
                 .then(labels => {
                     labelsData = labels;

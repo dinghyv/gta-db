@@ -833,9 +833,9 @@
         <div class="nav-right">
             <!-- PC端显示 -->
             <div class="nav-buttons-desktop">
-                <a href="los-santos-map.html" class="nav-button">🏙️ 洛圣都</a>
-                <a href="cayo-perico-map.html" class="nav-button">🏝️ 佩里科岛</a>
-                <a href="vehicles.html" class="nav-button">🚗 车辆数据库</a>
+                <a href="/gta-map/ls.html" class="nav-button">🏙️ 洛圣都</a>
+                <a href="/gta-map/cp.html" class="nav-button">🏝️ 佩里科岛</a>
+                <a href="vehicles" class="nav-button">🚗 车辆数据库</a>
             </div>
             <!-- 移动端显示 -->
             <div class="nav-buttons-mobile">
@@ -843,9 +843,9 @@
                     <i class="fas fa-bars"></i> 更多
                 </button>
                 <div class="mobile-menu" id="mobile-menu">
-                    <a href="los-santos-map.html" class="nav-button">🏙️ 洛圣都</a>
-                    <a href="cayo-perico-map.html" class="nav-button">🏝️ 佩里科岛</a>
-                    <a href="vehicles.html" class="nav-button">🚗 车辆数据库</a>
+                    <a href="/gta-map/ls.html" class="nav-button">🏙️ 洛圣都</a>
+                    <a href="/gta-map/cp.html" class="nav-button">🏝️ 佩里科岛</a>
+                    <a href="vehicles" class="nav-button">🚗 车辆数据库</a>
                     <a href="https://www.antwen.com" target="_blank" class="nav-link">🔗 安稳</a>
                     <a href="https://s.antwen.com" target="_blank" class="nav-link">☁️ 在线文件</a>
                 </div>
@@ -871,17 +871,17 @@
 
     <!-- 标题下方工具栏 -->
     <div class="tools-toolbar">
-        <a href="admin.html" class="nav-button">🛠️ API面板</a>
-        <a href="svg.html" class="nav-button">🧩 SVG工具</a>
-        <a href="json.html" class="nav-button">🧾 JSON工具</a>
-        <a href="webp.html" class="nav-button">🖼️ WebP工具</a>
-        <a href="md5.html" class="nav-button">🔐 加密工具</a>
+        <a href="https://www.antwen.com/admin.html" class="nav-button">🛠️ API面板</a>
+        <a href="https://www.antwen.com/svg.html" class="nav-button">🧩 SVG工具</a>
+        <a href="https://www.antwen.com/json.html" class="nav-button">🧾 JSON工具</a>
+        <a href="https://www.antwen.com/webp.html" class="nav-button">🖼️ WebP工具</a>
+        <a href="https://www.antwen.com/md5.html" class="nav-button">🔐 加密工具</a>
     </div>
 
     <!-- 区域选择器 -->
     <div class="region-selector">
         <!-- 洛圣都卡片 -->
-        <div class="region-card" onclick="window.location.href='los-santos-map.html'">
+        <div class="region-card" onclick="window.location.href='/gta-map/ls.html'">
             <span class="icon">🏙️</span>
             <h2>洛圣都</h2>
             <p>探索繁华都市的每一个角落</p>
@@ -896,7 +896,7 @@
         </div>
 
         <!-- 佩里科岛卡片 -->
-        <div class="region-card" onclick="window.location.href='cayo-perico-map.html'">
+        <div class="region-card" onclick="window.location.href='/gta-map/cp.html'">
             <span class="icon">🏝️</span>
             <h2>佩里科岛</h2>
             <p>发现神秘热带岛屿的秘密</p>
@@ -911,7 +911,7 @@
         </div>
 
         <!-- 车辆数据库卡片 -->
-        <div class="region-card" onclick="window.location.href='vehicles.html'">
+        <div class="region-card" onclick="window.location.href='vehicles'">
             <span class="icon">🚗</span>
             <h2>车辆数据库</h2>
             <p>浏览完整的GTA在线模式车辆</p>
@@ -956,7 +956,7 @@
         </div>
 
         <!-- Chet 官网卡片 -->
-        <div class="region-card" onclick="window.location.href='chet.html'">
+        <div class="region-card" onclick="window.location.href='/group/chet.html'">
             <img src="/src/assets/chet-logo.png" alt="Chet" class="icon">
             <h2>Chet 官网</h2>
             <p>访问 Chet 的功能与文档</p>
@@ -1008,17 +1008,17 @@
         // 添加键盘快捷键
         document.addEventListener('keydown', function(e) {
             if (e.key === '1') {
-                window.location.href = 'los-santos-map.html';
+                window.location.href = '/gta-map/ls.html';
             } else if (e.key === '2') {
-                window.location.href = 'cayo-perico-map.html';
+                window.location.href = '/gta-map/cp.html';
             } else if (e.key === '3') {
-                window.location.href = 'vehicles.html';
+                window.location.href = 'vehicles';
             } else if (e.key === '4') {
                 window.location.href = 'rdr-map/collector';
             } else if (e.key === '5') {
                 window.location.href = 'rdr-map/main';
             } else if (e.key === '6') {
-                window.location.href = 'chet.html';
+                window.location.href = '/group/chet.html';
             }
         });
 

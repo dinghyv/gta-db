@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>洛城风云 - PS5 GTA Online 玩家群 | 中国最活跃的PlayStation平台群组</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" crossorigin="anonymous" />
+    <style>
+        :root {
+            /* 绿色主题配色 */
+            --gta-bg-dark: #0a2a1a;
+            --gta-bg-medium: rgba(15, 35, 20, 0.95);
+            --gta-bg-light: rgba(25, 55, 35, 0.7);
+            --gta-primary: #00e651;
+            --gta-primary-glow: rgba(0, 230, 81, 0.7);
+            --gta-secondary: #00ff88;
+            --gta-border: #00c44a;
+            --gta-border-light: #43ff70;
+            --gta-text: #ffffff;
+            --gta-text-secondary: #e0ffe8;
+            --gta-accent: #40ff80;
+            --bg-darker: var(--gta-bg-medium);
+            --primary-color: var(--gta-primary);
+            --primary-dark: #00a338;
+            --accent-color: var(--gta-accent);
+            --border-color: var(--gta-border);
+            --text-secondary: var(--gta-text-secondary);
+            --transition: all 0.15s ease;
+
+            --background-dark: #0a0a0a;
+            --surface-dark: #1a1a1a;
+            --surface-light: #262626;
+            --primary-accent: #00ff88;
+            --secondary-accent: #00e651;
+            --tertiary-accent: #40ff80;
+            --text-light: #ffffff;
+            --text-muted: #a0a0a0;
+            --text-dim: #666666;
+            --success: #00ff88;
+            --warning: #ffaa00;
+            --danger: #ff4757;
+            --gradient-primary: linear-gradient(135deg, #00e651 0%, #00ff88 100%);
+            --gradient-accent: linear-gradient(135deg, #00ff88 0%, #40ff80 100%);
+            --gradient-secondary: linear-gradient(135deg, #00e651 0%, #40ff80 100%);
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
+            --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.4);
+            --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.5);
+            --shadow-xl: 0 16px 64px rgba(0, 0, 0, 0.6);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            background: var(--background-dark);
+            background-image:
+                radial-gradient(circle at 20% 50%, rgba(0, 230, 81, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(0, 255, 136, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 40% 20%, rgba(64, 255, 128, 0.1) 0%, transparent 50%);
+            color: var(--text-light);
+            font-family: 'Segoe UI', 'Impact', 'Arial Black', sans-serif;
+            min-height: 100vh;
+            padding-top: 72px;
+        }
+
+        /* GTA风格导航栏（绿色主题） */
+        .gta-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(90deg, rgba(15, 35, 20, 0.7) 0%, rgba(0, 230, 81, 0.7) 100%);
+            border-bottom: 2px solid #43ff70;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+        .gta-nav .nav-left { display: flex; gap: 15px; align-items: center; flex-grow: 1; }
+        .gta-title {
+            font-family: 'Impact', sans-serif; color: white; font-size: 24px; text-transform: uppercase; letter-spacing: 1px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5); margin: 0; display: flex; align-items: center; background: rgba(0,0,0,0.2);
+            padding: 5px 15px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1);
+        }
+        .gta-title i { margin-right: 8px; color: var(--gta-primary); }
+        .gta-title .brand-logo { height: 22px; width: 22px; margin-right: 8px; border-radius: 4px; object-fit: contain; vertical-align: middle; box-shadow: 0 0 0 1px rgba(255,255,255,0.15) inset; }
+        .gta-nav .nav-right { display: flex; gap: 15px; }
+        .nav-button {
+            background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2); padding: 8px 16px; border-radius: 20px;
+            cursor: pointer; font-size: 14px; font-weight: bold; transition: all 0.3s ease; text-transform: uppercase; letter-spacing: 0.5px;
+            display: flex; align-items: center; gap: 8px; text-decoration: none; box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+        .nav-button:hover { background: var(--gta-primary); color: var(--gta-bg-dark); box-shadow: 0 0 15px var(--gta-primary-glow); transform: translateY(-1px); border-color: var(--gta-accent); }
+        .nav-button.back-button { background: var(--gta-secondary); border-color: var(--gta-secondary); }
+        .nav-links { display: flex; gap: 15px; margin-left: 0; align-items: center; }
+        .nav-links a { color: white; text-decoration: none; font-size: 14px; padding: 5px 10px; border-radius: 4px; transition: background-color 0.2s; }
+        .nav-links a:hover { background-color: rgba(255,255,255,.1); }
+        .nav-buttons-desktop { display: flex; gap: 15px; }
+        .nav-buttons-mobile { display: none; }
+        .mobile-menu { display: none; position: absolute; top: 56px; right: 12px; background: linear-gradient(90deg, rgba(15,35,20,0.95) 0%, rgba(0,230,81,0.95) 100%); border: 1px solid #43ff70; padding: 10px; border-radius: 8px; z-index: 1100; box-shadow: 0 8px 22px rgba(20,50,30,.5); flex-direction: column; gap: 8px; min-width: 160px; backdrop-filter: blur(6px); }
+        .mobile-menu.show { display: flex; }
+        @media (max-width:768px) {
+            .nav-links { display: none; }
+            .nav-buttons-desktop { display: none; }
+            .nav-buttons-mobile { display: block; }
+            .gta-nav { padding: 8px 12px; flex-wrap: nowrap; align-items: center; }
+            .gta-title { font-size: 18px; padding: 6px 10px; white-space: nowrap; }
+            .mobile-menu .nav-button, .mobile-menu .nav-link { display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,.06); color: white; padding: 8px 10px; border-radius: 8px; text-decoration: none; border: none; cursor: pointer; }
+        }
+
+        /* 页面头部 */
+        .page-header { margin-top: 0; text-align: center; padding: 32px 16px 8px; position: relative; z-index: 10; }
+        .page-header h1 { font-size: 3rem; font-family: 'Impact', 'Arial Black', sans-serif; letter-spacing: 2px; }
+        .page-header p { color: var(--text-muted); margin-top: 8px; }
+        .org-logo { width: 96px; height: 96px; object-fit: contain; display: block; margin: 0 auto 12px; border-radius: 12px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 8px 24px rgba(0,0,0,.45); }
+
+        /* 容器与卡片 */
+        .container { width: 100%; max-width: 1200px; margin: 0 auto; padding: 16px; }
+        .section { margin: 24px 0; background: rgba(26,26,26,0.85); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; box-shadow: var(--shadow-lg); backdrop-filter: blur(10px); overflow: hidden; }
+        .section-header { display: flex; align-items: center; gap: 10px; padding: 16px 18px; border-bottom: 1px solid rgba(255,255,255,0.08); background: rgba(0,0,0,0.2); }
+        .section-header h2 { font-family: 'Impact','Arial Black',sans-serif; letter-spacing: 1px; font-size: 1.6rem; }
+        .section-content { padding: 18px; }
+
+        /* 成员网格 */
+        .members-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; }
+        .member-card { 
+            background: rgba(30,30,30,0.9); 
+            border: 1px solid rgba(255,255,255,0.1); 
+            border-radius: 14px; 
+            padding: 16px; 
+            text-align: center; 
+            transition: transform .2s, box-shadow .2s, border-color .2s;
+            min-height: 140px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .member-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-xl), 0 0 24px rgba(0,230,81,.25); border-color: var(--gta-border-light); }
+        .avatar { width: 72px; height: 72px; margin: 0 auto 10px; border-radius: 50%; overflow: hidden; border: 2px solid rgba(255,255,255,0.15); background: radial-gradient(circle at 30% 30%, #444 0%, #222 60%, #111 100%); display: flex; align-items: center; justify-content: center; font-weight: 900; color: #fff; letter-spacing: .5px; }
+        .avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .member-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .member-id { 
+            font-weight: 700; 
+            letter-spacing: .5px; 
+            margin-bottom: 4px;
+            line-height: 1.2;
+            word-break: break-word;
+        }
+        .member-role { 
+            font-size: 12px; 
+            color: var(--text-muted); 
+            line-height: 1.3;
+            word-break: break-word;
+        }
+
+        /* 宣传图展示 */
+        .promo-gallery { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin: 20px 0; }
+        .promo-card { 
+            background: rgba(20,20,20,0.8); 
+            border: 1px solid rgba(255,255,255,0.1); 
+            border-radius: 16px; 
+            overflow: hidden; 
+            transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+            position: relative;
+        }
+        .promo-card:hover { 
+            transform: translateY(-6px); 
+            box-shadow: var(--shadow-xl), 0 0 30px rgba(0,230,81,0.3); 
+            border-color: var(--gta-border-light); 
+        }
+        .promo-image { 
+            width: 100%; 
+            height: 200px; 
+            object-fit: cover; 
+            background: #000; 
+        }
+
+        /* 折叠功能样式 */
+        .collapsible {
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            user-select: none;
+            transition: background-color 0.2s ease;
+        }
+        .collapsible:hover {
+            background: linear-gradient(90deg, rgba(15,35,20,.7) 0%, rgba(0,230,81,.5) 100%);
+        }
+        .collapse-icon {
+            transition: transform 0.3s ease;
+            color: var(--gta-accent);
+            font-size: 14px;
+        }
+        .collapsible.expanded .collapse-icon {
+            transform: rotate(180deg);
+        }
+        .collapse-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease, padding 0.3s ease;
+            padding: 0 18px;
+        }
+        .collapse-content.expanded {
+            max-height: 2000px;
+            padding: 18px;
+        }
+        .collapse-hint {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            color: var(--text-muted);
+            font-size: 14px;
+            margin-bottom: 16px;
+            padding: 8px 16px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 20px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .collapse-hint i {
+            color: var(--gta-primary);
+            animation: bounce 2s infinite;
+        }
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-3px); }
+            60% { transform: translateY(-2px); }
+        }
+
+        /* 活动报名 */
+        .apply-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .input { width: 100%; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); color: #fff; padding: 10px 12px; border-radius: 10px; outline: none; transition: var(--transition); }
+        .input:focus { border-color: var(--gta-border-light); box-shadow: 0 0 0 3px rgba(0,230,81,.2); }
+        
+        /* 下拉框特殊样式 */
+        select.input {
+            background: rgba(30,30,30,0.9);
+            color: #ffffff;
+            cursor: pointer;
+        }
+        select.input option {
+            background: rgba(20,20,20,0.95);
+            color: #ffffff;
+            padding: 8px 12px;
+            border: none;
+        }
+        select.input option:hover {
+            background: rgba(0,230,81,0.2);
+        }
+        select.input option:checked {
+            background: var(--gta-primary);
+            color: #000;
+        }
+        select.input option[value=""] {
+            color: #999;
+        }
+        
+        .btn { background: var(--gradient-primary); border: none; color: #000; font-weight: 900; letter-spacing: .5px; padding: 10px 14px; border-radius: 999px; cursor: pointer; transition: transform .15s ease, box-shadow .15s ease; }
+        .btn:hover { transform: translateY(-1px); box-shadow: 0 10px 22px rgba(0, 230, 81, 0.35); }
+        .btn.secondary { background: var(--gradient-accent); color: #000; }
+        .helper { color: var(--text-muted); font-size: 12px; margin-top: 6px; }
+
+        /* 视频容器样式 */
+        .video-container {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .video-container:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-xl), 0 0 30px rgba(0,230,81,0.2);
+        }
+
+        /* 背景装饰 */
+        .background-decoration { position: fixed; width: 100%; height: 100%; top: 0; left: 0; z-index: 0; overflow: hidden; pointer-events: none; }
+        .decoration-circle { position: absolute; border-radius: 50%; filter: blur(100px); opacity: 0.08; }
+        .decoration-circle:nth-child(1) { width: 520px; height: 520px; background: var(--primary-accent); top: -250px; right: -150px; }
+        .decoration-circle:nth-child(2) { width: 640px; height: 640px; background: var(--secondary-accent); bottom: -300px; left: -200px; }
+        .decoration-circle:nth-child(3) { width: 440px; height: 440px; background: var(--tertiary-accent); top: 30%; left: -120px; }
+
+        .footer { position: static; left: 0; right: 0; bottom: 0; text-align: center; color: var(--text-dim); font-size: 0.9rem; z-index: 30; pointer-events: auto; background: rgba(10,10,10,0.35); padding: 12px; backdrop-filter: blur(6px); margin-top: 16px; }
+
+        @media (max-width: 1024px) { 
+            .members-grid { grid-template-columns: repeat(4, 1fr); } 
+            .apply-grid { grid-template-columns: 1fr; } 
+            .form-row { grid-template-columns: 1fr; }
+            .promo-gallery { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+        }
+        @media (max-width: 640px) { 
+            .members-grid { grid-template-columns: repeat(2, 1fr); } 
+            .page-header h1 { font-size: 2.2rem; } 
+            .org-logo { width: 72px; height: 72px; }
+            .promo-gallery { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航（绿色主题） -->
+    <div class="gta-nav">
+        <div class="nav-left">
+            <h1 class="gta-title"><img class="brand-logo" src="../src/assets/lcfy/head.png" alt="洛城风云" onerror="this.style.display='none'">洛城风云</h1>
+            <div class="nav-links">
+                <a href="https://www.antwen.com" target="_blank">安稳</a>
+                <a href="https://s.antwen.com" target="_blank">在线文件</a>
+            </div>
+        </div>
+        <div class="nav-right">
+            <div class="nav-buttons-desktop">
+                <a href="../index.html" class="nav-button">首页</a>
+                <a href="../gta-map/ls.html" class="nav-button">🏙️ 洛圣都</a>
+                <a href="../vehicles/index.html" class="nav-button">🚗 车辆数据库</a>
+            </div>
+            <div class="nav-buttons-mobile">
+                <button class="menu-toggle" id="mobile-menu-toggle">
+                    <i class="fas fa-bars"></i> 更多
+                </button>
+                <div class="mobile-menu" id="mobile-menu">
+                    <a href="../gta-map/ls.html" class="nav-button">🏙️ 洛圣都</a>
+                    <a href="../gta-map/cp.html" class="nav-button">🏝️ 佩里科岛</a>
+                    <a href="../vehicles/index.html" class="nav-button">🚗 车辆数据库</a>
+                    <a href="https://www.antwen.com" target="_blank" class="nav-link">🔗 安稳</a>
+                    <a href="https://s.antwen.com" target="_blank" class="nav-link">☁️ 在线文件</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 背景装饰 -->
+    <div class="background-decoration">
+        <div class="decoration-circle"></div>
+        <div class="decoration-circle"></div>
+        <div class="decoration-circle"></div>
+    </div>
+
+    <!-- 标题 -->
+    <div class="page-header container">
+        <img class="org-logo" src="../src/assets/lcfy/head.png" alt="洛城风云群头像" onerror="this.style.display='none'">
+        <h1><span class="text-[var(--tertiary-accent)]">洛城风云</span> PS5 GTA Online</h1>
+        <p>中国最活跃的PlayStation平台玩家群组｜专业团队合作｜丰富活动体验</p>
+    </div>
+
+    <div class="container">
+        <!-- 关于洛城风云 -->
+        <section class="section">
+            <div class="section-header">
+                <span>🎮</span>
+                <h2>关于洛城风云</h2>
+            </div>
+            <div class="section-content">
+                <p style="line-height:1.8;color:var(--text-secondary)">洛城风云是目前中国最活跃的PS5平台GTA Online玩家群。我们拥有超过1500名活跃成员，提供24小时在线游戏环境。群内定期举办各类活动，包括团队抢劫、载具竞速、自由模式PVP等。无论你是新手还是老玩家，都能在这里找到志同道合的伙伴。群内禁止任何金钱交易，致力于营造绿色健康的游戏环境。</p>
+            </div>
+        </section>
+
+        <!-- 宣传图展示 -->
+        <section class="section">
+            <div class="section-header collapsible" data-target="gallery-content">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span>📸</span>
+                    <h2>精彩瞬间</h2>
+                </div>
+                <i class="fas fa-chevron-down collapse-icon"></i>
+            </div>
+            <div class="collapse-content" id="gallery-content">
+                <div class="collapse-hint">
+                    <i class="fas fa-hand-point-up"></i>
+                    <span>点击上方标题展开/收起图片展示</span>
+                </div>
+                <div class="promo-gallery">
+                    <div class="promo-card">
+                        <img class="promo-image" src="../src/assets/lcfy/1.png" alt="洛城风云宣传图1">
+                    </div>
+                    <div class="promo-card">
+                        <img class="promo-image" src="../src/assets/lcfy/2.png" alt="洛城风云宣传图2">
+                    </div>
+                    <div class="promo-card">
+                        <img class="promo-image" src="../src/assets/lcfy/3.png" alt="洛城风云宣传图3">
+                    </div>
+                    <div class="promo-card">
+                        <img class="promo-image" src="../src/assets/lcfy/4.png" alt="洛城风云宣传图4">
+                    </div>
+                    <div class="promo-card">
+                        <img class="promo-image" src="../src/assets/lcfy/5.png" alt="洛城风云宣传图5">
+                    </div>
+                    <div class="promo-card">
+                        <img class="promo-image" src="../src/assets/lcfy/6.png" alt="洛城风云宣传图6">
+                    </div>
+                    <div class="promo-card">
+                        <img class="promo-image" src="../src/assets/lcfy/7.png" alt="洛城风云宣传图7">
+                    </div>
+                </div>
+                <p class="helper">记录我们在洛圣都的传奇时刻</p>
+            </div>
+        </section>
+
+        <!-- 管理团队 -->
+        <section class="section">
+            <div class="section-header">
+                <span>👑</span>
+                <h2>管理团队</h2>
+            </div>
+            <div class="section-content">
+                <div class="members-grid">
+                    <!-- 群主 -->
+                    <div class="member-card">
+                        <div class="avatar"><img src="../src/assets/lcfy/manager/421.jpg" alt="安稳Antwen头像"></div>
+                        <div class="member-info">
+                            <div class="member-id">安稳Antwen</div>
+                            <div class="member-role">群主创始人</div>
+                        </div>
+                    </div>
+                    <!-- 管理员 -->
+                    <div class="member-card">
+                        <div class="avatar"><img src="../src/assets/lcfy/manager/richard.png" alt="理查德头像"></div>
+                        <div class="member-info">
+                            <div class="member-id">理查德</div>
+                            <div class="member-role">抢劫专家</div>
+                        </div>
+                    </div>
+                    <div class="member-card">
+                        <div class="avatar"><img src="../src/assets/lcfy/manager/cut.jpg" alt="Cut头像"></div>
+                        <div class="member-info">
+                            <div class="member-id">Cutliy</div>
+                            <div class="member-role">活动策划</div>
+                        </div>
+                    </div>
+                    <div class="member-card">
+                        <div class="avatar"><img src="../src/assets/lcfy/manager/hongren.jpg" alt="红纫头像"></div>
+                        <div class="member-info">
+                            <div class="member-id">红纫</div>
+                            <div class="member-role">技术支持</div>
+                        </div>
+                    </div>
+                    <div class="member-card">
+                        <div class="avatar"><img src="../src/assets/lcfy/manager/mj.png" alt="速冻饺子头像"></div>
+                        <div class="member-info">
+                            <div class="member-id">速冻饺子</div>
+                            <div class="member-role">秩序维护</div>
+                        </div>
+                    </div>
+                    <div class="member-card">
+                        <div class="avatar"><img src="../src/assets/lcfy/manager/remain.jpg" alt="管理员头像"></div>
+                        <div class="member-info">
+                            <div class="member-id">更多管理</div>
+                            <div class="member-role">团队协作</div>
+                        </div>
+                    </div>
+                </div>
+                <p class="helper">专业的管理团队，为群友提供最佳游戏体验</p>
+            </div>
+        </section>
+
+
+        <!-- 活动报名 -->
+        <section class="section" id="activity-signup">
+            <div class="section-header">
+                <span>📝</span>
+                <h2>活动报名</h2>
+            </div>
+            <div class="section-content apply-grid">
+                <form id="activity-form" class="section" style="background:transparent;border:none;box-shadow:none;padding:0">
+                    <div class="section-content" style="padding:0">
+                        <div class="form-row">
+                            <select class="input" name="activity" required>
+                                <option value="">请选择活动</option>
+                                <option value="周末团队抢劫">周末团队抢劫</option>
+                                <option value="载具竞速大赛">载具竞速大赛</option>
+                                <option value="自由模式PVP">自由模式PVP</option>
+                                <option value="测试活动">测试活动</option>
+                            </select>
+                            <input class="input" name="psn" placeholder="PSN账号（游戏内显示ID）" required />
+                        </div>
+                        <div class="form-row" style="margin-top:12px">
+                            <input class="input" name="qq" placeholder="QQ号" required />
+                            <select class="input" name="attendance" required>
+                                <option value="">能否准时参加</option>
+                                <option value="能准时参加">能准时参加</option>
+                                <option value="可能迟到">可能迟到</option>
+                                <option value="不确定">不确定</option>
+                            </select>
+                        </div>
+                        <textarea class="input" name="notes" rows="3" style="margin-top:12px" placeholder="备注（可选）"></textarea>
+                        <div style="display:flex; gap:10px; margin-top:12px; flex-wrap: wrap;">
+                            <button type="submit" class="btn" id="submit-activity">提交报名</button>
+                            <a class="btn secondary" href="https://qm.qq.com/q/QX3sEc8Ngu" target="_blank">加入群聊</a>
+                        </div>
+                        <div id="activity-status" class="helper" style="margin-top:8px"></div>
+                        <div class="helper">填写信息后提交，管理员会及时与您联系确认</div>
+                    </div>
+                </form>
+
+                <div class="section" style="background:rgba(20,20,20,.75);">
+                    <div class="section-header">
+                        <span>ℹ️</span>
+                        <h2>活动说明</h2>
+                    </div>
+                    <div class="section-content" style="line-height:1.8;color:var(--text-secondary)">
+                        <ul>
+                            <li><strong>团队抢劫：</strong>包括公寓抢劫、末日抢劫等，需要4人团队配合</li>
+                            <li><strong>载具竞速：</strong>各类载具竞速活动，奖励丰厚</li>
+                            <li><strong>自由模式PVP：</strong>技能切磋，友谊第一</li>
+                            <li><strong>特殊活动：</strong>节日庆典、周年纪念等限时活动</li>
+                        </ul>
+                        <p style="margin-top:16px; padding:12px; background:rgba(0,230,81,0.1); border-radius:8px; border-left:3px solid var(--gta-primary);">
+                            <strong>群福利：</strong>群等级达到80级可找两位管理领取一套订制服装！
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 活动视频展示 -->
+        <section class="section">
+            <div class="section-header collapsible" data-target="video-content">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span>🎬</span>
+                    <h2>群活动视频</h2>
+                </div>
+                <i class="fas fa-chevron-down collapse-icon"></i>
+            </div>
+            <div class="collapse-content" id="video-content">
+                <div class="collapse-hint">
+                    <i class="fas fa-hand-point-up"></i>
+                    <span>点击上方标题展开/收起视频播放器</span>
+                </div>
+                <div class="video-showcase" style="background: linear-gradient(135deg, rgba(0,230,81,0.1) 0%, rgba(0,255,136,0.05) 100%); border: 1px solid rgba(0,230,81,0.2); border-radius: 16px; padding: 24px; margin: 16px 0;">
+                    <div class="video-header" style="text-align: center; margin-bottom: 20px;">
+                        <h3 style="color: var(--gta-primary); font-family: 'Impact', sans-serif; margin-bottom: 8px; font-size: 1.4rem;">
+                            🎮 洛城风云群活动精彩回顾
+                        </h3>
+                        <p style="color: var(--text-muted); font-size: 14px;">记录我们在洛圣都的团队合作与友谊时光</p>
+                    </div>
+                    <div class="video-container" style="position: relative; width: 100%; max-width: 800px; margin: 0 auto; background: rgba(0,0,0,0.6); border-radius: 12px; overflow: hidden; border: 2px solid rgba(0,230,81,0.3); box-shadow: 0 8px 32px rgba(0,230,81,0.15);">
+                        <div style="position: relative; width: 100%; height: 0; padding-bottom: 56.25%;">
+                            <iframe 
+                                src="//player.bilibili.com/player.html?isOutside=true&aid=114801288219657&bvid=BV1F63ozkEvz&cid=30871324584&p=1&autoplay=0" 
+                                style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none;" 
+                                scrolling="no" 
+                                frameborder="no" 
+                                framespacing="0" 
+                                allowfullscreen="true">
+                            </iframe>
+                        </div>
+                    </div>
+                    <div style="display: flex; justify-content: center; gap: 12px; margin-top: 16px; flex-wrap: wrap;">
+                        <div style="display: flex; align-items: center; gap: 6px; background: rgba(0,230,81,0.1); padding: 6px 12px; border-radius: 20px; border: 1px solid rgba(0,230,81,0.2);">
+                            <i class="fas fa-play" style="color: var(--gta-primary); font-size: 12px;"></i>
+                            <span style="color: var(--text-light); font-size: 12px;">B站官方视频</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 6px; background: rgba(0,230,81,0.1); padding: 6px 12px; border-radius: 20px; border: 1px solid rgba(0,230,81,0.2);">
+                            <i class="fas fa-users" style="color: var(--gta-primary); font-size: 12px;"></i>
+                            <span style="color: var(--text-light); font-size: 12px;">团队协作</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 6px; background: rgba(0,230,81,0.1); padding: 6px 12px; border-radius: 20px; border: 1px solid rgba(0,230,81,0.2);">
+                            <i class="fas fa-gamepad" style="color: var(--gta-primary); font-size: 12px;"></i>
+                            <span style="color: var(--text-light); font-size: 12px;">PS5平台</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CHET帮会推荐 -->
+        <section class="section">
+            <div class="section-header">
+                <span>🏴‍☠️</span>
+                <h2>对抢劫任务感兴趣？</h2>
+            </div>
+            <div class="section-content">
+                <div style="background: rgba(15, 35, 20, 0.6); border: 1px solid rgba(0, 230, 81, 0.3); border-radius: 12px; padding: 20px; text-align: center;">
+                    <h3 style="color: #00ff88; margin-bottom: 12px; font-family: 'Impact', sans-serif;">欢迎加入 CHET 抢劫专业团队</h3>
+                    <p style="line-height: 1.6; color: var(--text-secondary); margin-bottom: 16px;">
+                        如果你对各类抢劫任务有浓厚兴趣，想要挑战极限难度和团队协作，<br>
+                        CHET 是GTA领域最权威的抢劫玩家组织，严谨与热爱并存。
+                    </p>
+                    <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+                        <a href="chet.html" class="btn" style="background: var(--gradient-primary); color: #000;">
+                            <i class="fas fa-mask"></i> 了解 CHET 帮会
+                        </a>
+                        <a href="chet.html#apply" class="btn secondary" style="background: rgba(255, 255, 255, 0.1); color: white; border: 1px solid rgba(255, 255, 255, 0.2);">
+                            <i class="fas fa-user-plus"></i> 申请加入
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="footer">© 2025 洛城风云 PS5 GTA Online | 群号: 1031417305 | 非官方玩家组织</div>
+    </div>
+
+    <script>
+        // 移动菜单
+        (function(){
+            const toggle = document.getElementById('mobile-menu-toggle');
+            const menu = document.getElementById('mobile-menu');
+            if (toggle && menu) {
+                toggle.addEventListener('click', () => menu.classList.toggle('show'));
+                document.addEventListener('click', (e) => {
+                    if (!toggle.contains(e.target) && !menu.contains(e.target)) menu.classList.remove('show');
+                });
+            }
+        })();
+
+        // 活动报名提交到Google Sheets
+        (function(){
+            const form = document.getElementById('activity-form');
+            const status = document.getElementById('activity-status');
+            if (!form) return;
+
+            // Google Apps Script URL - 请配置你的Google Sheets脚本URL
+            const GOOGLE_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzBJpWdfC2ZeMkWlPR2lXhevEL3i4_2R-ft18nziaUxh6A8lZyd_fD8NLyreVvrez4A/exec';
+
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const data = new FormData(form);
+                
+                const activity = (data.get('activity') || '').toString().trim();
+                const psn = (data.get('psn') || '').toString().trim();
+                const qq = (data.get('qq') || '').toString().trim();
+                const attendance = (data.get('attendance') || '').toString().trim();
+                
+                if (!activity || !psn || !qq || !attendance) {
+                    alert('请填写所有必填项');
+                    return;
+                }
+
+                status.textContent = '提交中，请稍候…';
+
+                const payload = {
+                    activity: activity,
+                    psn: psn,
+                    qq: qq,
+                    attendance: attendance,
+                    notes: data.get('notes') || '',
+                    timestamp: new Date().toLocaleString('zh-CN')
+                };
+
+                try {
+                    // 使用隐藏iframe提交到Google Sheets避免CORS问题
+                    const iframeName = 'gas_hidden_iframe';
+                    let iframe = document.getElementById(iframeName);
+                    if (!iframe) {
+                        iframe = document.createElement('iframe');
+                        iframe.name = iframeName;
+                        iframe.id = iframeName;
+                        iframe.style.display = 'none';
+                        document.body.appendChild(iframe);
+                    }
+
+                    const tempForm = document.createElement('form');
+                    tempForm.style.display = 'none';
+                    tempForm.method = 'POST';
+                    tempForm.action = GOOGLE_APPS_SCRIPT_URL;
+                    tempForm.target = iframeName;
+
+                    Object.entries(payload).forEach(([key, value]) => {
+                        const input = document.createElement('input');
+                        input.type = 'hidden';
+                        input.name = key;
+                        input.value = String(value ?? '');
+                        tempForm.appendChild(input);
+                    });
+
+                    document.body.appendChild(tempForm);
+                    tempForm.submit();
+                    
+                    status.textContent = '报名提交成功！管理员将尽快与您联系确认活动详情。';
+                    form.reset();
+                    
+                    setTimeout(() => {
+                        try { document.body.removeChild(tempForm); } catch {}
+                    }, 1000);
+                } catch (error) {
+                    console.error('提交失败:', error);
+                    status.textContent = '提交失败，请稍后重试或直接在群内报名。';
+                }
+            });
+        })();
+
+        // 折叠/展开功能
+        (function(){
+            const collapsibles = document.querySelectorAll('.collapsible');
+            
+            collapsibles.forEach(collapsible => {
+                collapsible.addEventListener('click', function() {
+                    const targetId = this.getAttribute('data-target');
+                    const content = document.getElementById(targetId);
+                    const icon = this.querySelector('.collapse-icon');
+                    
+                    if (content.classList.contains('expanded')) {
+                        // 折叠
+                        content.classList.remove('expanded');
+                        this.classList.remove('expanded');
+                        icon.style.transform = 'rotate(0deg)';
+                    } else {
+                        // 展开
+                        content.classList.add('expanded');
+                        this.classList.add('expanded');
+                        icon.style.transform = 'rotate(180deg)';
+                    }
+                });
+            });
+        })();
+    </script>
+</body>
+</html>

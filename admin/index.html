@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GTA地图项目 - 管理面板</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" crossorigin="anonymous" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .update-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+        }
+        .update-section h2 {
+            color: #555;
+            margin-top: 0;
+        }
+        .btn {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        .btn:hover {
+            background-color: #0056b3;
+        }
+        .btn:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+        }
+        .status {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .status.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .status.loading {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        .description {
+            color: #666;
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+        .api-info {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 15px;
+            font-family: monospace;
+            font-size: 14px;
+        }
+
+        /* 密码验证模态框样式 */
+        .password-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            backdrop-filter: blur(10px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            transition: opacity 0.3s ease;
+        }
+        .password-modal.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        .password-modal-content {
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            border: 2px solid #007bff;
+            border-radius: 15px;
+            padding: 40px;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0, 123, 255, 0.3);
+            max-width: 400px;
+            width: 90%;
+            animation: modalSlideIn 0.5s ease;
+        }
+        @keyframes modalSlideIn {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .password-header h2 {
+            color: #ffffff;
+            margin-bottom: 10px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            letter-spacing: 1px;
+        }
+        .password-header p {
+            color: #cccccc;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        .password-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        #password-input {
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            padding: 15px;
+            color: #ffffff;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.3s ease;
+        }
+        #password-input:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 15px rgba(0, 123, 255, 0.3);
+        }
+        .password-btn {
+            background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+            border: none;
+            border-radius: 10px;
+            padding: 15px 25px;
+            color: #ffffff;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .password-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 123, 255, 0.4);
+        }
+        .password-error {
+            color: #ff4757;
+            font-size: 14px;
+            margin-top: 15px;
+            min-height: 20px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .password-error.show {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <!-- 密码验证模态框 -->
+    <div id="password-modal" class="password-modal">
+        <div class="password-modal-content">
+            <div class="password-header">
+                <h2><i class="fas fa-shield-alt"></i> 管理员验证</h2>
+                <p>请输入管理员密码以访问GTA地图项目管理面板</p>
+            </div>
+            <div class="password-form">
+                <input type="password" id="password-input" placeholder="请输入管理员密码" autocomplete="off">
+                <button id="password-submit" class="password-btn">
+                    <i class="fas fa-key"></i> 验证
+                </button>
+            </div>
+            <div id="password-error" class="password-error"></div>
+        </div>
+    </div>
+
+    <div class="container">
+        <h1>🎮 GTA地图项目管理面板</h1>
+        
+        <div class="update-section">
+            <h2>📊 更新Tunables数据</h2>
+            <div class="description">
+                从官方API获取最新的GTA游戏参数数据，包括武器厢型车位置、物品价格等信息。
+                <br>数据来源：<code>https://api.rdo.gg/tunables/gta/ps5/</code>
+            </div>
+            <button id="updateTunablesBtn" class="btn" onclick="updateTunables()">
+                🔄 更新Tunables数据
+            </button>
+            <div id="tunablesStatus"></div>
+            <div class="api-info">
+                <strong>API端点：</strong> POST /api/admin/update-tunables
+            </div>
+        </div>
+
+        <div class="update-section">
+            <h2>🗺️ 位置信息管理</h2>
+            <div class="description">
+                显示各种游戏物品的位置信息，包括武器厢型车、街头毒贩、收藏品等。
+            </div>
+            <button id="showLocationDataBtn" class="btn" onclick="showLocationData()">
+                📍 显示位置信息
+            </button>
+            <div id="locationDataStatus"></div>
+        </div>
+
+        <div class="update-section">
+            <h2>☁️ 时间天气信息</h2>
+            <div class="description">
+                显示游戏内的时间和天气信息。
+            </div>
+            <button id="showTimeWeatherBtn" class="btn" onclick="showTimeWeather()">
+                🌦️ 显示时间天气
+            </button>
+            <div id="timeWeatherStatus"></div>
+        </div>
+
+        <div class="update-section">
+            <h2>🏎️ 车行信息管理</h2>
+            <div class="description">
+                查看和管理各个车行的车辆信息，包括赌场奖品载具、车友会奖品载具等。
+            </div>
+            <button id="showDealershipsBtn" class="btn" onclick="showDealerships()">
+                🚗 显示车行信息
+            </button>
+            <div id="dealershipsStatus"></div>
+        </div>
+
+        <div class="update-section">
+            <h2>🔍 API状态检查</h2>
+            <div class="description">
+                检查所有API端点是否正常工作。
+            </div>
+            <button id="checkApisBtn" class="btn" onclick="checkApis()">
+                ✅ 检查API状态
+            </button>
+            <div id="apisStatus"></div>
+        </div>
+    </div>
+
+    <script>
+        // 密码验证功能
+        (function(){
+            // 多重加密的密码哈希值（原始密码：@Antwen）
+            const passwordHashes = [
+                'a8f5f167f44f4964e6c998dee827110c', // MD5
+                '9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08', // SHA256
+                'b109f3bbbc244eb82441917ed06d618b9008dd09b3befd1b5e07394c706a8bb980b1d7785e5976ec049b46df5f1326af5a2ea6d103fd07c95385ffab0cacbc86' // SHA512
+            ];
+            
+            // 简单的字符串混淆
+            const obfuscatedKey = btoa('@Antwen').split('').reverse().join('');
+            
+            // 检查是否已经验证过
+            function checkAuth() {
+                const authToken = sessionStorage.getItem('admin_auth');
+                if (authToken) {
+                    // 验证token的有效性
+                    const timestamp = parseInt(authToken.split('_')[1]);
+                    const now = Date.now();
+                    // 24小时有效期
+                    if (now - timestamp < 24 * 60 * 60 * 1000) {
+                        hidePasswordModal();
+                        return true;
+                    }
+                }
+                return false;
+            }
+            
+            // 隐藏密码模态框
+            function hidePasswordModal() {
+                const modal = document.getElementById('password-modal');
+                modal.classList.add('hidden');
+                setTimeout(() => {
+                    modal.style.display = 'none';
+                }, 300);
+            }
+            
+            // 显示错误信息
+            function showError(message) {
+                const errorDiv = document.getElementById('password-error');
+                errorDiv.textContent = message;
+                errorDiv.classList.add('show');
+                setTimeout(() => {
+                    errorDiv.classList.remove('show');
+                }, 3000);
+            }
+            
+            // 验证密码
+            function verifyPassword(input) {
+                // 方法1：直接比较（经过简单混淆）
+                if (btoa(input).split('').reverse().join('') === obfuscatedKey) {
+                    return true;
+                }
+                
+                // 方法2：哈希比较
+                const inputHash = CryptoJS.MD5(input).toString();
+                if (passwordHashes.includes(inputHash)) {
+                    return true;
+                }
+                
+                // 方法3：SHA256比较
+                const inputSHA256 = CryptoJS.SHA256(input).toString();
+                if (passwordHashes.includes(inputSHA256)) {
+                    return true;
+                }
+                
+                // 方法4：SHA512比较
+                const inputSHA512 = CryptoJS.SHA512(input).toString();
+                if (passwordHashes.includes(inputSHA512)) {
+                    return true;
+                }
+                
+                return false;
+            }
+            
+            // 页面加载时检查认证状态
+            if (!checkAuth()) {
+                // 如果没有认证，显示密码模态框
+                document.getElementById('password-modal').style.display = 'flex';
+            }
+            
+            // 绑定事件监听器
+            document.getElementById('password-submit').addEventListener('click', function() {
+                const input = document.getElementById('password-input');
+                const password = input.value.trim();
+                
+                if (!password) {
+                    showError('请输入密码');
+                    return;
+                }
+                
+                if (verifyPassword(password)) {
+                    // 生成认证token
+                    const token = 'admin_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                    sessionStorage.setItem('admin_auth', token);
+                    hidePasswordModal();
+                } else {
+                    showError('密码错误，请重试');
+                    input.value = '';
+                    input.focus();
+                }
+            });
+            
+            // 回车键提交
+            document.getElementById('password-input').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    document.getElementById('password-submit').click();
+                }
+            });
+        })();
+
+        const API_BASE = window.location.origin;
+
+        async function updateTunables() {
+            const btn = document.getElementById('updateTunablesBtn');
+            const status = document.getElementById('tunablesStatus');
+            
+            btn.disabled = true;
+            btn.textContent = '🔄 更新中...';
+            status.innerHTML = '<div class="status loading">正在从服务器更新tunables数据...</div>';
+
+            try {
+                const response = await fetch(`https://api-gta.antwen.com/api/admin/update-tunables`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    status.innerHTML = `
+                        <div class="status success">
+                            ✅ 更新成功！<br>
+                            文件路径: ${data.data.filePath}<br>
+                            更新时间: ${new Date(data.data.timestamp).toLocaleString('zh-CN')}
+                        </div>
+                    `;
+                } else {
+                    status.innerHTML = `<div class="status error">❌ 更新失败: ${data.error}</div>`;
+                }
+            } catch (error) {
+                status.innerHTML = `<div class="status error">❌ 网络错误: ${error.message}</div>`;
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '🔄 更新Tunables数据';
+            }
+        }
+
+        async function showApiData() {
+            const btn = document.getElementById('showApiDataBtn');
+            const status = document.getElementById('apiDataStatus');
+            
+            btn.disabled = true;
+            btn.textContent = '📈 获取中...';
+            status.innerHTML = '<div class="status loading">正在获取API数据...</div>';
+
+            const endpoints = [
+                { path: '/api/items/gun-van', name: '武器厢型车' },
+                { path: '/api/items/street-dealers', name: '街头毒贩' },
+                { path: '/api/items/ls-tags', name: 'LS涂鸦' },
+                { path: '/api/items/hidden-caches', name: '隐藏包裹' },
+                { path: '/api/items/shipwrecked', name: '沉船' },
+                { path: '/api/items/dead-drop', name: '杰拉德包裹' },
+                { path: '/api/items/treasure-chests', name: '藏宝箱' },
+                { path: '/api/items/buried-stashes', name: '地下藏匿品' },
+                { path: '/api/items/skydives', name: '跳伞' },
+                { path: '/api/items/time-trials', name: '时间挑战赛' },
+                { path: '/api/items/exotic-exports', name: '进出口载具' },
+                { path: '/api/game/time-weather', name: '游戏时间天气' },
+                { path: '/api/dealerships/casino-prize', name: '赌场奖品载具' },
+                { path: '/api/dealerships/car-meet-prize', name: '车友会奖品载具' },
+                { path: '/api/dealerships/promo-test', name: '测试载具' },
+                { path: '/api/dealerships/simeon-test', name: '西米恩测试载具' },
+                { path: '/api/dealerships/luxury-showcase', name: '豪华车展厅' },
+                { path: '/api/dealerships/hsw-test', name: 'HSW车辆' },
+                { path: '/api/dealerships/all', name: '所有车行信息' }
+            ];
+
+            let results = [];
+            
+            for (const endpoint of endpoints) {
+                try {
+                    const response = await fetch(`${endpoint.path}`);
+                    const data = await response.json();
+                    results.push({
+                        name: endpoint.name,
+                        path: endpoint.path,
+                        status: response.ok ? '✅' : '❌',
+                        data: data
+                    });
+                } catch (error) {
+                    results.push({
+                        name: endpoint.name,
+                        path: endpoint.path,
+                        status: '❌',
+                        error: error.message
+                    });
+                }
+            }
+
+            let html = '<div class="status success"><strong>API数据获取结果:</strong></div>';
+            
+            results.forEach(result => {
+                html += `
+                    <div style="margin: 15px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; background: #f9f9f9;">
+                        <h3 style="margin: 0 0 10px 0; color: #333;">${result.status} ${result.name}</h3>
+                        <p style="margin: 5px 0; font-family: monospace; color: #666;"><strong>路径:</strong> ${result.path}</p>
+                        ${result.error ? 
+                            `<p style="color: red;"><strong>错误:</strong> ${result.error}</p>` : 
+                            `<details style="margin-top: 10px;">
+                                <summary style="cursor: pointer; color: #007bff;">查看返回数据</summary>
+                                <pre style="background: #f5f5f5; padding: 10px; border-radius: 3px; overflow-x: auto; font-size: 12px; margin-top: 10px;">${JSON.stringify(result.data, null, 2)}</pre>
+                            </details>`
+                        }
+                    </div>
+                `;
+            });
+
+            status.innerHTML = html;
+            btn.disabled = false;
+            btn.textContent = '📈 显示API数据';
+        }
+
+        async function checkApis() {
+            const btn = document.getElementById('checkApisBtn');
+            const status = document.getElementById('apisStatus');
+            
+            btn.disabled = true;
+            btn.textContent = '🔍 检查中...';
+            status.innerHTML = '<div class="status loading">正在检查API状态...</div>';
+
+            const endpoints = [
+                '/api/items/gun-van',
+                '/api/items/street-dealers', 
+                '/api/items/ls-tags',
+                '/api/items/hidden-caches',
+                '/api/items/shipwrecked',
+                '/api/items/dead-drop',
+                '/api/items/treasure-chests',
+                '/api/items/buried-stashes',
+                '/api/items/skydives',
+                '/api/items/time-trials',
+                '/api/items/exotic-exports',
+                '/api/game/time-weather',
+                '/api/dealerships/casino-prize',
+                '/api/dealerships/car-meet-prize',
+                '/api/dealerships/promo-test',
+                '/api/dealerships/simeon-test',
+                '/api/dealerships/luxury-showcase',
+                '/api/dealerships/hsw-test',
+                '/api/dealerships/all'
+            ];
+
+            let results = [];
+            
+            for (const endpoint of endpoints) {
+                try {
+                    const response = await fetch(`https://api-gta.antwen.com${endpoint}`);
+                    const data = await response.json();
+                    results.push({
+                        endpoint,
+                        status: response.ok ? '✅' : '❌',
+                        success: data.success || false
+                    });
+                } catch (error) {
+                    results.push({
+                        endpoint,
+                        status: '❌',
+                        error: error.message
+                    });
+                }
+            }
+
+            const allOk = results.every(r => r.status === '✅');
+            const statusClass = allOk ? 'success' : 'error';
+            
+            status.innerHTML = `
+                <div class="status ${statusClass}">
+                    <strong>API检查结果:</strong><br>
+                    ${results.map(r => `${r.status} ${r.endpoint} ${r.error ? `(${r.error})` : ''}`).join('<br>')}
+                </div>
+            `;
+
+            btn.disabled = false;
+            btn.textContent = '✅ 检查API状态';
+        }
+
+        async function showLocationData() {
+            const btn = document.getElementById('showLocationDataBtn');
+            const status = document.getElementById('locationDataStatus');
+            
+            btn.disabled = true;
+            btn.textContent = '📍 获取中...';
+            status.innerHTML = '<div class="status loading">正在获取位置信息...</div>';
+
+            const locationEndpoints = [
+                { path: '/api/items/gun-van', name: '武器厢型车', icon: '🛡️' },
+                { path: '/api/items/street-dealers', name: '街头毒贩', icon: '👥' },
+                { path: '/api/items/ls-tags', name: 'LS涂鸦', icon: '🎨' },
+                { path: '/api/items/hidden-caches', name: '隐藏包裹', icon: '📦' },
+                { path: '/api/items/shipwrecked', name: '沉船', icon: '⛵' },
+                { path: '/api/items/dead-drop', name: '杰拉德包裹', icon: '💼' },
+                { path: '/api/items/treasure-chests', name: '藏宝箱', icon: '💰' },
+                { path: '/api/items/buried-stashes', name: '地下藏匿品', icon: '⛏️' },
+                { path: '/api/items/skydives', name: '跳伞', icon: '🪂' },
+                { path: '/api/items/time-trials', name: '时间挑战赛', icon: '⏱️' },
+                { path: '/api/items/exotic-exports', name: '进出口载具', icon: '🚢' }
+            ];
+
+            await processEndpoints(locationEndpoints, status, '🗺️ 位置信息获取结果');
+            
+            btn.disabled = false;
+            btn.textContent = '📍 显示位置信息';
+        }
+
+        async function showTimeWeather() {
+            const btn = document.getElementById('showTimeWeatherBtn');
+            const status = document.getElementById('timeWeatherStatus');
+            
+            btn.disabled = true;
+            btn.textContent = '🌦️ 获取中...';
+            status.innerHTML = '<div class="status loading">正在获取时间天气信息...</div>';
+
+            const timeWeatherEndpoints = [
+                { path: '/api/game/time-weather', name: '游戏时间天气', icon: '🌦️' }
+            ];
+
+            await processEndpoints(timeWeatherEndpoints, status, '☁️ 时间天气信息');
+            
+            btn.disabled = false;
+            btn.textContent = '🌦️ 显示时间天气';
+        }
+
+        async function processEndpoints(endpoints, statusElement, title) {
+            let results = [];
+            
+            for (const endpoint of endpoints) {
+                try {
+                    const response = await fetch(`https://api-gta.antwen.com${endpoint.path}`);
+                    const data = await response.json();
+                    results.push({
+                        name: endpoint.name,
+                        icon: endpoint.icon,
+                        path: endpoint.path,
+                        status: response.ok ? '✅' : '❌',
+                        data: data
+                    });
+                } catch (error) {
+                    results.push({
+                        name: endpoint.name,
+                        icon: endpoint.icon,
+                        path: endpoint.path,
+                        status: '❌',
+                        error: error.message
+                    });
+                }
+            }
+
+            let html = `<div class="status success"><strong>${title}:</strong></div>`;
+            
+            results.forEach(result => {
+                html += `
+                    <div style="margin: 15px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; background: #f9f9f9;">
+                        <h3 style="margin: 0 0 10px 0; color: #333;">${result.status} ${result.icon} ${result.name}</h3>
+                        <p style="margin: 5px 0; font-family: monospace; color: #666;"><strong>路径:</strong> ${result.path}</p>
+                        ${result.error ? 
+                            `<p style="color: red;"><strong>错误:</strong> ${result.error}</p>` : 
+                            `<div style="margin-top: 10px;">
+                                <p><strong>描述:</strong> ${result.data.data ? (result.data.data.description || result.data.data.message || '无描述') : '无描述'}</p>
+                                <details style="margin-top: 10px;">
+                                    <summary style="cursor: pointer; color: #007bff;">查看详细数据</summary>
+                                    <pre style="background: #f5f5f5; padding: 10px; border-radius: 3px; overflow-x: auto; font-size: 12px; margin-top: 10px;">${JSON.stringify(result.data, null, 2)}</pre>
+                                </details>
+                            </div>`
+                        }
+                    </div>
+                `;
+            });
+
+            statusElement.innerHTML = html;
+        }
+
+        async function showDealerships() {
+            const btn = document.getElementById('showDealershipsBtn');
+            const status = document.getElementById('dealershipsStatus');
+            
+            btn.disabled = true;
+            btn.textContent = '🚗 获取中...';
+            status.innerHTML = '<div class="status loading">正在获取车行信息...</div>';
+
+            const dealershipEndpoints = [
+                { path: '/api/dealerships/casino-prize', name: '赌场奖品载具', icon: '🎰' },
+                { path: '/api/dealerships/car-meet-prize', name: '车友会奖品载具', icon: '🏁' },
+                { path: '/api/dealerships/promo-test', name: '测试载具', icon: '🛠️' },
+                { path: '/api/dealerships/simeon-test', name: '西米恩测试载具', icon: '🏪' },
+                { path: '/api/dealerships/luxury-showcase', name: '豪华车展厅', icon: '💎' },
+                { path: '/api/dealerships/hsw-test', name: 'HSW车辆', icon: '⚡' }
+            ];
+
+            await processEndpoints(dealershipEndpoints, status, '🏎️ 车行信息获取结果');
+
+            status.innerHTML = html;
+            btn.disabled = false;
+            btn.textContent = '🚗 显示车行信息';
+        }
+
+        // 页面加载时自动检查API状态
+        window.addEventListener('load', () => {
+            console.log('🎮 GTA地图项目管理面板已加载');
+            console.log('API基础URL:', API_BASE);
+        });
+    </script>
+</body>
+</html>

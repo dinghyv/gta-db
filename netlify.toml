@@ -1,0 +1,51 @@
+# Netlify 配置文件
+# 用于配置构建和重定向规则
+
+[build]
+  # 发布目录（静态文件根目录）
+  publish = "."
+  
+  # 构建命令（如果需要）
+  # command = "npm run build"
+
+# 重定向规则
+[[redirects]]
+  # 404错误页面
+  from = "/*"
+  to = "/404.html"
+  status = 404
+
+# 头部设置
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    X-Frame-Options = "DENY"
+    X-XSS-Protection = "1; mode=block"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+
+# 缓存设置
+[[headers]]
+  for = "*.css"
+  [headers.values]
+    Cache-Control = "public, max-age=2592000"
+
+[[headers]]
+  for = "*.js"
+  [headers.values]
+    Cache-Control = "public, max-age=2592000"
+
+[[headers]]
+  for = "*.png"
+  [headers.values]
+    Cache-Control = "public, max-age=2592000"
+
+[[headers]]
+  for = "*.jpg"
+  [headers.values]
+    Cache-Control = "public, max-age=2592000"
+
+[[headers]]
+  for = "*.svg"
+  [headers.values]
+    Cache-Control = "public, max-age=2592000"

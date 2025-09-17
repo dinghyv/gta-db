@@ -11,7 +11,6 @@ _manifest.json
 # Used to make development easier.
 cycles_update/
 fme/
-!assets/images/fme
 rdo/
 
 # Remove map tiles from Github

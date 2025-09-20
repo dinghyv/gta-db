@@ -53,7 +53,7 @@ class Loader {
 
 const urls = [
     'data/animal_legendary.json',
-    'data/cycles.json',
+    'https://gh-proxy.com/https://raw.githubusercontent.com/jeanropke/RDR2CollectorsMap/refs/heads/master/data/cycles.json',
     'data/fasttravels.json',
     'data/filters.json',
     'data/items_value.json',

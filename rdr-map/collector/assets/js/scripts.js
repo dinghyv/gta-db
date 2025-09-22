@@ -287,7 +287,9 @@ function init() {
 }
 
 function isLocalHost() {
-  return location.hostname === "localhost" || location.hostname === "127.0.0.1";
+  // 临时强制使用远程瓦片进行测试
+  return false;
+  // return location.hostname === "localhost" || location.hostname === "127.0.0.1";
 }
 
 function changeCursor() {

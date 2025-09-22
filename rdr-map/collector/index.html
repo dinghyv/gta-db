@@ -243,6 +243,107 @@
     .menu-toggle {
       top: 70px !important;
     }
+
+    /* 地图图层切换样式 */
+    .map-layer-dropdown {
+      position: relative;
+      display: inline-block;
+    }
+
+    .map-layer-toggle {
+      position: relative;
+    }
+
+    .map-layer-toggle i {
+      margin-left: 5px;
+      font-size: 10px;
+      transition: transform 0.2s;
+    }
+
+    .map-layer-dropdown.active .map-layer-toggle i {
+      transform: rotate(180deg);
+    }
+
+    .map-layer-menu {
+      position: absolute;
+      top: 100%;
+      right: 0;
+      background: linear-gradient(135deg, rgba(139, 0, 0, 0.95) 0%, rgba(220, 20, 60, 0.95) 100%);
+      border: 1px solid rgba(255,255,255,0.3);
+      border-radius: 8px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+      backdrop-filter: blur(10px);
+      min-width: 180px;
+      z-index: 1001;
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(-10px);
+      transition: all 0.3s ease;
+    }
+
+    .map-layer-dropdown.active .map-layer-menu {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
+
+    .map-layer-option {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      width: 100%;
+      padding: 10px 15px;
+      background: none;
+      border: none;
+      color: white;
+      text-align: left;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 14px;
+    }
+
+    .map-layer-option:hover {
+      background: rgba(255,255,255,0.1);
+      color: #FFD700;
+    }
+
+    .map-layer-option.active {
+      background: rgba(255,215,0,0.2);
+      color: #FFD700;
+      border-left: 3px solid #FFD700;
+    }
+
+    .map-layer-option:first-child {
+      border-radius: 8px 8px 0 0;
+    }
+
+    .map-layer-option:last-child {
+      border-radius: 0 0 8px 8px;
+    }
+
+    /* 移动端地图切换样式 */
+    .mobile-map-layers {
+      margin: 8px 0;
+      padding: 8px 0;
+      border-top: 1px solid rgba(255,255,255,0.2);
+      border-bottom: 1px solid rgba(255,255,255,0.2);
+    }
+
+    .map-layer-option.mobile {
+      margin: 2px 0;
+      border-radius: 6px;
+      border-left: none;
+    }
+
+    .map-layer-option.mobile.active {
+      border-left: none;
+      background: rgba(255,215,0,0.3);
+    }
+
+    /* 隐藏默认的 Leaflet 图层控件 */
+    .leaflet-control-layers {
+      display: none !important;
+    }
   </style>
 
   <script>
@@ -268,6 +369,26 @@
         <a href="/gta-map/cp" class="rdr-nav-button">🏝️ 佩里科岛</a>
         <a href="/vehicles" class="rdr-nav-button">🚗 车辆数据库</a>
         <a href="/rdr-map/main" class="rdr-nav-button">🗺️ RDO 地图</a>
+        <!-- 地图切换下拉菜单 -->
+        <div class="map-layer-dropdown">
+          <button class="rdr-nav-button map-layer-toggle" id="mapLayerToggle">
+            🗺️ 地图样式 <i class="fas fa-chevron-down"></i>
+          </button>
+          <div class="map-layer-menu" id="mapLayerMenu">
+            <button class="map-layer-option active" data-layer="map.layers.default">
+              <i class="fas fa-map"></i> 默认地图
+            </button>
+            <button class="map-layer-option" data-layer="map.layers.detailed">
+              <i class="fas fa-search-plus"></i> 详细地图
+            </button>
+            <button class="map-layer-option" data-layer="map.layers.dark">
+              <i class="fas fa-moon"></i> 暗色地图
+            </button>
+            <button class="map-layer-option" data-layer="map.layers.black">
+              <i class="fas fa-adjust"></i> 黑色地图
+            </button>
+          </div>
+        </div>
       </div>
       <!-- 移动端显示 -->
       <div class="rdr-nav-buttons-mobile">
@@ -280,6 +401,22 @@
           <a href="/gta-map/cp" class="rdr-nav-button">🏝️ 佩里科岛</a>
           <a href="/vehicles" class="rdr-nav-button">🚗 车辆数据库</a>
           <a href="/rdr-map/main" class="rdr-nav-button">🗺️ RDO 地图</a>
+          <!-- 移动端地图切换 -->
+          <div class="mobile-map-layers">
+            <p style="color: #FFD700; margin: 8px 0 4px 0; font-weight: bold;">🗺️ 地图样式:</p>
+            <button class="map-layer-option mobile active" data-layer="map.layers.default">
+              <i class="fas fa-map"></i> 默认地图
+            </button>
+            <button class="map-layer-option mobile" data-layer="map.layers.detailed">
+              <i class="fas fa-search-plus"></i> 详细地图
+            </button>
+            <button class="map-layer-option mobile" data-layer="map.layers.dark">
+              <i class="fas fa-moon"></i> 暗色地图
+            </button>
+            <button class="map-layer-option mobile" data-layer="map.layers.black">
+              <i class="fas fa-adjust"></i> 黑色地图
+            </button>
+          </div>
           <a href="https://www.antwen.com" target="_blank" class="rdr-nav-link">🔗 安稳</a>
           <a href="https://share.antwen.com" target="_blank" class="rdr-nav-link">☁️ 在线文件</a>
         </div>
@@ -1850,6 +1987,213 @@
             menu.classList.remove('show');
           }
         });
+      }
+    })();
+
+    // 地图图层切换功能
+    (function(){
+      const mapLayerToggle = document.getElementById('mapLayerToggle');
+      const mapLayerMenu = document.getElementById('mapLayerMenu');
+      const dropdown = document.querySelector('.map-layer-dropdown');
+      
+      if (mapLayerToggle && mapLayerMenu) {
+        // 切换下拉菜单显示/隐藏
+        mapLayerToggle.addEventListener('click', (e) => {
+          e.stopPropagation();
+          dropdown.classList.toggle('active');
+        });
+
+        // 点击页面其他地方关闭下拉菜单
+        document.addEventListener('click', () => {
+          dropdown.classList.remove('active');
+        });
+
+        // 阻止菜单内部点击事件冒泡
+        mapLayerMenu.addEventListener('click', (e) => {
+          e.stopPropagation();
+        });
+      }
+
+      // 地图图层切换事件处理
+      function handleLayerSwitch(layerKey) {
+        // 更新按钮状态
+        document.querySelectorAll('.map-layer-option').forEach(btn => {
+          btn.classList.remove('active');
+        });
+        document.querySelectorAll(`[data-layer="${layerKey}"]`).forEach(btn => {
+          btn.classList.add('active');
+        });
+
+        // 关闭下拉菜单
+        if (dropdown) {
+          dropdown.classList.remove('active');
+        }
+
+        // 关闭移动端菜单
+        const mobileMenu = document.getElementById('rdr-mobile-menu');
+        if (mobileMenu) {
+          mobileMenu.classList.remove('show');
+        }
+
+        // 切换地图图层
+        function tryMapSwitch() {
+          console.log('尝试切换地图，检查 MapBase 状态');
+          console.log('window.MapBase:', window.MapBase);
+          console.log('window.MapBase?.map:', window.MapBase?.map);
+          
+          // 检查多种可能的 MapBase 访问方式
+          let mapBase = window.MapBase;
+          if (!mapBase && typeof MapBase !== 'undefined') {
+            mapBase = MapBase;
+          }
+          
+          if (mapBase && mapBase.map) {
+            console.log('找到 MapBase 和 map，开始切换图层');
+            
+            // 尝试找到原来的图层控件并触发点击
+            const layerControl = document.querySelector('.leaflet-control-layers');
+            console.log('图层控件:', layerControl);
+            
+            if (layerControl && layerControl.style.display !== 'none') {
+              console.log('找到可见的图层控件');
+              // 查找对应的单选按钮
+              const layerInputs = layerControl.querySelectorAll('input[type="radio"]');
+              console.log('找到单选按钮数量:', layerInputs.length);
+              
+              // 建立 layerKey 到中文标签的映射
+              const layerKeyToLabel = {
+                'map.layers.default': '默认',
+                'map.layers.detailed': '详细', 
+                'map.layers.dark': '深色',
+                'map.layers.black': '黑色'
+              };
+              
+              const targetLabel = layerKeyToLabel[layerKey];
+              console.log('目标标签:', targetLabel);
+              
+              let found = false;
+              layerInputs.forEach(input => {
+                const label = input.nextElementSibling;
+                const labelText = label ? label.textContent.trim() : '';
+                console.log('检查标签:', labelText, '是否匹配:', targetLabel);
+                
+                if (labelText === targetLabel) {
+                  console.log('找到匹配的按钮，点击');
+                  input.click();
+                  found = true;
+                  return;
+                }
+              });
+              
+              if (found) {
+                console.log('成功通过原控件切换图层');
+                return true;
+              }
+            }
+            
+            console.log('使用备用方法切换图层');
+            
+            // 备用方法：直接更新设置并调用相关函数
+            if (window.Settings) {
+              const oldLayer = window.Settings.baseLayer;
+              window.Settings.baseLayer = layerKey;
+              console.log('Settings.baseLayer 从', oldLayer, '更新为', layerKey);
+            }
+            
+            // 直接调用原来的事件处理函数
+            if (mapBase.setMapBackground) {
+              mapBase.setMapBackground();
+              console.log('调用了 setMapBackground');
+            }
+            
+            if (window.Legendary && window.Legendary.onSettingsChanged) {
+              window.Legendary.onSettingsChanged();
+            }
+            
+            console.log('备用方法执行完成');
+            return true;
+          } else {
+            console.log('MapBase 或 map 不存在，等待地图初始化');
+            return false;
+          }
+        }
+        
+        // 尝试切换，如果失败则等待地图初始化
+        if (!tryMapSwitch()) {
+          console.log('地图未准备好，等待初始化...');
+          let retryCount = 0;
+          const maxRetries = 10;
+          
+          const retryInterval = setInterval(() => {
+            retryCount++;
+            console.log(`重试第 ${retryCount} 次...`);
+            
+            if (tryMapSwitch() || retryCount >= maxRetries) {
+              clearInterval(retryInterval);
+              if (retryCount >= maxRetries) {
+                console.log('达到最大重试次数，放弃切换');
+              }
+            }
+          }, 500); // 每500ms重试一次
+        }
+      }
+
+      // 同步按钮状态与当前设置
+      function syncButtonStates() {
+        const currentLayer = window.Settings ? window.Settings.baseLayer : 'map.layers.default';
+        document.querySelectorAll('.map-layer-option').forEach(btn => {
+          btn.classList.remove('active');
+        });
+        document.querySelectorAll(`[data-layer="${currentLayer}"]`).forEach(btn => {
+          btn.classList.add('active');
+        });
+      }
+
+      // 绑定所有地图切换按钮的点击事件
+      function bindLayerButtons() {
+        const buttons = document.querySelectorAll('.map-layer-option');
+        console.log('找到地图切换按钮数量:', buttons.length);
+        
+        buttons.forEach((btn, index) => {
+          const layerKey = btn.getAttribute('data-layer');
+          console.log(`按钮 ${index}: data-layer="${layerKey}"`);
+          
+          btn.addEventListener('click', (e) => {
+            console.log('按钮被点击:', layerKey);
+            e.preventDefault();
+            e.stopPropagation();
+            
+            if (layerKey) {
+              handleLayerSwitch(layerKey);
+            } else {
+              console.log('按钮没有 data-layer 属性');
+            }
+          });
+        });
+        
+        // 初始化时同步按钮状态
+        syncButtonStates();
+      }
+
+      // 定期检查并同步状态（防止Settings还未加载）
+      function checkAndSync() {
+        if (window.Settings) {
+          syncButtonStates();
+        } else {
+          // 如果Settings还未加载，1秒后再试
+          setTimeout(checkAndSync, 1000);
+        }
+      }
+
+      // 等待DOM加载完成后绑定事件
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => {
+          bindLayerButtons();
+          checkAndSync();
+        });
+      } else {
+        bindLayerButtons();
+        checkAndSync();
       }
     })();
   </script>

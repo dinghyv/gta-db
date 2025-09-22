@@ -1,0 +1,43 @@
+{
+  "rewrites": [
+    {
+      "source": "/rdr-map/collector/(.*)",
+      "destination": "/rdr-map/collector/$1"
+    },
+    {
+      "source": "/rdr-map/collector",
+      "destination": "/rdr-map/collector/index.html"
+    },
+    {
+      "source": "/rdr-map/main/(.*)",
+      "destination": "/rdr-map/main/$1"
+    },
+    {
+      "source": "/rdr-map/main",
+      "destination": "/rdr-map/main/index.html"
+    },
+    {
+      "source": "/rdr-map",
+      "destination": "/rdr-map/main/index.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-XSS-Protection",
+          "value": "1; mode=block"
+        }
+      ]
+    }
+  ]
+}

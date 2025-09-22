@@ -5,6 +5,30 @@
       "destination": "/rdr-map/$1"
     },
     {
+      "source": "/gta-map/(.*)",
+      "destination": "/gta-map/$1"
+    },
+    {
+      "source": "/group/(.*)",
+      "destination": "/group/$1"
+    },
+    {
+      "source": "/vehicles/(.*)",
+      "destination": "/vehicles/$1"
+    },
+    {
+      "source": "/admin/(.*)",
+      "destination": "/admin/$1"
+    },
+    {
+      "source": "/src/(.*)",
+      "destination": "/src/$1"
+    },
+    {
+      "source": "/(.*\\.(css|js|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|json|txt|xml|webmanifest))",
+      "destination": "/$1"
+    },
+    {
       "source": "/(.*)",
       "destination": "/404.html"
     }

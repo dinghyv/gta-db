@@ -1,19 +1,11 @@
 {
   "rewrites": [
     {
-      "source": "/rdr-map/collector/(.*)",
-      "destination": "/rdr-map/collector/$1"
-    },
-    {
       "source": "/rdr-map/collector",
       "destination": "/rdr-map/collector/index.html"
     },
     {
-      "source": "/rdr-map/main/(.*)",
-      "destination": "/rdr-map/main/$1"
-    },
-    {
-      "source": "/rdr-map/main",
+      "source": "/rdr-map/main", 
       "destination": "/rdr-map/main/index.html"
     },
     {

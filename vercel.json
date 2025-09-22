@@ -1,6 +1,22 @@
 {
-  "cleanUrls": true,
-  "trailingSlash": false,
+  "functions": {
+    "rdr-map/collector/index.html": {
+      "runtime": "@vercel/static"
+    },
+    "rdr-map/main/index.html": {
+      "runtime": "@vercel/static"
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/rdr-map/collector",
+      "destination": "/rdr-map/collector/index.html"
+    },
+    {
+      "source": "/rdr-map/main",
+      "destination": "/rdr-map/main/index.html"
+    }
+  ],
   "headers": [
     {
       "source": "/(.*)",

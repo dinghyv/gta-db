@@ -23,10 +23,5 @@
         }
       ]
     }
-  ],
-  "functions": {
-    "404.html": {
-      "maxDuration": 10
-    }
-  }
+  ]
 }

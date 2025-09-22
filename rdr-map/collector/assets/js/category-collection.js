@@ -204,15 +204,15 @@ class Collection extends BaseCollection {
     element.innerHTML = `
         <div class="menu-option clickable" data-type="${this.category}" data-help="item_category">
           <span>
-            <img class="icon" src="assets/images/icons/${this.category}.png" alt="${this.category}">
+            <img class="icon" src="./assets/images/icons/${this.category}.png" alt="${this.category}">
             <span>
               <span class="menu-option-text" data-text="menu.${this.category}"></span>
-              <img class="same-cycle-warning-menu" src="assets/images/same-cycle-alert.png">
+              <img class="same-cycle-warning-menu" src="./assets/images/same-cycle-alert.png">
             </span>
           </span>
           <input class="input-text input-cycle hidden" type="number" min="1" max="6"
             name="${this.category}" data-help="item_manual_cycle">
-          <img class="cycle-icon hidden" src="assets/images/cycle_1.png" alt="Cycle 1"
+          <img class="cycle-icon hidden" src="./assets/images/cycle_1.png" alt="Cycle 1"
             data-type="${this.category}">
           <div class="open-submenu"></div>
         </div>

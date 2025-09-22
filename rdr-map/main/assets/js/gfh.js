@@ -92,8 +92,8 @@ class GunForHire {
           iconAnchor: [17 * markerSize, 42 * markerSize],
           popupAnchor: [1 * markerSize, -29 * markerSize],
           html: `<div>
-            <img class="icon" src="assets/images/icons/${this.type ? this.type : 'gfh'}.png" alt="Icon">
-            <img class="background" src="assets/images/icons/marker_${MapBase.colorOverride || this.color}.png" alt="Background">
+            <img class="icon" src="./assets/images/icons/${this.type ? this.type : 'gfh'}.png" alt="Icon">
+            <img class="background" src="./assets/images/icons/marker_${MapBase.colorOverride || this.color}.png" alt="Background">
             ${shadow}
           </div>`,
           marker: this.key,

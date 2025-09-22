@@ -106,8 +106,8 @@ class Item extends BaseItem {
     menuBtn.setAttribute('data-type', this.legacyItemId);
     menuBtn.setAttribute('data-help', ['provision_wldflwr_agarita', 'provision_wldflwr_blood_flower'].includes(this.itemId) ? 'item_night_only' : 'item');
     menuBtn.innerHTML = `
-        <img class="collectible-icon" src="assets/images/icons/game/${this.itemId}.png" alt="Set icon">
-        <img class="collectible-icon random-spot" src="assets/images/icons/random_overlay.png" alt="Random set icon">
+        <img class="collectible-icon" src="./assets/images/icons/game/${this.itemId}.png" alt="Set icon">
+        <img class="collectible-icon random-spot" src="./assets/images/icons/random_overlay.png" alt="Random set icon">
         <span class="collectible-text">
           <p class="collectible" data-text="${this.itemTranslationKey}"></p>
           <span class="counter">

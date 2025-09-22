@@ -59,8 +59,8 @@ class Singleplayer {
             iconAnchor: [17 * Settings.markerSize, 42 * Settings.markerSize],
             popupAnchor: [1 * Settings.markerSize, -29 * Settings.markerSize],
             html: `<div>
-                <img class="icon" src="assets/images/icons/${this.key}.png" alt="Icon">
-                <img class="background" src="assets/images/icons/marker_${MapBase.colorOverride || this.color}.png" alt="Background">
+                <img class="icon" src="./assets/images/icons/${this.key}.png" alt="Icon">
+                <img class="background" src="./assets/images/icons/marker_${MapBase.colorOverride || this.color}.png" alt="Background">
                 ${shadow}
               </div>`,
             marker: this.key,

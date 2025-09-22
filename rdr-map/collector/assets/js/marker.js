@@ -339,7 +339,7 @@ class Marker {
       </span>
       <span class="marker-content-wrapper">
         <div>
-          <img class="tool-type" height=32 width=32 src="assets/images/shovel.png">
+          <img class="tool-type" height=32 width=32 src="./assets/images/shovel.png">
         </div>
         <div>
           <p class="unavailable-item" data-text="map.item.unable"></p>
@@ -610,7 +610,7 @@ class Marker {
     
       const inputVal = colorNameToHexMap[savedColors[category] || markerColors[0]] || savedColors[category] || markerColors[0];
       snippet.innerHTML = `
-        <img class="icon" src="assets/images/icons/${category.startsWith('random_spot') ? 'random' : category}.png" alt="${category}">
+        <img class="icon" src="./assets/images/icons/${category.startsWith('random_spot') ? 'random' : category}.png" alt="${category}">
         <label for="custom-marker-color" data-text="menu.${category}"></label>
         <div class="input-pickr-wrapper">
           <input type="text" class="input-text pickr-custom-marker-color" id="${category}-custom-marker-color" readonly value="${inputVal}" style="background-color: ${inputVal}">

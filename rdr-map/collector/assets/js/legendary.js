@@ -108,7 +108,7 @@ class Legendary {
     const snippet = document.createElement('div');
     snippet.classList.add('handover-wrapper-with-no-influence');
     snippet.innerHTML = `
-        <img class="legendary-animal-popup-image" src="assets/images/icons/game/animals/legendaries/${this.text}.svg" alt="Animal">
+        <img class="legendary-animal-popup-image" src="./assets/images/icons/game/animals/legendaries/${this.text}.svg" alt="Animal">
         <h1 data-text="${this.text}"></h1>
         <div class="accordion accordion-flush" id="legendary-accordion">
           <div class="accordion-item">

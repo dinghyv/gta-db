@@ -618,7 +618,7 @@ searchContainer.addEventListener('mouseenter', () => {
 });
 
 document.getElementById('copy-search-link').addEventListener('click', function () {
-  setClipboardText(`http://jeanropke.github.io/RDR2CollectorsMap/?search=${searchInput.value}`);
+  setClipboardText(`https://v.antwen.com/rdr-map/collector/?search=${searchInput.value}`);
 });
 
 document.getElementById('clear-search').addEventListener('click', function () {

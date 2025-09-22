@@ -140,7 +140,7 @@ const SettingProxy = (function () {
 const Settings = SettingProxy.createSettingProxy('rdo');
 Object.entries({
   alertClosed: { default: false },
-  baseLayer: { default: 'map.layers.default' },
+  baseLayer: { default: 'map.layers.detailed' },
   fmeDisplayGeneralPeriod: { default: 30 },
   fmeDisplayRolePeriod: { default: 60 },
   fmeEnabledEvents: { default: 131071 },

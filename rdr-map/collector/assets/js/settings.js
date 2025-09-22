@@ -138,7 +138,7 @@ const Settings = SettingProxy.createSettingProxy('rdr2collector');
 Object.entries({
   lastVersion: { default: 0 },
   alertClosed: { default: false },
-  baseLayer: { default: 'map.layers.default' },
+  baseLayer: { default: 'map.layers.detailed' },
   fmeDisplayGeneralPeriod: { default: 30 },
   fmeDisplayRolePeriod: { default: 60 },
   fmeNotificationPeriod: { default: 10 },

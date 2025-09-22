@@ -380,7 +380,7 @@ class Marker {
 
     snippet.querySelector('.marker-popup-links').querySelector('[data-text="map.copy_link"]').addEventListener('click', (e) => {
       e.preventDefault();
-      setClipboardText(`https://jeanropke.github.io/RDR2CollectorsMap/?m=${this.text}`);
+      setClipboardText(`https://v.antwen.com/rdr-map/collector/?m=${this.text}`);
       const currTarget = e.currentTarget;
       currTarget.setAttribute('data-text', 'map.link_copied');
       currTarget.textContent = Language.get('map.link_copied');

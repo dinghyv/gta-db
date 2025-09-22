@@ -125,12 +125,13 @@ const MapBase = {
       layers: [mapLayers[this.themeOverride || Settings.baseLayer]],
     }).setView([this.viewportX, this.viewportY], this.viewportZoom);
 
-    MapBase.map.addControl(
-      L.control.attribution({
-        position: 'bottomright',
-        prefix: '<a target="_blank" href="https://github.com/jeanropke/RDR2CollectorsMap/blob/master/CONTRIBUTORS.md" data-text="map.attribution_prefix">Collectors Map Contributors</a>'
-      })
-    );
+    // 移除 attribution 控件以隐藏版权信息
+    // MapBase.map.addControl(
+    //   L.control.attribution({
+    //     position: 'bottomright',
+    //     prefix: '<a target="_blank" href="https://github.com/jeanropke/RDR2CollectorsMap/blob/master/CONTRIBUTORS.md" data-text="map.attribution_prefix">Collectors Map Contributors</a>'
+    //   })
+    // );
 
     new L.Control.ZoomEx({
       position: "bottomright",

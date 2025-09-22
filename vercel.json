@@ -1,6 +1,10 @@
 {
   "rewrites": [
     {
+      "source": "/rdr-map/(.*)",
+      "destination": "/rdr-map/$1"
+    },
+    {
       "source": "/(.*)",
       "destination": "/404.html"
     }

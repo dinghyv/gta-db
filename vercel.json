@@ -1,12 +1,4 @@
 {
-  "functions": {
-    "rdr-map/collector/index.html": {
-      "runtime": "@vercel/static"
-    },
-    "rdr-map/main/index.html": {
-      "runtime": "@vercel/static"
-    }
-  },
   "rewrites": [
     {
       "source": "/rdr-map/collector",

@@ -1164,7 +1164,10 @@
             'wea',
             
             // 第9组：特殊生物
-            'halloween_slashers'
+            'halloween_slashers',
+            
+            // 第10组：悬赏系统
+            'maude_bounty_targets'
         ]);
 
         // Leaflet标记存储
@@ -3169,21 +3172,21 @@
             
             // 特殊处理halloween_slashers - 万圣节杀人狂圆形区域
             if (type === 'halloween_slashers') {
-                // 计算圆形半径（使用正确的像素半径，参考原DOM实现）
+                // 计算圆形半径（使用像素坐标，与原DOM实现一致）
                 const level = getLevelByZoom(z);
                 if (!level) return null;
                 
                 const totalWidth = level.cols * TILE_SIZE;
-                const gameWidth = GAME_RIGHT - GAME_LEFT; // 9000
-                const pixelRadius = (item.radius / gameWidth) * totalWidth;
+                const gameWidth = GAME_RIGHT - GAME_LEFT;
+                const radiusPixels = (item.radius / gameWidth) * totalWidth;
                 
-                // 使用circleMarker而不是circle，保持固定像素大小
+                // 使用circleMarker而不是circle，以像素为单位
                 const circle = L.circleMarker(latlng, {
                     color: getSlasherColor(item.type).border,
                     fillColor: getSlasherColor(item.type).fill,
                     fillOpacity: 0.3,
                     weight: 3,
-                    radius: pixelRadius,
+                    radius: radiusPixels,
                     interactive: true
                 }).addTo(map);
                 
@@ -3213,7 +3216,7 @@
                 return {
                     circle: circle,
                     icon: iconMarker,
-                    item: item, // 保存item数据用于缩放时更新
+                    item: item, // 保存item数据用于缩放时更新半径
                     // 实现与单个marker相同的接口
                     addTo: function(map) { return this; },
                     removeFrom: function(map) {
@@ -3222,6 +3225,72 @@
                         return this;
                     }
                 };
+            }
+            
+            // 特殊处理maude_bounty_targets - 茉德悬赏目标
+            if (type === 'maude_bounty_targets') {
+                if (item.subtype === 'area') {
+                    // 悬赏区域：黄色圆圈，半径185游戏单位
+                    const level = getLevelByZoom(z);
+                    if (!level) return null;
+                    
+                    const totalWidth = level.cols * TILE_SIZE;
+                    const gameWidth = GAME_RIGHT - GAME_LEFT;
+                    const bountyRadius = 185; // 固定半径185游戏单位
+                    const radiusPixels = (bountyRadius / gameWidth) * totalWidth;
+                    
+                    // 创建黄色圆圈
+                    const circle = L.circleMarker(latlng, {
+                        color: '#FFD700', // 金黄色边框
+                        fillColor: '#FFD700',
+                        fillOpacity: 0.2,
+                        weight: 3,
+                        radius: radiusPixels,
+                        interactive: true
+                    }).addTo(map);
+                    
+                    // 添加点击事件
+                    circle.on('click', function(e) {
+                        showMaudeBountyPopup(item, index, 'area');
+                    });
+                    
+                    return {
+                        circle: circle,
+                        icon: null,
+                        item: { ...item, radius: bountyRadius }, // 添加半径信息用于缩放更新
+                        addTo: function(map) { return this; },
+                        removeFrom: function(map) {
+                            map.removeLayer(this.circle);
+                            return this;
+                        }
+                    };
+                } else if (item.subtype === 'endpoint') {
+                    // 悬赏终点：黄色小叉号
+                    const customIcon = L.divIcon({
+                        html: `
+                            <div style="width: 16px; height: 16px; position: relative;">
+                                <div style="position: absolute; top: 50%; left: 50%; width: 12px; height: 2px; background: #FFD700; transform: translate(-50%, -50%) rotate(45deg);"></div>
+                                <div style="position: absolute; top: 50%; left: 50%; width: 12px; height: 2px; background: #FFD700; transform: translate(-50%, -50%) rotate(-45deg);"></div>
+                            </div>
+                        `,
+                        className: 'custom-div-icon',
+                        iconSize: [16, 16],
+                        iconAnchor: [8, 8],
+                        popupAnchor: [0, -8]
+                    });
+                    
+                    const marker = L.marker(latlng, {
+                        icon: customIcon,
+                        interactive: true,
+                        zIndexOffset: 1001
+                    }).addTo(map);
+                    
+                    marker.on('click', function(e) {
+                        showMaudeBountyPopup(item, index, 'endpoint');
+                    });
+                    
+                    return marker;
+                }
             }
             
             // 创建自定义图标
@@ -3270,24 +3339,6 @@
             leafletMarkers = [];
         }
         
-        // 更新Leaflet标记在缩放时的大小
-        function updateLeafletMarkersOnZoom() {
-            const z = map.getZoom();
-            const level = getLevelByZoom(z);
-            if (!level) return;
-            
-            const totalWidth = level.cols * TILE_SIZE;
-            const gameWidth = GAME_RIGHT - GAME_LEFT;
-            
-            leafletMarkers.forEach(marker => {
-                // 处理halloween_slashers的圆形标记
-                if (marker.circle && marker.icon && marker.item && marker.item.radius) {
-                    const pixelRadius = (marker.item.radius / gameWidth) * totalWidth;
-                    marker.circle.setRadius(pixelRadius);
-                }
-            });
-        }
-        
         // 获取杀人狂颜色配置
         function getSlasherColor(slasherType) {
             switch(slasherType) {
@@ -3317,6 +3368,24 @@
                         fill: '#D7CCC8'
                     };
             }
+        }
+        
+        // 更新圆形标记大小（在地图缩放时调用）- 包括万圣节杀人狂和茉德悬赏目标
+        function updateCircleMarkersOnZoom() {
+            const z = map.getZoom();
+            const level = getLevelByZoom(z);
+            if (!level) return;
+            
+            const totalWidth = level.cols * TILE_SIZE;
+            const gameWidth = GAME_RIGHT - GAME_LEFT;
+            
+            leafletMarkers.forEach(marker => {
+                // 检查是否是圆形标记（包含circle和item属性，且item有radius）
+                if (marker.circle && marker.item && marker.item.radius) {
+                    const radiusPixels = (marker.item.radius / gameWidth) * totalWidth;
+                    marker.circle.setRadius(radiusPixels);
+                }
+            });
         }
 
         // 创建物品标记
@@ -3758,6 +3827,32 @@
                             const marker = createLeafletMarker(item, index, type);
                             leafletMarkers.push(marker);
                         });
+                    }
+                    // 特殊处理maude_bounty_targets - 茉德悬赏目标
+                    else if (type === 'maude_bounty_targets') {
+                        const maudeData = itemData.maude_bounty_targets;
+                        
+                        // 处理悬赏区域
+                        if (maudeData && maudeData.areas) {
+                            maudeData.areas.forEach((area, index) => {
+                                if (typeof area.x === 'undefined' || typeof area.y === 'undefined') return;
+                                
+                                const areaItem = { ...area, subtype: 'area' };
+                                const marker = createLeafletMarker(areaItem, index, type);
+                                leafletMarkers.push(marker);
+                            });
+                        }
+                        
+                        // 处理悬赏终点
+                        if (maudeData && maudeData.endpoints) {
+                            maudeData.endpoints.forEach((endpoint, index) => {
+                                if (typeof endpoint.x === 'undefined' || typeof endpoint.y === 'undefined') return;
+                                
+                                const endpointItem = { ...endpoint, subtype: 'endpoint' };
+                                const marker = createLeafletMarker(endpointItem, index, type);
+                                leafletMarkers.push(marker);
+                            });
+                        }
                     } else {
                         // 普通标记处理
                         if (!itemData[type] || !Array.isArray(itemData[type])) return;
@@ -3778,7 +3873,7 @@
                 if (pilotMarkerTypes.has(type)) return;
                 
                 // 跳过有特殊渲染逻辑的类型
-                if (type === 'maude_bounty_targets' || type === 'serial_killer_slasher' || type === 'movie_props' || type === 'treasure_hunt_dba_revolver' || type === 'stash_houses' || type === 'madrazo_hits' || type === 'police_rescue_patrick_mcreary' || type === 'random_missions' || type === 'drug_vehicle' || type === 'smuggler_plane' || type === 'smuggler_trail' || type === 'convoy' || type === 'possessed_animals' || type === 'yeti' || type === 'cerberus') return;
+                if (type === 'serial_killer_slasher' || type === 'movie_props' || type === 'treasure_hunt_dba_revolver' || type === 'stash_houses' || type === 'madrazo_hits' || type === 'police_rescue_patrick_mcreary' || type === 'random_missions' || type === 'drug_vehicle' || type === 'smuggler_plane' || type === 'smuggler_trail' || type === 'convoy' || type === 'possessed_animals' || type === 'yeti' || type === 'cerberus') return;
                 
                 // 调试信息
                 if (type === 'crime_scenes') {
@@ -4098,94 +4193,7 @@
                 });
             }
 
-            // 特殊：茉德悬赏目标渲染（黄色圆圈和黄色小叉号）
-            if (activeItemTypes.has('maude_bounty_targets')) {
-                const mb = itemData.maude_bounty_targets;
-                
-                // 渲染悬赏区域（黄色圆圈，半径185）
-                if (mb.areas) {
-                    mb.areas.forEach((area, index) => {
-                        if (typeof area.x === 'undefined' || typeof area.y === 'undefined') return;
-                        const percentX = (area.x - GAME_LEFT) / (GAME_RIGHT - GAME_LEFT);
-                        const percentY = (GAME_TOP - area.y) / (GAME_TOP - GAME_BOTTOM);
-                        const itemX = percentX * totalWidth;
-                        const itemY = percentY * totalHeight;
-                        
-                        // 创建黄色圆圈
-                        const circle = document.createElement('div');
-                        circle.className = 'item-marker maude-area-circle';
-                        circle.dataset.type = 'maude_bounty_area';
-                        circle.dataset.index = index;
-                        circle.style.position = 'absolute';
-                        circle.style.left = `${itemX}px`;
-                        circle.style.top = `${itemY}px`;
-                        
-                        // 计算游戏坐标185对应的像素大小
-                        const gameRadius = 185; // 游戏坐标半径
-                        const gameWidth = GAME_RIGHT - GAME_LEFT; // 9000
-                        const pixelRadius = (gameRadius / gameWidth) * totalWidth;
-                        const circleSize = pixelRadius * 2; // 直径
-                        
-                        circle.style.width = `${circleSize}px`;
-                        circle.style.height = `${circleSize}px`;
-                        circle.style.border = '3px solid #FFD700';
-                        circle.style.borderRadius = '50%';
-                        circle.style.backgroundColor = 'rgba(255, 215, 0, 0.1)';
-                        circle.style.transform = 'translate(-50%, -50%)';
-                        circle.style.cursor = 'pointer';
-                        circle.style.zIndex = '650';
-                        
-                        // 添加点击事件
-                        circle.addEventListener('click', (e) => {
-                            e.stopPropagation();
-                            showMaudeBountyPopup(area, index, 'area');
-                        });
-                        
-                        tilePaneDom.appendChild(circle);
-                        itemMarkers.push({ type: 'maude_bounty_area', index: index, el: circle });
-                    });
-                }
-                
-                // 渲染悬赏终点（黄色小叉号）
-                if (mb.endpoints) {
-                    mb.endpoints.forEach((endpoint, index) => {
-                        if (typeof endpoint.x === 'undefined' || typeof endpoint.y === 'undefined') return;
-                        const percentX = (endpoint.x - GAME_LEFT) / (GAME_RIGHT - GAME_LEFT);
-                        const percentY = (GAME_TOP - endpoint.y) / (GAME_TOP - GAME_BOTTOM);
-                        const itemX = percentX * totalWidth;
-                        const itemY = percentY * totalHeight;
-                        
-                        // 创建黄色小叉号
-                        const cross = document.createElement('div');
-                        cross.className = 'item-marker maude-endpoint-cross';
-                        cross.dataset.type = 'maude_bounty_endpoint';
-                        cross.dataset.index = index;
-                        cross.style.position = 'absolute';
-                        cross.style.left = `${itemX}px`;
-                        cross.style.top = `${itemY}px`;
-                        cross.style.width = '20px';
-                        cross.style.height = '20px';
-                        cross.style.transform = 'translate(-50%, -50%)';
-                        cross.style.cursor = 'pointer';
-                        cross.style.zIndex = '660';
-                        
-                        // 创建叉号样式
-                        cross.innerHTML = `
-                            <div style="position: absolute; top: 50%; left: 0; width: 100%; height: 3px; background: #FFD700; transform: translateY(-50%) rotate(45deg);"></div>
-                            <div style="position: absolute; top: 50%; left: 0; width: 100%; height: 3px; background: #FFD700; transform: translateY(-50%) rotate(-45deg);"></div>
-                        `;
-                        
-                        // 添加点击事件
-                        cross.addEventListener('click', (e) => {
-                            e.stopPropagation();
-                            showMaudeBountyPopup(endpoint, index, 'endpoint');
-                        });
-                        
-                        tilePaneDom.appendChild(cross);
-                        itemMarkers.push({ type: 'maude_bounty_endpoint', index: index, el: cross });
-                    });
-                }
-            }
+            // 注意：茉德悬赏目标现在使用Leaflet标记系统渲染，不再需要DOM渲染
 
 
             // 特殊：走私贩飞机渲染（已迁移到Leaflet系统）
@@ -7432,7 +7440,7 @@
             resetViewForZoom(z, { x: centerPixel.x, y: centerPixel.y });
             updateTilePanePosition();
             probeTilesForStyleAndZoom(currentStyle, z);
-            updateLeafletMarkersOnZoom(); // 更新Leaflet标记大小
+            updateCircleMarkersOnZoom(); // 更新圆形标记大小（万圣节杀人狂、茉德悬赏等）
             updatePossessedAnimalsCircleSizes(z);
             updateYetiCircleSizes(z);
         });
@@ -7552,8 +7560,7 @@
             // 检测是否点击在杀人狂附近
             checkSlasherClick(gameX, gameY);
             
-            // 检测是否点击在茉德悬赏目标附近
-            checkMaudeBountyClick(gameX, gameY);
+            // 注意：茉德悬赏目标现在使用Leaflet标记系统，点击事件由Leaflet自动处理
             
             // 检测是否点击在媒体记忆棒附近
             checkMediaStickClick(gameX, gameY);
@@ -8324,47 +8331,7 @@
             }
         }
 
-        // 检测茉德悬赏目标点击（坐标检测）
-        function checkMaudeBountyClick(clickX, clickY) {
-            const MAUDE_BOUNTY_RADIUS = 185; // 检测半径185单位（与圆圈半径一致）
-            
-            // 检查当前是否显示茉德悬赏目标
-            if (activeItemTypes.has('maude_bounty_targets') && itemData.maude_bounty_targets) {
-                // 检查悬赏区域
-                if (itemData.maude_bounty_targets.areas) {
-                    const nearbyArea = itemData.maude_bounty_targets.areas.find((area, index) => {
-                        const distance = Math.sqrt(Math.pow(area.x - clickX, 2) + Math.pow(area.y - clickY, 2));
-                        return distance <= MAUDE_BOUNTY_RADIUS;
-                    });
-                    
-                    if (nearbyArea) {
-                        const index = itemData.maude_bounty_targets.areas.findIndex(area => 
-                            area.x === nearbyArea.x && area.y === nearbyArea.y
-                        );
-                        console.log('点击了茉德悬赏区域附近:', nearbyArea.name);
-                        showMaudeBountyPopup(nearbyArea, index, 'area');
-                        return;
-                    }
-                }
-                
-                // 检查悬赏终点
-                if (itemData.maude_bounty_targets.endpoints) {
-                    const nearbyEndpoint = itemData.maude_bounty_targets.endpoints.find((endpoint, index) => {
-                        const distance = Math.sqrt(Math.pow(endpoint.x - clickX, 2) + Math.pow(endpoint.y - clickY, 2));
-                        return distance <= 50; // 终点检测半径较小
-                    });
-                    
-                    if (nearbyEndpoint) {
-                        const index = itemData.maude_bounty_targets.endpoints.findIndex(endpoint => 
-                            endpoint.x === nearbyEndpoint.x && endpoint.y === nearbyEndpoint.y
-                        );
-                        console.log('点击了茉德悬赏终点附近:', nearbyEndpoint.name);
-                        showMaudeBountyPopup(nearbyEndpoint, index, 'endpoint');
-                        return;
-                    }
-                }
-            }
-        }
+        // 注意：茉德悬赏目标现在使用Leaflet标记系统，不再需要DOM点击检测
 
         // 茉德悬赏目标弹窗
         function showMaudeBountyPopup(item, index, subtype) {

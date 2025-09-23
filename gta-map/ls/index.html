@@ -3186,6 +3186,51 @@
                 return marker;
             }
             
+            // 特殊处理movie_props - 不同子类型不同图标
+            if (type === 'movie_props') {
+                let iconUrl = '../src/assets/mp_static.svg';
+                if (item && item.type === 'pony') {
+                    iconUrl = '../src/assets/mp_pony.svg';
+                } else if (item && item.type === 'rebel') {
+                    iconUrl = '../src/assets/mp_rebel.svg';
+                } else if (item && item.type === 'rumpo') {
+                    iconUrl = '../src/assets/mp_rumpo.svg';
+                } else if (item && item.type === 'fixed_position') {
+                    iconUrl = '../src/assets/mp_static.svg';
+                }
+                
+                const customIcon = L.icon({
+                    iconUrl: iconUrl,
+                    iconSize: [32, 32],
+                    iconAnchor: [16, 16],
+                    popupAnchor: [0, -16]
+                });
+                
+                const marker = L.marker(latlng, {
+                    icon: customIcon,
+                    interactive: true,
+                    zIndexOffset: 1000
+                }).addTo(map);
+                
+                marker.on('click', function(e) {
+                    // 优先使用数据里的子类型
+                    let subtype = item && item.type ? item.type : undefined;
+                    if (!subtype) {
+                        const mp = itemData.movie_props || { fixed_position: [], vehicles: { pony: [], rebel: [], rumpo: [] } };
+                        const fixedCount = mp.fixed_position?.length || 0;
+                        const ponyCount = mp.vehicles?.pony?.length || 0;
+                        const rebelCount = mp.vehicles?.rebel?.length || 0;
+                        if (index < fixedCount) subtype = 'fixed_position';
+                        else if (index < fixedCount + ponyCount) subtype = 'pony';
+                        else if (index < fixedCount + ponyCount + rebelCount) subtype = 'rebel';
+                        else subtype = 'rumpo';
+                    }
+                    showMoviePropsPopup(item, index, subtype);
+                });
+                
+                return marker;
+            }
+            
             // 特殊处理halloween_slashers - 万圣节杀人狂圆形区域
             if (type === 'halloween_slashers') {
                 // 计算圆形半径（使用像素坐标，与原DOM实现一致）
@@ -3597,15 +3642,18 @@
                 }
                 // 电影道具弹窗
                 else if (type === 'movie_props') {
-                    const mp = itemData.movie_props || { fixed_position: [], vehicles: { pony: [], rebel: [], rumpo: [] } };
-                    const fixedCount = mp.fixed_position?.length || 0;
-                    const ponyCount = mp.vehicles?.pony?.length || 0;
-                    const rebelCount = mp.vehicles?.rebel?.length || 0;
-                    let subtype;
-                    if (index < fixedCount) subtype = 'fixed_position';
-                    else if (index < fixedCount + ponyCount) subtype = 'pony';
-                    else if (index < fixedCount + ponyCount + rebelCount) subtype = 'rebel';
-                    else subtype = 'rumpo';
+                    // 优先使用数据里的子类型
+                    let subtype = item && item.type ? item.type : undefined;
+                    if (!subtype) {
+                        const mp = itemData.movie_props || { fixed_position: [], vehicles: { pony: [], rebel: [], rumpo: [] } };
+                        const fixedCount = mp.fixed_position?.length || 0;
+                        const ponyCount = mp.vehicles?.pony?.length || 0;
+                        const rebelCount = mp.vehicles?.rebel?.length || 0;
+                        if (index < fixedCount) subtype = 'fixed_position';
+                        else if (index < fixedCount + ponyCount) subtype = 'pony';
+                        else if (index < fixedCount + ponyCount + rebelCount) subtype = 'rebel';
+                        else subtype = 'rumpo';
+                    }
                     showMoviePropsPopup(item, index, subtype);
                 }
                 else {

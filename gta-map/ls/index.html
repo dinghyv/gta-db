@@ -1165,6 +1165,8 @@
             
             // 第9组：特殊生物
             'halloween_slashers',
+            'possessed_animals',
+            'yeti',
             
             // 第10组：悬赏系统
             'maude_bounty_targets'
@@ -3227,6 +3229,123 @@
                 };
             }
             
+            // 特殊处理possessed_animals - 鬼上身动物圆形区域
+            if (type === 'possessed_animals') {
+                // 计算圆形半径（使用像素坐标，与原DOM实现一致）
+                const level = getLevelByZoom(z);
+                if (!level) return null;
+                
+                const totalWidth = level.cols * TILE_SIZE;
+                const gameWidth = GAME_RIGHT - GAME_LEFT;
+                const radiusPixels = (item.radius / gameWidth) * totalWidth;
+                
+                // 使用circleMarker而不是circle，以像素为单位
+                const circle = L.circleMarker(latlng, {
+                    color: getPossessedAnimalColor(item.animalType).border,
+                    fillColor: getPossessedAnimalColor(item.animalType).fill,
+                    fillOpacity: 0.3,
+                    weight: 3,
+                    radius: radiusPixels,
+                    interactive: true
+                }).addTo(map);
+                
+                // 在圆心添加图标
+                const customIcon = L.icon({
+                    iconUrl: itemIcons[type],
+                    iconSize: [32, 32],
+                    iconAnchor: [16, 16],
+                    popupAnchor: [0, -16]
+                });
+                
+                const iconMarker = L.marker(latlng, {
+                    icon: customIcon,
+                    interactive: true,
+                    zIndexOffset: 1001
+                }).addTo(map);
+                
+                // 为圆形和图标都添加点击事件
+                const clickHandler = function(e) {
+                    showPossessedAnimalPopup(item, index);
+                };
+                
+                circle.on('click', clickHandler);
+                iconMarker.on('click', clickHandler);
+                
+                // 返回一个包含圆形和图标的组合对象
+                return {
+                    circle: circle,
+                    icon: iconMarker,
+                    item: item, // 保存item数据用于缩放时更新半径
+                    // 实现与单个marker相同的接口
+                    addTo: function(map) { return this; },
+                    removeFrom: function(map) {
+                        map.removeLayer(this.circle);
+                        map.removeLayer(this.icon);
+                        return this;
+                    }
+                };
+            }
+            
+            // 特殊处理yeti - 雪怪（圆形区域和线索点）
+            if (type === 'yeti') {
+                const level = getLevelByZoom(z);
+                if (!level) return null;
+                
+                if (item.type === 'area') {
+                    // 处理雪怪区域（白色圆圈）
+                    const totalWidth = level.cols * TILE_SIZE;
+                    const gameWidth = GAME_RIGHT - GAME_LEFT;
+                    const radiusPixels = (item.radius / gameWidth) * totalWidth;
+                    
+                    const circle = L.circleMarker(latlng, {
+                        color: '#FFFFFF',
+                        fillColor: 'rgba(255, 255, 255, 0.1)',
+                        fillOpacity: 0.3,
+                        weight: 3,
+                        radius: radiusPixels,
+                        interactive: true
+                    }).addTo(map);
+                    
+                    // 雪怪区域只显示圆圈，不显示图标
+                    const clickHandler = function(e) {
+                        showYetiPopup(item, index);
+                    };
+                    
+                    circle.on('click', clickHandler);
+                    
+                    return {
+                        circle: circle,
+                        icon: null,
+                        item: item,
+                        addTo: function(map) { return this; },
+                        removeFrom: function(map) {
+                            map.removeLayer(this.circle);
+                            return this;
+                        }
+                    };
+                } else if (item.type === 'clue') {
+                    // 处理线索点（what.svg图标）
+                    const customIcon = L.icon({
+                        iconUrl: '../src/assets/what.svg',
+                        iconSize: [24, 24],
+                        iconAnchor: [12, 12],
+                        popupAnchor: [0, -12]
+                    });
+                    
+                    const marker = L.marker(latlng, {
+                        icon: customIcon,
+                        interactive: true,
+                        zIndexOffset: 1000
+                    }).addTo(map);
+                    
+                    marker.on('click', function(e) {
+                        showYetiPopup(item, index);
+                    });
+                    
+                    return marker;
+                }
+            }
+            
             // 特殊处理maude_bounty_targets - 茉德悬赏目标
             if (type === 'maude_bounty_targets') {
                 if (item.subtype === 'area') {
@@ -3333,7 +3452,7 @@
                     map.removeLayer(marker.circle);
                     map.removeLayer(marker.icon);
                 } else {
-                    map.removeLayer(marker);
+                map.removeLayer(marker);
                 }
             });
             leafletMarkers = [];
@@ -3366,6 +3485,42 @@
                     return {
                         border: '#795548', // 棕色
                         fill: '#D7CCC8'
+                    };
+            }
+        }
+        
+        // 获取鬼上身动物颜色配置
+        function getPossessedAnimalColor(animalType) {
+            switch(animalType) {
+                case 'boar':
+                    return {
+                        border: '#8D6E63', // 棕色
+                        fill: '#D7CCC8'
+                    };
+                case 'cougar':
+                    return {
+                        border: '#FF5722', // 橙红色
+                        fill: '#FFCCBC'
+                    };
+                case 'coyote':
+                    return {
+                        border: '#795548', // 深棕色
+                        fill: '#D7CCC8'
+                    };
+                case 'deer':
+                    return {
+                        border: '#4CAF50', // 绿色
+                        fill: '#C8E6C9'
+                    };
+                case 'pug':
+                    return {
+                        border: '#9C27B0', // 紫色
+                        fill: '#E1BEE7'
+                    };
+                default:
+                    return {
+                        border: '#607D8B', // 蓝灰色
+                        fill: '#CFD8DC'
                     };
             }
         }
@@ -3828,6 +3983,30 @@
                             leafletMarkers.push(marker);
                         });
                     }
+                    // 特殊处理possessed_animals - 鬼上身动物圆形区域
+                    else if (type === 'possessed_animals') {
+                        if (!itemData[type] || !Array.isArray(itemData[type])) return;
+                        
+                        itemData[type].forEach((item, index) => {
+                            if (typeof item.x === 'undefined' || typeof item.y === 'undefined' || typeof item.radius === 'undefined') return;
+                            
+                            const marker = createLeafletMarker(item, index, type);
+                            leafletMarkers.push(marker);
+                        });
+                    }
+                    // 特殊处理yeti - 雪怪（圆形区域和线索点）
+                    else if (type === 'yeti') {
+                        if (!itemData[type] || !Array.isArray(itemData[type])) return;
+                        
+                        itemData[type].forEach((item, index) => {
+                            if (typeof item.x === 'undefined' || typeof item.y === 'undefined') return;
+                            
+                            const marker = createLeafletMarker(item, index, type);
+                            if (marker) { // yeti可能返回null（如果类型不匹配）
+                                leafletMarkers.push(marker);
+                            }
+                        });
+                    }
                     // 特殊处理maude_bounty_targets - 茉德悬赏目标
                     else if (type === 'maude_bounty_targets') {
                         const maudeData = itemData.maude_bounty_targets;
@@ -3873,7 +4052,7 @@
                 if (pilotMarkerTypes.has(type)) return;
                 
                 // 跳过有特殊渲染逻辑的类型
-                if (type === 'serial_killer_slasher' || type === 'movie_props' || type === 'treasure_hunt_dba_revolver' || type === 'stash_houses' || type === 'madrazo_hits' || type === 'police_rescue_patrick_mcreary' || type === 'random_missions' || type === 'drug_vehicle' || type === 'smuggler_plane' || type === 'smuggler_trail' || type === 'convoy' || type === 'possessed_animals' || type === 'yeti' || type === 'cerberus') return;
+                if (type === 'serial_killer_slasher' || type === 'movie_props' || type === 'treasure_hunt_dba_revolver' || type === 'stash_houses' || type === 'madrazo_hits' || type === 'police_rescue_patrick_mcreary' || type === 'random_missions' || type === 'drug_vehicle' || type === 'smuggler_plane' || type === 'smuggler_trail' || type === 'convoy' || type === 'cerberus') return;
                 
                 // 调试信息
                 if (type === 'crime_scenes') {
@@ -3947,104 +4126,7 @@
 
             // 注意：万圣节杀人狂现在使用Leaflet标记系统渲染，不再需要DOM渲染
 
-            // 特殊：鬼上身动物圆形区域渲染
-            if (activeItemTypes.has('possessed_animals')) {
-                if (itemData.possessed_animals && Array.isArray(itemData.possessed_animals)) {
-                    itemData.possessed_animals.forEach((item, index) => {
-                        if (typeof item.x === 'undefined' || typeof item.y === 'undefined' || typeof item.radius === 'undefined') return;
-
-                        const percentX = (item.x - GAME_LEFT) / (GAME_RIGHT - GAME_LEFT);
-                        const percentY = (GAME_TOP - item.y) / (GAME_TOP - GAME_BOTTOM);
-
-                        const itemX = percentX * totalWidth;
-                        const itemY = percentY * totalHeight;
-
-                        // 计算圆形区域的像素大小
-                        const gameWidth = GAME_RIGHT - GAME_LEFT; // 9000
-                        const pixelRadius = (item.radius / gameWidth) * totalWidth;
-                        const circleSize = pixelRadius * 2; // 直径
-
-                        // 为不同种类的动物设置不同的颜色
-                        let borderColor, bgColor, textColor;
-                        switch(item.animalType) {
-                            case 'boar':
-                                borderColor = '#8D6E63'; // 棕色
-                                bgColor = 'rgba(141, 110, 99, 0.1)';
-                                textColor = '#5D4037';
-                                break;
-                            case 'cougar':
-                                borderColor = '#FF5722'; // 橙红色
-                                bgColor = 'rgba(255, 87, 34, 0.1)';
-                                textColor = '#D84315';
-                                break;
-                            case 'coyote':
-                                borderColor = '#795548'; // 深棕色
-                                bgColor = 'rgba(121, 85, 72, 0.1)';
-                                textColor = '#4E342E';
-                                break;
-                            case 'deer':
-                                borderColor = '#4CAF50'; // 绿色
-                                bgColor = 'rgba(76, 175, 80, 0.1)';
-                                textColor = '#2E7D32';
-                                break;
-                            case 'pug':
-                                borderColor = '#9C27B0'; // 紫色
-                                bgColor = 'rgba(156, 39, 176, 0.1)';
-                                textColor = '#6A1B9A';
-                                break;
-                            default:
-                                borderColor = '#607D8B'; // 蓝灰色
-                                bgColor = 'rgba(96, 125, 139, 0.1)';
-                                textColor = '#37474F';
-                        }
-
-                        // 创建圆形区域标记
-                        const marker = document.createElement('div');
-                        marker.className = 'item-marker possessed-animal-circle';
-                        marker.dataset.index = index;
-                        marker.dataset.type = 'possessed_animals';
-                        marker.dataset.animalType = item.animalType;
-                        marker.dataset.areaType = item.type;
-                        marker.style.position = 'absolute';
-                        marker.style.left = `${itemX}px`;
-                        marker.style.top = `${itemY}px`;
-                        marker.style.width = `${circleSize}px`;
-                        marker.style.height = `${circleSize}px`;
-                        marker.style.borderRadius = '50%';
-                        marker.style.border = `3px solid ${borderColor}`;
-                        marker.style.backgroundColor = bgColor;
-                        marker.style.transform = 'translate(-50%, -50%)';
-                        marker.style.cursor = 'pointer';
-                        marker.style.zIndex = '670';
-                        marker.style.display = 'flex';
-                        marker.style.alignItems = 'center';
-                        marker.style.justifyContent = 'center';
-
-                        // 添加动物名称标签（仅对areas显示，spawns不显示标签）
-                        if (item.type === 'area') {
-                            const animalName = item.animalType === 'boar' ? '野猪' : 
-                                              item.animalType === 'cougar' ? '美洲狮' : 
-                                              item.animalType === 'coyote' ? '郊狼' : 
-                                              item.animalType === 'deer' ? '鹿' : 
-                                              item.animalType === 'pug' ? '哈巴狗' : 
-                                              item.animalType;
-                            
-                            const label = document.createElement('div');
-                            label.textContent = animalName;
-                            label.style.color = textColor;
-                            label.style.fontSize = '12px';
-                            label.style.fontWeight = 'bold';
-                            label.style.textAlign = 'center';
-                            label.style.pointerEvents = 'none';
-                            label.style.textShadow = '1px 1px 2px rgba(255,255,255,0.8)';
-                            marker.appendChild(label);
-                        }
-
-                        tilePaneDom.appendChild(marker);
-                        itemMarkers.push({ type: 'possessed_animals', index: index, el: marker });
-                    });
-                }
-            }
+            // 注意：鬼上身动物现在使用Leaflet标记系统渲染，不再需要DOM渲染
 
             // 特殊：地域犬（cerberus）渲染
             if (activeItemTypes.has('cerberus')) {
@@ -4083,89 +4165,7 @@
                 }
             }
 
-            // 特殊：雪怪（yeti）渲染
-            if (activeItemTypes.has('yeti')) {
-                if (itemData.yeti && Array.isArray(itemData.yeti)) {
-                    const renderedPositions = new Set(); // 记录已渲染的位置，避免重复
-                    
-                    itemData.yeti.forEach((item, index) => {
-                        if (typeof item.x === 'undefined' || typeof item.y === 'undefined') return;
-
-                        // 检查是否已经在这个位置渲染过
-                        const positionKey = `${item.x},${item.y}`;
-                        if (renderedPositions.has(positionKey)) {
-                            console.log(`跳过重复位置: ${positionKey}, 类型: ${item.type}`);
-                            return;
-                        }
-                        renderedPositions.add(positionKey);
-
-                        const percentX = (item.x - GAME_LEFT) / (GAME_RIGHT - GAME_LEFT);
-                        const percentY = (GAME_TOP - item.y) / (GAME_TOP - GAME_BOTTOM);
-
-                        const itemX = percentX * totalWidth;
-                        const itemY = percentY * totalHeight;
-
-                        if (item.type === 'area') {
-                            // 渲染雪怪区域（白色圆圈）
-                            // 获取当前缩放等级来计算圆圈大小
-                            const z = map.getZoom();
-                            const level = getLevelByZoom(z);
-                            if (!level) return;
-                            
-                            const currentTotalWidth = level.cols * TILE_SIZE;
-                            const gameWidth = GAME_RIGHT - GAME_LEFT; // 9000
-                            const pixelRadius = (item.radius / gameWidth) * currentTotalWidth;
-                            const circleSize = pixelRadius * 2; // 直径
-
-                            const areaMarker = document.createElement('div');
-                            areaMarker.className = 'item-marker yeti-area-circle';
-                            areaMarker.dataset.index = index;
-                            areaMarker.dataset.type = 'yeti';
-                            areaMarker.dataset.areaType = 'area';
-                            areaMarker.style.position = 'absolute';
-                            areaMarker.style.left = `${itemX}px`;
-                            areaMarker.style.top = `${itemY}px`;
-                            areaMarker.style.width = `${circleSize}px`;
-                            areaMarker.style.height = `${circleSize}px`;
-                            areaMarker.style.borderRadius = '50%';
-                            areaMarker.style.border = '3px solid #FFFFFF';
-                            areaMarker.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
-                            areaMarker.style.transform = 'translate(-50%, -50%)';
-                            areaMarker.style.cursor = 'pointer';
-                            areaMarker.style.zIndex = '650';
-
-                            // 雪怪区域只显示圆圈，不显示任何图标
-
-                            tilePaneDom.appendChild(areaMarker);
-                            itemMarkers.push({ type: 'yeti', index: index, el: areaMarker });
-                        } else if (item.type === 'clue') {
-                            // 渲染线索位置（what.svg图标）
-                            const clueMarker = document.createElement('div');
-                            clueMarker.className = 'item-marker';
-                            clueMarker.dataset.index = index;
-                            clueMarker.dataset.type = 'yeti';
-                            clueMarker.dataset.areaType = 'clue';
-                            clueMarker.dataset.clueIndex = item.clueIndex;
-                            clueMarker.style.position = 'absolute';
-                            clueMarker.style.left = `${itemX}px`;
-                            clueMarker.style.top = `${itemY}px`;
-                            clueMarker.style.width = '24px';
-                            clueMarker.style.height = '24px';
-                            clueMarker.style.backgroundImage = 'url(../src/assets/what.svg)';
-                            clueMarker.style.backgroundSize = 'contain';
-                            clueMarker.style.backgroundRepeat = 'no-repeat';
-                            clueMarker.style.backgroundPosition = 'center';
-                            clueMarker.style.transform = 'translate(-50%, -50%)';
-                            clueMarker.style.cursor = 'pointer';
-                            clueMarker.style.zIndex = '680';
-                            clueMarker.style.filter = 'drop-shadow(2px 2px 4px rgba(0,0,0,0.5))';
-
-                            tilePaneDom.appendChild(clueMarker);
-                            itemMarkers.push({ type: 'yeti', index: index, el: clueMarker });
-                        }
-                    });
-                }
-            }
+            // 注意：雪怪现在使用Leaflet标记系统渲染，不再需要DOM渲染
 
 
             // 特殊：电影道具多个子类型分别渲染

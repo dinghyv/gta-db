@@ -1165,6 +1165,9 @@
             
             // 第9组：特殊生物
             'halloween_slashers',
+            'gang_attacks',
+            'ghosts3',
+            'cerberus',
             'possessed_animals',
             'yeti',
             
@@ -3412,6 +3415,159 @@
                 }
             }
             
+            // 特殊处理gang_attacks - 帮派攻击圆形区域
+            if (type === 'gang_attacks') {
+                // 检查时间是否匹配
+                if (!isGangAttackActive(item.time)) {
+                    return null; // 不在时间范围内，不显示
+                }
+                
+                // 计算圆形半径（固定100游戏单位）
+                const level = getLevelByZoom(z);
+                if (!level) return null;
+                
+                const totalWidth = level.cols * TILE_SIZE;
+                const gameWidth = GAME_RIGHT - GAME_LEFT;
+                const gameRadius = 100; // 游戏坐标半径
+                const radiusPixels = (gameRadius / gameWidth) * totalWidth;
+                
+                // 使用circleMarker创建固定像素大小的圆形
+                const circle = L.circleMarker(latlng, {
+                    color: '#FF0000',
+                    fillColor: '#FF0000',
+                    fillOpacity: 0.1,
+                    weight: 3,
+                    radius: radiusPixels,
+                    interactive: true
+                }).addTo(map);
+                
+                // 在圆心添加图标
+                const customIcon = L.icon({
+                    iconUrl: itemIcons[type],
+                    iconSize: [32, 32],
+                    iconAnchor: [16, 16],
+                    popupAnchor: [0, -16]
+                });
+                
+                const iconMarker = L.marker(latlng, {
+                    icon: customIcon,
+                    interactive: true,
+                    zIndexOffset: 1001
+                }).addTo(map);
+                
+                // 为圆形和图标都添加点击事件
+                const clickHandler = function(e) {
+                    showGangAttackPopup(item, index);
+                };
+                
+                circle.on('click', clickHandler);
+                iconMarker.on('click', clickHandler);
+                
+                // 返回一个包含圆形和图标的组合对象
+                return {
+                    circle: circle,
+                    icon: iconMarker,
+                    item: item, // 保存item数据用于缩放时更新半径
+                    // 实现与单个marker相同的接口
+                    addTo: function(map) { return this; },
+                    removeFrom: function(map) {
+                        map.removeLayer(this.circle);
+                        map.removeLayer(this.icon);
+                        return this;
+                    }
+                };
+            }
+            
+            // 特殊处理ghosts3 - 幽灵曝光（最后一个用不同图标 + 时间标签）
+            if (type === 'ghosts3') {
+                // 检查是否为最后一个标记
+                const isLast = index === (itemData[type]?.length ?? 0) - 1;
+                const iconUrl = isLast ? '../src/assets/ge252.svg' : '../src/assets/ge251.svg';
+                
+                // 使用divIcon创建包含时间标签的复合标记
+                const customIcon = L.divIcon({
+                    html: `
+                        <div style="display: flex; flex-direction: column; align-items: center; position: relative;">
+                            <img src="${iconUrl}" style="width: 32px; height: 32px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));">
+                            <div style="background: rgba(0,0,0,0.8); color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; margin-top: 2px; white-space: nowrap; text-shadow: 1px 1px 2px rgba(0,0,0,0.8); pointer-events: none;">${item.time || '未知时间'}</div>
+                        </div>
+                    `,
+                    className: 'custom-div-icon',
+                    iconSize: [32, 50],
+                    iconAnchor: [16, 25],
+                    popupAnchor: [0, -25]
+                });
+                
+                const marker = L.marker(latlng, {
+                    icon: customIcon,
+                    interactive: true,
+                    zIndexOffset: 1000
+                }).addTo(map);
+                
+                marker.on('click', function(e) {
+                    showGhosts3Popup(item, index);
+                });
+                
+                return marker;
+            }
+            
+            // 特殊处理cerberus - 地域犬圆形区域
+            if (type === 'cerberus') {
+                // 计算圆形半径（使用像素坐标）
+                const level = getLevelByZoom(z);
+                if (!level) return null;
+                
+                const totalWidth = level.cols * TILE_SIZE;
+                const gameWidth = GAME_RIGHT - GAME_LEFT;
+                const radiusPixels = (item.radius / gameWidth) * totalWidth;
+                
+                // 使用circleMarker创建圆形区域
+                const circle = L.circleMarker(latlng, {
+                    color: '#9C27B0', // 紫色
+                    fillColor: '#E1BEE7',
+                    fillOpacity: 0.3,
+                    weight: 3,
+                    radius: radiusPixels,
+                    interactive: true
+                }).addTo(map);
+                
+                // 在圆心添加图标
+                const customIcon = L.icon({
+                    iconUrl: itemIcons[type],
+                    iconSize: [32, 32],
+                    iconAnchor: [16, 16],
+                    popupAnchor: [0, -16]
+                });
+                
+                const iconMarker = L.marker(latlng, {
+                    icon: customIcon,
+                    interactive: true,
+                    zIndexOffset: 1001
+                }).addTo(map);
+                
+                // 为圆形和图标都添加点击事件
+                const clickHandler = function(e) {
+                    showItemInfo(item, type, index);
+                };
+                
+                circle.on('click', clickHandler);
+                iconMarker.on('click', clickHandler);
+                
+                // 返回一个包含圆形和图标的组合对象
+                return {
+                    circle: circle,
+                    icon: iconMarker,
+                    item: item, // 保存item数据用于缩放时更新半径
+                    // 实现与单个marker相同的接口
+                    addTo: function(map) { return this; },
+                    removeFrom: function(map) {
+                        map.removeLayer(this.circle);
+                        map.removeLayer(this.icon);
+                        return this;
+                    }
+                };
+            }
+            
             // 创建自定义图标
             const customIcon = L.icon({
                 iconUrl: itemIcons[type],
@@ -3983,6 +4139,41 @@
                             leafletMarkers.push(marker);
                         });
                     }
+                    // 特殊处理gang_attacks - 帮派攻击圆形区域
+                    else if (type === 'gang_attacks') {
+                        if (!itemData[type] || !Array.isArray(itemData[type])) return;
+                        
+                        itemData[type].forEach((item, index) => {
+                            if (typeof item.x === 'undefined' || typeof item.y === 'undefined') return;
+                            
+                            const marker = createLeafletMarker(item, index, type);
+                            if (marker) { // 只有在时间范围内才会返回marker
+                                leafletMarkers.push(marker);
+                            }
+                        });
+                    }
+                    // 特殊处理ghosts3 - 幽灵曝光
+                    else if (type === 'ghosts3') {
+                        if (!itemData[type] || !Array.isArray(itemData[type])) return;
+                        
+                        itemData[type].forEach((item, index) => {
+                            if (typeof item.x === 'undefined' || typeof item.y === 'undefined') return;
+                            
+                            const marker = createLeafletMarker(item, index, type);
+                            leafletMarkers.push(marker);
+                        });
+                    }
+                    // 特殊处理cerberus - 地域犬圆形区域
+                    else if (type === 'cerberus') {
+                        if (!itemData[type] || !Array.isArray(itemData[type])) return;
+                        
+                        itemData[type].forEach((item, index) => {
+                            if (typeof item.x === 'undefined' || typeof item.y === 'undefined' || typeof item.radius === 'undefined') return;
+                            
+                            const marker = createLeafletMarker(item, index, type);
+                            leafletMarkers.push(marker);
+                        });
+                    }
                     // 特殊处理possessed_animals - 鬼上身动物圆形区域
                     else if (type === 'possessed_animals') {
                         if (!itemData[type] || !Array.isArray(itemData[type])) return;
@@ -4052,7 +4243,7 @@
                 if (pilotMarkerTypes.has(type)) return;
                 
                 // 跳过有特殊渲染逻辑的类型
-                if (type === 'serial_killer_slasher' || type === 'movie_props' || type === 'treasure_hunt_dba_revolver' || type === 'stash_houses' || type === 'madrazo_hits' || type === 'police_rescue_patrick_mcreary' || type === 'random_missions' || type === 'drug_vehicle' || type === 'smuggler_plane' || type === 'smuggler_trail' || type === 'convoy' || type === 'cerberus') return;
+                if (type === 'serial_killer_slasher' || type === 'movie_props' || type === 'treasure_hunt_dba_revolver' || type === 'stash_houses' || type === 'madrazo_hits' || type === 'police_rescue_patrick_mcreary' || type === 'random_missions' || type === 'drug_vehicle' || type === 'smuggler_plane' || type === 'smuggler_trail' || type === 'convoy') return;
                 
                 // 调试信息
                 if (type === 'crime_scenes') {
@@ -4128,42 +4319,7 @@
 
             // 注意：鬼上身动物现在使用Leaflet标记系统渲染，不再需要DOM渲染
 
-            // 特殊：地域犬（cerberus）渲染
-            if (activeItemTypes.has('cerberus')) {
-                if (itemData.cerberus && Array.isArray(itemData.cerberus)) {
-                    itemData.cerberus.forEach((item, index) => {
-                        if (typeof item.x === 'undefined' || typeof item.y === 'undefined') return;
-
-                        const percentX = (item.x - GAME_LEFT) / (GAME_RIGHT - GAME_LEFT);
-                        const percentY = (GAME_TOP - item.y) / (GAME_TOP - GAME_BOTTOM);
-
-                        const itemX = percentX * totalWidth;
-                        const itemY = percentY * totalHeight;
-
-                        // 创建地域犬标记
-                        const marker = document.createElement('div');
-                        marker.className = 'item-marker';
-                        marker.dataset.index = index;
-                        marker.dataset.type = 'cerberus';
-                        marker.style.position = 'absolute';
-                        marker.style.left = `${itemX}px`;
-                        marker.style.top = `${itemY}px`;
-                        marker.style.width = '24px';
-                        marker.style.height = '24px';
-                        marker.style.backgroundImage = 'url(../src/assets/cerberus.svg)';
-                        marker.style.backgroundSize = 'contain';
-                        marker.style.backgroundRepeat = 'no-repeat';
-                        marker.style.backgroundPosition = 'center';
-                        marker.style.transform = 'translate(-50%, -50%)';
-                        marker.style.cursor = 'pointer';
-                        marker.style.zIndex = '680';
-                        marker.style.filter = 'drop-shadow(2px 2px 4px rgba(0,0,0,0.5))';
-
-                        tilePaneDom.appendChild(marker);
-                        itemMarkers.push({ type: 'cerberus', index: index, el: marker });
-                    });
-                }
-            }
+            // 注意：地域犬现在使用Leaflet标记系统渲染，不再需要DOM渲染
 
             // 注意：雪怪现在使用Leaflet标记系统渲染，不再需要DOM渲染
 
@@ -7545,11 +7701,7 @@
             // 检测是否点击在车行附近
             checkDealershipClick(gameX, gameY);
             
-            // 检测是否点击在帮派攻击附近
-            checkGangAttackClick(gameX, gameY);
-
-            // 检测是否点击在幽灵曝光附近
-            checkGhosts3Click(gameX, gameY);
+            // 注意：帮派攻击和幽灵曝光现在使用Leaflet标记系统，点击事件由Leaflet自动处理
 
             // 检测是否点击在左轮寻宝点附近
             checkTreasureHuntClick(gameX, gameY);

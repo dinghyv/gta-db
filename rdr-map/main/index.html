@@ -323,6 +323,26 @@
     .leaflet-control-attribution {
       display: none !important;
     }
+
+    /* 暗色主题导航栏样式 */
+    .rdr-nav.dark-theme {
+      background: rgba(0, 0, 0, 0.8) !important;
+      border-bottom: 2px solid rgba(255, 255, 255, 0.1) !important;
+      backdrop-filter: blur(15px);
+    }
+
+    .rdr-nav.dark-theme .rdr-nav-button:hover {
+      background: rgba(255, 255, 255, 0.1) !important;
+      color: #ffffff !important;
+      box-shadow: 0 0 15px rgba(255, 255, 255, 0.2) !important;
+      border-color: rgba(255, 255, 255, 0.3) !important;
+    }
+
+    .rdr-nav.dark-theme .rdr-mobile-menu {
+      background: rgba(0, 0, 0, 0.9) !important;
+      border: 1px solid rgba(255, 255, 255, 0.1) !important;
+      box-shadow: 0 8px 22px rgba(0, 0, 0, 0.8) !important;
+    }
   </style>
 
   <script>
@@ -1723,6 +1743,16 @@
           mobileMenu.classList.remove('show');
         }
 
+        // 根据地图类型切换导航栏样式
+        const navbar = document.querySelector('.rdr-nav');
+        if (navbar) {
+          if (layerKey === 'map.layers.dark' || layerKey === 'map.layers.black') {
+            navbar.classList.add('dark-theme');
+          } else {
+            navbar.classList.remove('dark-theme');
+          }
+        }
+
         // 切换地图图层
         function tryMapSwitch() {
           console.log('尝试切换地图，检查 MapBase 状态');
@@ -1841,6 +1871,16 @@
         document.querySelectorAll(`[data-layer="${currentLayer}"]`).forEach(btn => {
           btn.classList.add('active');
         });
+
+        // 同步导航栏样式
+        const navbar = document.querySelector('.rdr-nav');
+        if (navbar) {
+          if (currentLayer === 'map.layers.dark' || currentLayer === 'map.layers.black') {
+            navbar.classList.add('dark-theme');
+          } else {
+            navbar.classList.remove('dark-theme');
+          }
+        }
       }
 
       // 绑定所有地图切换按钮的点击事件

@@ -1172,7 +1172,18 @@
             'yeti',
             
             // 第10组：悬赏系统
-            'maude_bounty_targets'
+            'maude_bounty_targets',
+
+            // 新增迁移类型
+            'serial_killer_slasher',
+            'treasure_hunt_dba_revolver',
+            'movie_props',
+            'crime_scenes',
+            'ufo',
+            'community_outreach',
+            'store_robbery',
+            'ppl',
+            'ppw'
         ]);
 
         // Leaflet标记存储
@@ -3561,7 +3572,43 @@
                 // 特殊处理车行标记，使用专门的车辆展示函数
                 else if (['casino', 'car_meet', 'premium_deluxe_motorsport', 'luxury_autos'].includes(type)) {
                     showDealershipVehicles(type, item.name);
-                } else {
+                }
+                // 特殊处理treasure_hunt_dba_revolver（按随机/固定展示）
+                else if (type === 'treasure_hunt_dba_revolver') {
+                    const th = itemData.treasure_hunt_dba_revolver || { random_clue: [], static_clues: [] };
+                    const rc = th.random_clue || [];
+                    const sc = th.static_clues || [];
+                    const fixedCount = sc.length;
+                    // 尝试根据就近集合判断子类型（不严格，但足够展示）
+                    if (index < rc.length) {
+                        showTreasureHuntPopup(item, index, 'random');
+                    } else {
+                        showTreasureHuntPopup(item, index - rc.length, 'static');
+                    }
+                }
+                // 特殊处理serial_killer_slasher（按first/last展示）
+                else if (type === 'serial_killer_slasher') {
+                    const first = itemData.serial_killer_slasher?.first?.length || 0;
+                    if (index < first) {
+                        showSlasherPopup(item, index, 'first');
+                    } else {
+                        showSlasherPopup(item, index - first, 'last');
+                    }
+                }
+                // 电影道具弹窗
+                else if (type === 'movie_props') {
+                    const mp = itemData.movie_props || { fixed_position: [], vehicles: { pony: [], rebel: [], rumpo: [] } };
+                    const fixedCount = mp.fixed_position?.length || 0;
+                    const ponyCount = mp.vehicles?.pony?.length || 0;
+                    const rebelCount = mp.vehicles?.rebel?.length || 0;
+                    let subtype;
+                    if (index < fixedCount) subtype = 'fixed_position';
+                    else if (index < fixedCount + ponyCount) subtype = 'pony';
+                    else if (index < fixedCount + ponyCount + rebelCount) subtype = 'rebel';
+                    else subtype = 'rumpo';
+                    showMoviePropsPopup(item, index, subtype);
+                }
+                else {
                     showItemInfo(item, type, index);
                 }
             });
@@ -4211,6 +4258,69 @@
                                 leafletMarkers.push(marker);
                             });
                         }
+                    }
+                    // 特殊：左轮寻宝两个子类型分别渲染（Leaflet）
+                    else if (type === 'treasure_hunt_dba_revolver') {
+                        const rc = itemData.treasure_hunt_dba_revolver?.random_clue || [];
+                        const sc = itemData.treasure_hunt_dba_revolver?.static_clues || [];
+                        rc.forEach((p, i) => {
+                            if (typeof p.x === 'undefined' || typeof p.y === 'undefined') return;
+                            const marker = createLeafletMarker(p, i, 'treasure_hunt_dba_revolver');
+                            leafletMarkers.push(marker);
+                        });
+                        sc.forEach((p, i) => {
+                            if (typeof p.x === 'undefined' || typeof p.y === 'undefined') return;
+                            const marker = createLeafletMarker(p, i, 'treasure_hunt_dba_revolver');
+                            leafletMarkers.push(marker);
+                        });
+                    }
+                    // 特殊：洛圣都杀人狂（first/last 合并为一个选项）
+                    else if (type === 'serial_killer_slasher') {
+                        const first = itemData.serial_killer_slasher?.first || [];
+                        const last = itemData.serial_killer_slasher?.last || [];
+                        first.forEach((p, i) => {
+                            if (typeof p.x === 'undefined' || typeof p.y === 'undefined') return;
+                            const marker = createLeafletMarker(p, i, 'serial_killer_slasher');
+                            leafletMarkers.push(marker);
+                        });
+                        last.forEach((p, i) => {
+                            if (typeof p.x === 'undefined' || typeof p.y === 'undefined') return;
+                            const marker = createLeafletMarker(p, i, 'serial_killer_slasher');
+                            leafletMarkers.push(marker);
+                        });
+                    }
+                    // 特殊：电影道具（多个子组）
+                    else if (type === 'movie_props') {
+                        const mp = itemData.movie_props || { fixed_position: [], vehicles: { pony: [], rebel: [], rumpo: [] } };
+                        (mp.fixed_position || []).forEach((p, i) => {
+                            if (typeof p.x === 'undefined' || typeof p.y === 'undefined') return;
+                            const marker = createLeafletMarker(p, i, 'movie_props');
+                            leafletMarkers.push(marker);
+                        });
+                        (mp.vehicles?.pony || []).forEach((p, i) => {
+                            if (typeof p.x === 'undefined' || typeof p.y === 'undefined') return;
+                            const marker = createLeafletMarker(p, i, 'movie_props');
+                            leafletMarkers.push(marker);
+                        });
+                        (mp.vehicles?.rebel || []).forEach((p, i) => {
+                            if (typeof p.x === 'undefined' || typeof p.y === 'undefined') return;
+                            const marker = createLeafletMarker(p, i, 'movie_props');
+                            leafletMarkers.push(marker);
+                        });
+                        (mp.vehicles?.rumpo || []).forEach((p, i) => {
+                            if (typeof p.x === 'undefined' || typeof p.y === 'undefined') return;
+                            const marker = createLeafletMarker(p, i, 'movie_props');
+                            leafletMarkers.push(marker);
+                        });
+                    }
+                    // 其他简单数组类型统一处理
+                    else if (['crime_scenes', 'ufo', 'community_outreach', 'store_robbery', 'ppl', 'ppw'].includes(type)) {
+                        if (!itemData[type] || !Array.isArray(itemData[type])) return;
+                        itemData[type].forEach((item, index) => {
+                            if (typeof item.x === 'undefined' || typeof item.y === 'undefined') return;
+                            const marker = createLeafletMarker(item, index, type);
+                            leafletMarkers.push(marker);
+                        });
                     } else {
                         // 普通标记处理
                         if (!itemData[type] || !Array.isArray(itemData[type])) return;
@@ -4258,8 +4368,8 @@
                 });
             });
 
-            // 特殊：左轮寻宝两个子类型分别渲染
-            if (activeItemTypes.has('treasure_hunt_dba_revolver')) {
+            // 特殊：左轮寻宝两个子类型分别渲染（DOM版保留兼容，若Leaflet已处理则跳过）
+            if (activeItemTypes.has('treasure_hunt_dba_revolver') && !pilotMarkerTypes.has('treasure_hunt_dba_revolver')) {
                 const rc = itemData.treasure_hunt_dba_revolver?.random_clue || [];
                 const sc = itemData.treasure_hunt_dba_revolver?.static_clues || [];
                 const renderList = [
@@ -4282,8 +4392,8 @@
                 });
             }
 
-            // 特殊：洛圣都杀人狂两个子类型一起渲染（合并为一个选项）
-            if (activeItemTypes.has('serial_killer_slasher')) {
+            // 特殊：洛圣都杀人狂两个子类型一起渲染（DOM兼容，Leaflet已处理则跳过）
+            if (activeItemTypes.has('serial_killer_slasher') && !pilotMarkerTypes.has('serial_killer_slasher')) {
                 const first = (itemData.serial_killer_slasher.first || []).map((p,i)=>({ ...p, __subtype:'serial_killer_slasher_first', __index:i }));
                 const last = (itemData.serial_killer_slasher.last || []).map((p,i)=>({ ...p, __subtype:'serial_killer_slasher_last', __index:i }));
                 const renderList = [...first, ...last];
@@ -4312,8 +4422,8 @@
             // 注意：雪怪现在使用Leaflet标记系统渲染，不再需要DOM渲染
 
 
-            // 特殊：电影道具多个子类型分别渲染
-            if (activeItemTypes.has('movie_props')) {
+            // 特殊：电影道具多个子类型分别渲染（DOM兼容，Leaflet已处理则跳过）
+            if (activeItemTypes.has('movie_props') && !pilotMarkerTypes.has('movie_props')) {
                 const mp = itemData.movie_props;
                 const renderList = [
                     ...(mp.fixed_position || []).map((p, i) => ({ ...p, __subtype: 'movie_props', __index: i })),

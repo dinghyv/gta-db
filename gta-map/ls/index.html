@@ -840,6 +840,58 @@
             line-height: 1.4;
         }
 
+        /* 通用确认弹窗 */
+        #confirm-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1400;
+        }
+        #confirm-modal.show { display: flex; }
+        #confirm-modal .confirm-modal-overlay {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(10,20,30,0.6);
+            backdrop-filter: blur(2px);
+        }
+        #confirm-modal .confirm-modal-content {
+            position: relative;
+            background: var(--gta-bg-medium);
+            border: 1px solid var(--gta-border);
+            border-radius: 10px;
+            padding: 16px;
+            width: 380px;
+            max-width: calc(100% - 40px);
+            color: var(--gta-text);
+            box-shadow: 0 8px 22px rgba(0,0,0,0.5);
+        }
+        #confirm-modal .confirm-modal-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: var(--gta-primary);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        #confirm-modal .confirm-modal-message {
+            font-size: 14px;
+            color: var(--gta-text);
+            opacity: 0.95;
+            line-height: 1.6;
+            margin-bottom: 14px;
+        }
+        #confirm-modal .confirm-modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
         /* 右下角缩放按钮 - 缩小为 50% */
         .zoom-controls {
             position: absolute;
@@ -1049,6 +1101,22 @@
         <p id="item-coords">坐标: </p>
         <p id="item-location">位置: </p>
         <p id="item-details">详细信息: </p>
+    </div>
+
+    <!-- 通用确认弹窗（网页内样式） -->
+    <div id="confirm-modal" aria-hidden="true">
+        <div class="confirm-modal-overlay"></div>
+        <div class="confirm-modal-content" role="dialog" aria-modal="true" aria-labelledby="confirm-title">
+            <div class="confirm-modal-title" id="confirm-title">
+                <i class="fas fa-triangle-exclamation"></i>
+                性能提示
+            </div>
+            <div class="confirm-modal-message" id="confirm-message">物品信息较多，显示全部可能造成卡顿，是否继续显示？</div>
+            <div class="confirm-modal-actions">
+                <button class="nav-button" id="confirm-cancel">取消</button>
+                <button class="nav-button" id="confirm-ok">继续显示</button>
+            </div>
+        </div>
     </div>
 
     <!-- 加载动画 -->
@@ -1280,7 +1348,7 @@
             // 万圣节杀人狂
             halloween_slashers: '../src/assets/slasher.svg',
             // 鬼上身的动物
-            possessed_animals: '../src/assets/cerberus.svg',
+            possessed_animals: '../src/assets/blank.svg',
             // 地狱犬
             cerberus: '../src/assets/cerberus.svg',
             // 雪怪
@@ -12473,11 +12541,38 @@
             // 显示全部/隐藏全部按钮
             const showAllBtn = document.getElementById('show-all-items');
             const hideAllBtn = document.getElementById('hide-all-items');
+            // 简易通用确认弹窗函数
+            function openConfirmModal(message, onOk, onCancel) {
+                const modal = document.getElementById('confirm-modal');
+                const msgEl = document.getElementById('confirm-message');
+                const okBtn = document.getElementById('confirm-ok');
+                const cancelBtn = document.getElementById('confirm-cancel');
+                const overlay = modal.querySelector('.confirm-modal-overlay');
+                if (!modal || !msgEl || !okBtn || !cancelBtn) return onOk && onOk();
+
+                msgEl.textContent = message;
+                modal.classList.add('show');
+                modal.setAttribute('aria-hidden', 'false');
+
+                const cleanup = () => {
+                    modal.classList.remove('show');
+                    modal.setAttribute('aria-hidden', 'true');
+                    okBtn.removeEventListener('click', okHandler);
+                    cancelBtn.removeEventListener('click', cancelHandler);
+                    if (overlay) overlay.removeEventListener('click', cancelHandler);
+                };
+
+                const okHandler = () => { cleanup(); if (onOk) onOk(); };
+                const cancelHandler = () => { cleanup(); if (onCancel) onCancel(); };
+
+                okBtn.addEventListener('click', okHandler);
+                cancelBtn.addEventListener('click', cancelHandler);
+                if (overlay) overlay.addEventListener('click', cancelHandler);
+            }
+
             if (showAllBtn) {
                 showAllBtn.addEventListener('click', () => {
-                    // 二次确认：提示可能卡顿
-                    const proceed = window.confirm('物品信息较多，显示全部可能造成卡顿，是否继续显示？');
-                    if (!proceed) return;
+                    openConfirmModal('物品信息较多，显示全部可能造成卡顿，是否继续显示？', () => {
                     // 全选复选框
                     document.querySelectorAll('#sidebar-item-selectors .item-checkbox').forEach(c => c.checked = true);
                     // 重建 activeItemTypes
@@ -12493,19 +12588,26 @@
                     updateItemMarkers();
                     if (typeof updateDealershipMarkers === 'function') updateDealershipMarkers();
                     if (typeof updateTilePanePosition === 'function') updateTilePanePosition();
+                    }, () => {
+                        // 取消无操作
+                    });
                 });
             }
             if (hideAllBtn) {
                 hideAllBtn.addEventListener('click', () => {
-                    // 取消全选
-                    document.querySelectorAll('#sidebar-item-selectors .item-checkbox').forEach(c => c.checked = false);
-                    // 清除标记与激活集合
-                    clearAllItemMarkers();
-                    // 同步清理Leaflet标记
-                    if (typeof clearLeafletMarkers === 'function') clearLeafletMarkers();
-                    try { if (activeItemTypes && typeof activeItemTypes.clear === 'function') activeItemTypes.clear(); } catch(e) {}
-                    if (typeof updateDealershipMarkers === 'function') updateDealershipMarkers();
-                    if (typeof updateTilePanePosition === 'function') updateTilePanePosition();
+                    openConfirmModal('是否要隐藏全部内容？', () => {
+                        // 取消全选
+                        document.querySelectorAll('#sidebar-item-selectors .item-checkbox').forEach(c => c.checked = false);
+                        // 清除标记与激活集合
+                        clearAllItemMarkers();
+                        // 同步清理Leaflet标记
+                        if (typeof clearLeafletMarkers === 'function') clearLeafletMarkers();
+                        try { if (activeItemTypes && typeof activeItemTypes.clear === 'function') activeItemTypes.clear(); } catch(e) {}
+                        if (typeof updateDealershipMarkers === 'function') updateDealershipMarkers();
+                        if (typeof updateTilePanePosition === 'function') updateTilePanePosition();
+                    }, () => {
+                        // 取消无操作
+                    });
                 });
             }
 

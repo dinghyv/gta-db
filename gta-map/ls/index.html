@@ -2752,38 +2752,98 @@
                     // 使用API返回的LS涂鸦坐标数据
                     itemData.ls_tags = result.data.coordinate;
                     
-                    // 从message字段中提取涂鸦编号并添加到每个tag对象中
+                    // 从message字段中提取涂鸦编号并添加到每个tag对象中（改进匹配，避免重复/误匹配）
                     if (result.data.message) {
                         const message = result.data.message;
-                        const tagInfoRegex = /#(\d+)\s+(\S+)/g;
-                        const tagInfoMap = new Map();
+                        // 捕获多词名称：直到换行或下一个#
+                        const tagInfoRegex = /#(\d+)\s+([^\n#]+)/g;
+                        /**
+                         * 规范化名称：小写、移除标点、合并空白
+                         */
+                        const normalize = (s) => (s || '')
+                            .toLowerCase()
+                            .replace(/[^a-z0-9\u4e00-\u9fa5\s]/g, ' ')
+                            .replace(/\s+/g, ' ')
+                            .trim();
+
+                        // 解析消息为列表，保留顺序，便于一对一分配
+                        const tagInfoList = [];
                         let match;
-                        
-                        // 提取所有涂鸦编号和名称的匹配
                         while ((match = tagInfoRegex.exec(message)) !== null) {
                             const sequenceNumber = parseInt(match[1]);
-                            const locationName = match[2];
-                            tagInfoMap.set(locationName, sequenceNumber);
+                            const locationNameRaw = (match[2] || '').trim();
+                            const locationNameNorm = normalize(locationNameRaw);
+                            if (!Number.isNaN(sequenceNumber) && locationNameNorm) {
+                                tagInfoList.push({ seq: sequenceNumber, nameRaw: locationNameRaw, nameNorm: locationNameNorm });
+                            }
                         }
-                        
-                        // 将编号添加到每个tag对象中
+
+                        // 已分配的编号，避免重复
+                        const assignedSeq = new Set();
+                        const usedIndex = new Set();
+
+                        // 为每个 tag 分配最合适的编号
                         itemData.ls_tags.forEach(tag => {
-                            // 尝试匹配tag的name中的最后一个词作为位置名称
-                            if (tag.name) {
-                                const tagNameWords = tag.name.split(' ');
-                                const lastWord = tagNameWords[tagNameWords.length - 1];
-                                
-                                // 查找匹配的编号
-                                for (const [locationName, sequenceNumber] of tagInfoMap.entries()) {
-                                    if (tag.name.includes(locationName) || locationName.includes(lastWord)) {
-                                        tag.sequenceNumber = sequenceNumber;
-                                        break;
-                                    }
+                            if (!tag || !tag.name) return;
+                            const tagNameNorm = normalize(tag.name);
+                            const tagWords = tagNameNorm.split(' ');
+                            const lastWord = tagWords[tagWords.length - 1] || '';
+
+                            let bestIdx = -1;
+                            // 1) 优先：完整相等匹配
+                            for (let i = 0; i < tagInfoList.length; i++) {
+                                if (usedIndex.has(i)) continue;
+                                const info = tagInfoList[i];
+                                if (assignedSeq.has(info.seq)) continue;
+                                if (tagNameNorm === info.nameNorm) { bestIdx = i; break; }
+                            }
+                            // 2) 次优：包含（以词边界近似）
+                            if (bestIdx === -1) {
+                                const paddedTag = ' ' + tagNameNorm + ' ';
+                                for (let i = 0; i < tagInfoList.length; i++) {
+                                    if (usedIndex.has(i)) continue;
+                                    const info = tagInfoList[i];
+                                    if (assignedSeq.has(info.seq)) continue;
+                                    const paddedInfo = ' ' + info.nameNorm + ' ';
+                                    if (paddedTag.includes(paddedInfo) || paddedInfo.includes(paddedTag)) { bestIdx = i; break; }
                                 }
                             }
+                            // 3) 备选：末尾词精确匹配
+                            if (bestIdx === -1 && lastWord) {
+                                for (let i = 0; i < tagInfoList.length; i++) {
+                                    if (usedIndex.has(i)) continue;
+                                    const info = tagInfoList[i];
+                                    if (assignedSeq.has(info.seq)) continue;
+                                    const infoWords = info.nameNorm.split(' ');
+                                    const infoLast = infoWords[infoWords.length - 1] || '';
+                                    if (lastWord && infoLast && lastWord === infoLast) { bestIdx = i; break; }
+                                }
+                            }
+
+                            if (bestIdx !== -1) {
+                                const info = tagInfoList[bestIdx];
+                                tag.sequenceNumber = info.seq;
+                                usedIndex.add(bestIdx);
+                                assignedSeq.add(info.seq);
+                            } else {
+                                // 未匹配的，保持不赋值，避免错误编号
+                                // 可选：tag.sequenceNumber = undefined;
+                            }
                         });
-                        
-                        console.log('LS涂鸦编号信息提取成功', itemData.ls_tags);
+
+                        // 调试输出：检测是否仍有重复
+                        const seqCount = new Map();
+                        (itemData.ls_tags || []).forEach(t => {
+                            if (typeof t?.sequenceNumber === 'number') {
+                                seqCount.set(t.sequenceNumber, (seqCount.get(t.sequenceNumber) || 0) + 1);
+                            }
+                        });
+                        const duplicates = Array.from(seqCount.entries()).filter(([, c]) => c > 1).map(([k]) => k);
+                        if (duplicates.length) {
+                            console.warn('LS涂鸦编号存在重复：', duplicates);
+                        } else {
+                            console.log('LS涂鸦编号信息提取成功');
+                        }
                     }
                     
                     console.log('LS涂鸦位置获取成功');
@@ -3170,7 +3230,8 @@
                 }).addTo(map);
                 
                 marker.on('click', function(e) {
-                    showItemInfo(item, type, index);
+                    console.log('点击帕特里克救援标记:', item, index, item.subtype);
+                    showPatrickRescuePopup(item, index, item.subtype || 'spawn');
                 });
                 
                 return marker;
@@ -3242,7 +3303,10 @@
                 }).addTo(map);
                 
                 marker.on('click', function(e) {
-                    showRandomMissionPopup([item.x, item.y], item.timeSlot, item.missionIndex);
+                    console.log('点击随机任务标记:', item, index, item.timeSlot, item.missionIndex);
+                    // 构造完整的任务数据数组
+                    const missionData = [item.x, item.y, item.taskName || '未知任务', [item.level || 1, item.players || 1, item.timeRange || '全天']];
+                    showRandomMissionPopup(missionData, item.timeSlot, item.missionIndex);
                 });
                 
                 return marker;
@@ -3762,7 +3826,8 @@
                 }).addTo(map);
                 
                 marker.on('click', function(e) {
-                    showItemInfo(item, type, index);
+                    console.log('点击万圣节地狱犬事件标记:', item, index);
+                    showCerberusPopup(item, index);
                 });
                 
                 return marker;
@@ -3941,6 +4006,7 @@
                 }
                 // 新增：特殊处理犯罪现场，显示弹窗
                 else if (type === 'crime_scenes') {
+                    console.log('点击犯罪现场标记:', item, index);
                     showCrimeScenesPopup(item, index);
                 }
                 // 新增：特殊处理藏匿屋，显示弹窗
@@ -3953,10 +4019,12 @@
                 }
                 // 新增：特殊处理帕特里克救援，显示弹窗
                 else if (type === 'police_rescue_patrick_mcreary') {
+                    console.log('点击帕特里克救援标记:', item, index, item.subtype);
                     showPatrickRescuePopup(item, index, item.subtype || 'spawn');
                 }
                 // 新增：特殊处理随机任务，显示弹窗
                 else if (type === 'random_missions') {
+                    console.log('点击随机任务标记:', item, index, item.timeSlot, item.missionIndex);
                     showRandomMissionPopup([item.x, item.y], item.timeSlot, item.missionIndex);
                 }
                 // 新增：特殊处理沉睡的保安，显示弹窗
@@ -3989,6 +4057,7 @@
                 }
                 // 新增：特殊处理万圣节地狱犬事件，显示弹窗
                 else if (type === 'cerberus') {
+                    console.log('点击万圣节地狱犬事件标记:', item, index);
                     showCerberusPopup(item, index);
                 }
                 // 新增：特殊处理地点与服务类型，使用通用弹窗

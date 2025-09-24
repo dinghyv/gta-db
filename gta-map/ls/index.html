@@ -3770,6 +3770,107 @@
                 else if (type === 'metal_detector') {
                     showMetalDetectorPopup(item, index);
                 }
+                // 特殊处理gun_van，使用专门的武器信息弹窗
+                else if (type === 'gun_van') {
+                    showGunVanWeapons();
+                }
+                // 特殊处理街头毒贩，使用专门的信息弹窗
+                else if (type === 'street_dealers') {
+                    showStreetDealersInfo();
+                }
+                // 特殊处理有机坊产品，显示图片弹窗
+                else if (type === 'ld_organics_products') {
+                    showOrganicFarmImage(index);
+                }
+                // 特殊处理信号干扰器，显示图片弹窗
+                else if (type === 'signal_jammers') {
+                    showSignalJammerImage(index);
+                }
+                // 特殊处理纸牌，显示图片弹窗
+                else if (type === 'playing_cards') {
+                    showPlayingCardsImage(index);
+                }
+                // 特殊处理吞云吐雾馆产品，显示图片弹窗
+                else if (type === 'smoke_on_the_water_product') {
+                    showSmokeProductImage(index);
+                }
+                // 特殊处理手办，显示图片弹窗
+                else if (type === 'action_figures') {
+                    showActionFiguresImage(index);
+                }
+                // 特殊处理元宝，显示图片弹窗
+                else if (type === 'yuanbao') {
+                    showYuanbaoImage(index);
+                }
+                // 特殊处理沉船，显示图片弹窗
+                else if (type === 'shipwrecked') {
+                    showShipwrecksImage(index);
+                }
+                // 特殊处理电话暗杀，显示图片弹窗
+                else if (type === 'payphone_hits') {
+                    showPayphoneHitsImage(index);
+                }
+                // 特殊处理高尔夫球洞，显示图片弹窗
+                else if (type === 'golf_holes') {
+                    showGolfHolesImage(index);
+                }
+                // 特殊处理雪人，显示图片弹窗
+                else if (type === 'snowmen') {
+                    showSnowmenImage(index);
+                }
+                // 特殊处理杰拉德包裹，显示图片弹窗
+                else if (type === 'dead_drop') {
+                    showDeadDropImage(index);
+                }
+                // 特殊处理特技跳跃点，显示图片弹窗
+                else if (type === 'stunt_jumps') {
+                    showStuntJumpsImage(index);
+                }
+                // 特殊处理喷罐，显示图片弹窗
+                else if (type === 'spray') {
+                    showSprayImage(index);
+                }
+                // 特殊处理帮派攻击，显示弹窗
+                else if (type === 'gang_attacks') {
+                    showGangAttackPopup(item, index);
+                }
+                // 特殊处理幽灵曝光，显示弹窗
+                else if (type === 'ghosts3') {
+                    showGhosts3Popup(item, index);
+                }
+                // 特殊处理威泽尔大楼枪战，显示弹窗
+                else if (type === 'wea') {
+                    showWeaPopup(item, index);
+                }
+                // 特殊处理陆地迷幻仙人掌，显示弹窗
+                else if (type === 'ppl') {
+                    showPplPopup(item, index);
+                }
+                // 特殊处理水下迷幻仙人掌，显示弹窗
+                else if (type === 'ppw') {
+                    showPpwPopup(item, index);
+                }
+                // 特殊处理南瓜灯，显示图片弹窗
+                else if (type === 'jack_o_lanterns') {
+                    showJackOLanternImage(index);
+                }
+                // 特殊处理RC时间挑战赛，显示弹窗
+                else if (type === 'rc_time_trial') {
+                    showRCTimeTrialPopup(item, index);
+                }
+                // 特殊处理自行车时间挑战赛，显示弹窗
+                else if (type === 'bike_time_trial') {
+                    showBikeTimeTrialPopup(item, index);
+                }
+                // 特殊处理跳伞，显示弹窗
+                else if (type === 'skydives') {
+                    showSkydivesPopup(item, index);
+                }
+                // 注意：隐藏包裹没有专门的图片弹窗，使用通用处理
+                // 特殊处理LS涂鸦，显示图片弹窗
+                else if (type === 'ls_tags') {
+                    showLSTagsImage(index);
+                }
                 // 特殊处理车行标记，使用专门的车辆展示函数
                 else if (['casino', 'car_meet', 'premium_deluxe_motorsport', 'luxury_autos'].includes(type)) {
                     showDealershipVehicles(type, item.name);
@@ -4082,25 +4183,7 @@
                 }
             }
             
-            // 添加点击事件：使用标记自身的 type/index
-            L.DomEvent.on(marker, 'click', function(e) {
-                const t = marker.dataset.type;
-                const idx = parseInt(marker.dataset.index, 10);
-                let it;
-                
-                // 特殊处理杀人狂标记的数据获取
-                if (t === 'serial_killer_slasher_first') {
-                    it = itemData.serial_killer_slasher && itemData.serial_killer_slasher.first && itemData.serial_killer_slasher.first[idx];
-                } else if (t === 'serial_killer_slasher_last') {
-                    it = itemData.serial_killer_slasher && itemData.serial_killer_slasher.last && itemData.serial_killer_slasher.last[idx];
-                } else {
-                    it = (itemData[t] && itemData[t][idx]) ? itemData[t][idx] : item;
-                }
-                
-                if (!it) return;
-                // 委托给 showItemInfo 处理图片/大弹窗逻辑
-                showItemInfo(it, t, idx);
-            });
+            // 注意：点击事件已在上面通过 marker.on('click', ...) 处理，这里不需要重复处理
             
             return marker;
         }

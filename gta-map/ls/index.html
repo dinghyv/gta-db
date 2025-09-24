@@ -1360,7 +1360,7 @@
             gang_attacks: '../src/assets/gang_attack.svg',
             ghosts3: '../src/assets/ge251.svg',
             treasure_hunt_dba_revolver: '../src/assets/th1.svg',
-            // 洛圣都杀人狂（选择器用 slasher.svg）
+            // 洛圣都杀人狂（first 用 slasher.svg，last 用 slasher2.svg；Leaflet入口按类型分支）
             serial_killer_slasher: '../src/assets/slasher.svg',
             // 茉德悬赏目标图标
             maude_bounty_targets: '../src/assets/mp_static.svg', // 临时使用，后续需要创建专用图标
@@ -3097,6 +3097,29 @@
             const pixel = gameToPixel(item.x, item.y, z);
             const latlng = map.unproject(L.point(pixel.x, pixel.y), z);
             
+            // 特殊处理serial_killer_slasher - first/last 用不同图标
+            if (type === 'serial_killer_slasher') {
+                const iconUrl = (item && item.subtype === 'last') ? '../src/assets/slasher2.svg' : '../src/assets/slasher.svg';
+                const customIcon = L.icon({
+                    iconUrl: iconUrl,
+                    iconSize: [32, 32],
+                    iconAnchor: [16, 16],
+                    popupAnchor: [0, -16]
+                });
+                const marker = L.marker(latlng, {
+                    icon: customIcon,
+                    interactive: true,
+                    zIndexOffset: 1000
+                }).addTo(map);
+                marker.on('click', function(e) {
+                    const firstCount = itemData.serial_killer_slasher?.first?.length || 0;
+                    const isFirst = item && item.subtype !== 'last';
+                    const displayIndex = index;
+                    showSlasherPopup(item, displayIndex, isFirst ? 'first' : 'last');
+                });
+                return marker;
+            }
+
             // 特殊处理media_sticks - 带文字标签
             if (type === 'media_sticks') {
                 const customIcon = L.divIcon({
@@ -3870,9 +3893,9 @@
                 else if (type === 'hidden_caches') {
                     showHiddenCachesImage(index);
                 }
-                // 特殊处理LS涂鸦，显示图片弹窗
+                // 特殊处理LS涂鸦，显示图片弹窗（传入对象以使用 sequenceNumber）
                 else if (type === 'ls_tags') {
-                    showLSTagsImage(index);
+                    showLSTagsImage(item);
                 }
                 // 特殊处理车行标记，使用专门的车辆展示函数
                 else if (['casino', 'car_meet', 'premium_deluxe_motorsport', 'luxury_autos'].includes(type)) {
@@ -3915,6 +3938,62 @@
                         else subtype = 'rumpo';
                     }
                     showMoviePropsPopup(item, index, subtype);
+                }
+                // 新增：特殊处理犯罪现场，显示弹窗
+                else if (type === 'crime_scenes') {
+                    showCrimeScenesPopup(item, index);
+                }
+                // 新增：特殊处理藏匿屋，显示弹窗
+                else if (type === 'stash_houses') {
+                    showStashHousePopup(item, index);
+                }
+                // 新增：特殊处理玛德拉索雇凶，显示弹窗
+                else if (type === 'madrazo_hits') {
+                    showMadrazoHitsPopup(item, index);
+                }
+                // 新增：特殊处理帕特里克救援，显示弹窗
+                else if (type === 'police_rescue_patrick_mcreary') {
+                    showPatrickRescuePopup(item, index, item.subtype || 'spawn');
+                }
+                // 新增：特殊处理随机任务，显示弹窗
+                else if (type === 'random_missions') {
+                    showRandomMissionPopup([item.x, item.y], item.timeSlot, item.missionIndex);
+                }
+                // 新增：特殊处理沉睡的保安，显示弹窗
+                else if (type === 'drunk_guard') {
+                    showDrunkGuardPopup(item, index);
+                }
+                // 新增：特殊处理社区边界，显示弹窗
+                else if (type === 'community_outreach') {
+                    showCommunityOutreachPopup(item, index);
+                }
+                // 新增：特殊处理商店抢劫，显示弹窗
+                else if (type === 'store_robbery') {
+                    showStoreRobberyPopup(item, index);
+                }
+                // 新增：特殊处理装甲运钞车，显示弹窗
+                else if (type === 'armored_truck') {
+                    showArmoredTruckPopup(item, index);
+                }
+                // 新增：特殊处理媒体记忆棒，显示弹窗
+                else if (type === 'media_sticks') {
+                    showMediaSticksPopup(item, index);
+                }
+                // 新增：特殊处理望远镜，使用通用弹窗
+                else if (type === 'v_telescopes') {
+                    showNewItemPopup(type, item, index);
+                }
+                // 新增：特殊处理UFO观光，显示弹窗
+                else if (type === 'ufo') {
+                    showUfoPopup(item, index);
+                }
+                // 新增：特殊处理万圣节地狱犬事件，显示弹窗
+                else if (type === 'cerberus') {
+                    showCerberusPopup(item, index);
+                }
+                // 新增：特殊处理地点与服务类型，使用通用弹窗
+                else if (['metro', 'police', 'fire_stations', 'hospitals', 'clothing', 'tattoos', 'barbers', 'ammunation', 'mod_shop', 'car_wash', 'shops_to_rob', 'gas_stations', 'atms', 'vend_sprunk', 'vend_ecola'].includes(type)) {
+                    showNewItemPopup(type, item, index);
                 }
                 else {
                     showItemInfo(item, type, index);
@@ -4570,12 +4649,12 @@
                         const last = itemData.serial_killer_slasher?.last || [];
                         first.forEach((p, i) => {
                             if (typeof p.x === 'undefined' || typeof p.y === 'undefined') return;
-                            const marker = createLeafletMarker(p, i, 'serial_killer_slasher');
+                            const marker = createLeafletMarker({ ...p, subtype: 'first' }, i, 'serial_killer_slasher');
                             leafletMarkers.push(marker);
                         });
                         last.forEach((p, i) => {
                             if (typeof p.x === 'undefined' || typeof p.y === 'undefined') return;
-                            const marker = createLeafletMarker(p, i, 'serial_killer_slasher');
+                            const marker = createLeafletMarker({ ...p, subtype: 'last' }, i, 'serial_killer_slasher');
                             leafletMarkers.push(marker);
                         });
                     }
@@ -5008,9 +5087,10 @@
             //     });
             // }
             
-            // 特殊：随机任务渲染（需要特殊处理嵌套结构）
-            if (activeItemTypes.has('random_missions')) {
+            // 特殊：随机任务渲染（需要特殊处理嵌套结构）- 若已迁移到Leaflet则跳过DOM渲染
+            if (activeItemTypes.has('random_missions') && !pilotMarkerTypes.has('random_missions')) {
                 console.log('处理随机任务DOM标记，数据:', itemData.random_missions);
+                console.log('pilotMarkerTypes.has(random_missions):', pilotMarkerTypes.has('random_missions'));
                 const randomMissions = itemData.random_missions || {};
                 let globalIndex = 0;
                 
@@ -5915,9 +5995,21 @@
                 gas_stations: '加油站',
                 atms: 'ATM机',
                 vend_sprunk: '霜碧售卖机',
-                vend_ecola: '易可乐售卖机'
+                vend_ecola: '易可乐售卖机',
+                // 新增缺失的标记类型标题
+                crime_scenes: '犯罪现场',
+                stash_houses: '藏匿屋',
+                madrazo_hits: '玛德拉索雇凶',
+                police_rescue_patrick_mcreary: '帕特里克救援',
+                random_missions: '随机任务',
+                drunk_guard: '沉睡的保安',
+                community_outreach: '社区边界',
+                store_robbery: '商店抢劫',
+                armored_truck: '装甲运钞车',
+                media_sticks: '媒体记忆棒',
+                ufo: 'UFO观光',
+                cerberus: '万圣节地狱犬事件'
             };
-            titleMap.drunk_guard = '沉睡的保安';
 
 
             // 如果没有有效 item，则不显示小信息面板
@@ -6194,6 +6286,13 @@
             }, 100);
         }
 
+        // 兼容：旧调用别名（修复 ReferenceError）
+        function showRCTimeTrialImage(index) {
+            const item = (itemData.rc_time_trial && itemData.rc_time_trial[index]) || null;
+            if (!item) return;
+            showRCTimeTrialPopup(item, index);
+        }
+
         // 显示自行车时间挑战赛弹窗
         function showBikeTimeTrialPopup(item, index) {
             // 创建弹窗
@@ -6289,6 +6388,13 @@
                 };
                 document.addEventListener('click', closePopupHandler);
             }, 100);
+        }
+
+        // 兼容：旧调用别名（修复 ReferenceError）
+        function showBikeTimeTrialImage(index) {
+            const item = (itemData.bike_time_trial && itemData.bike_time_trial[index]) || null;
+            if (!item) return;
+            showBikeTimeTrialPopup(item, index);
         }
 
         // 显示信号干扰器图片弹窗
@@ -7744,6 +7850,48 @@
                 };
                 document.addEventListener('click', closePopupHandler);
             }, 100);
+        }
+
+        // 兼容：旧调用别名（修复 ReferenceError）
+        function showSkydivesImage(index) {
+            const item = (itemData.skydives && itemData.skydives[index]) || null;
+            if (!item) return;
+            showSkydivesPopup(item, index);
+        }
+
+        // 兼容：隐藏包裹图片弹窗（旧调用名），若无专用图片，使用通用弹窗
+        function showHiddenCachesImage(index) {
+            const item = (itemData.hidden_caches && itemData.hidden_caches[index]) || null;
+            if (!item) return;
+            const title = `隐藏包裹 #${index + 1}`;
+            const popup = document.createElement('div');
+            popup.className = 'hidden-caches-popup';
+            popup.style.cssText = `
+                position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+                background: #fff; border: 3px solid #009688; border-radius: 12px; padding: 18px;
+                z-index: 10000; max-width: 520px; max-height: 80vh; box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+                font-family: Arial, sans-serif; text-align: center; overflow-y: auto;`;
+            popup.innerHTML = `
+                <div style="margin-bottom: 12px; font-size: 20px; font-weight: bold; color: #00695C;">${title}</div>
+                <img src="../src/assets/cache.png" alt="隐藏包裹" style="max-width: 100%; height: auto; border-radius: 6px; margin: 8px 0;"/>
+                <div style="margin-top: 12px; display: flex; justify-content: center; gap: 10px;">
+                    <button id="hide-hidden-caches-btn" style="padding: 10px 18px; background: #4CAF50; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">隐藏</button>
+                    <button id="close-hidden-caches-btn" style="padding: 10px 18px; background: #f44336; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">关闭</button>
+                </div>`;
+            const hideBtn = popup.querySelector('#hide-hidden-caches-btn');
+            const closeBtn = popup.querySelector('#close-hidden-caches-btn');
+            hideBtn.addEventListener('click', () => {
+                const el = document.querySelector(`.item-marker[data-type="hidden_caches"][data-index="${index}"]`);
+                if (el) el.style.opacity = '0.25';
+                popup.remove();
+            });
+            closeBtn.addEventListener('click', () => popup.remove());
+            popup.addEventListener('click', (e) => e.stopPropagation());
+            setTimeout(() => {
+                const closePopupHandler = (e) => { if (!popup.contains(e.target)) { popup.remove(); document.removeEventListener('click', closePopupHandler); } };
+                document.addEventListener('click', closePopupHandler);
+            }, 50);
+            document.body.appendChild(popup);
         }
 
         // 显示杰拉德包裹图片弹窗

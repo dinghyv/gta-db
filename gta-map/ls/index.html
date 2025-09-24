@@ -10141,15 +10141,22 @@
                 hideBtn.addEventListener('click', () => {
                     console.log('隐藏按钮被点击，隐藏组', index);
                     
-                    // 隐藏当前组的所有标记
+                    // 隐藏当前组的所有标记与连线
                     if (currentGroupMarkers && currentGroupMarkers.length > 0) {
-                        currentGroupMarkers.forEach((marker, markerIndex) => {
-                            if (marker && marker.setOpacity) {
-                                marker.setOpacity(0.3);
-                                console.log(`隐藏组${index}的标记${markerIndex}`);
+                        currentGroupMarkers.forEach((layer, markerIndex) => {
+                            if (layer && layer.setOpacity) {
+                                layer.setOpacity(0.3);
+                                console.log(`隐藏组${index}的标记/线${markerIndex}`);
+                            } else if (layer && layer.setStyle) {
+                                layer.setStyle({ opacity: 0.3 });
+                                console.log(`隐藏组${index}的线${markerIndex}`);
                             }
                         });
                     }
+                    // 同步处理旧版 DOM 红线
+                    document.querySelectorAll(`.smuggler-connector-line[data-type="smuggler_plane_line"][data-index="${index}"]`).forEach((el) => {
+                        el.style.opacity = '0.3';
+                    });
                     
                     // 更新标题中的隐藏数量
                     const titleElement = popup.querySelector('h3');
@@ -10166,15 +10173,22 @@
                 showBtn.addEventListener('click', () => {
                     console.log('显示按钮被点击，显示组', index);
                     
-                    // 显示当前组的所有标记
+                    // 显示当前组的所有标记与连线
                     if (currentGroupMarkers && currentGroupMarkers.length > 0) {
-                        currentGroupMarkers.forEach((marker, markerIndex) => {
-                            if (marker && marker.setOpacity) {
-                                marker.setOpacity(1);
-                                console.log(`显示组${index}的标记${markerIndex}`);
+                        currentGroupMarkers.forEach((layer, markerIndex) => {
+                            if (layer && layer.setOpacity) {
+                                layer.setOpacity(1);
+                                console.log(`显示组${index}的标记/线${markerIndex}`);
+                            } else if (layer && layer.setStyle) {
+                                layer.setStyle({ opacity: 1 });
+                                console.log(`显示组${index}的线${markerIndex}`);
                             }
                         });
                     }
+                    // 同步处理旧版 DOM 红线
+                    document.querySelectorAll(`.smuggler-connector-line[data-type="smuggler_plane_line"][data-index="${index}"]`).forEach((el) => {
+                        el.style.opacity = '1';
+                    });
                     
                     // 更新标题中的隐藏数量
                     const titleElement = popup.querySelector('h3');

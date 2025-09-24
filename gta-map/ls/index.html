@@ -368,6 +368,53 @@
             object-fit: contain;
         }
 
+        /* 搜索框样式（匹配侧边栏风格） */
+        .item-search-wrapper input[type="text"] {
+            width: 100%;
+            box-sizing: border-box;
+            display: block;
+            background: var(--gta-bg-dark);
+            color: var(--gta-text);
+            border: 1px solid var(--gta-border-light);
+            padding: 8px 10px;
+            border-radius: 6px;
+            font-size: 13px;
+            outline: none;
+            transition: var(--transition);
+        }
+        .item-search-wrapper input[type="text"]:focus {
+            border-color: var(--gta-primary);
+            box-shadow: 0 0 8px rgba(25, 118, 210, 0.3);
+        }
+
+        /* 分组标题样式 */
+        .item-group-title {
+            margin: 8px 0 6px 0;
+            font-size: 12px;
+            color: var(--gta-accent);
+            text-transform: uppercase;
+            opacity: 0.9;
+        }
+
+        /* 可折叠分组头部与内容 */
+        .item-group-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin: 8px 0 6px 0;
+            font-size: 12px;
+            color: var(--gta-accent);
+            text-transform: uppercase;
+            opacity: 0.95;
+            cursor: pointer;
+            user-select: none;
+        }
+        .item-group-header .chevron {
+            color: var(--gta-text-secondary);
+            transition: transform 0.15s ease;
+        }
+        .item-group-content.collapsed { display: none; }
+
         /* GTA风格导航栏 - 佩里科岛风格蓝色主题 */
         .gta-nav {
             position: absolute;
@@ -1034,7 +1081,6 @@
                 </div>
 
                 <div class="side-panel-section">
-                    <div class="side-panel-section-title">显示物品</div>
                     <div style="display:flex; gap:8px; margin: 6px 0 10px 0;">
                         <button id="show-all-items" class="nav-button" style="flex:1;">
                             <i class="fas fa-eye"></i> 显示全部
@@ -1042,6 +1088,9 @@
                         <button id="hide-all-items" class="nav-button" style="flex:1;">
                             <i class="fas fa-eye-slash"></i> 隐藏全部
                         </button>
+                    </div>
+                    <div class="item-search-wrapper" style="margin-bottom: 10px;">
+                        <input id="sidebar-item-search" type="text" placeholder="搜索物品..." aria-label="搜索物品" />
                     </div>
                     <div class="item-selector-container" id="sidebar-item-selectors">
                         <!-- 复用现有 item 选择（稍后通过 JS 填充） -->
@@ -1564,7 +1613,7 @@
             { value: 'ls_tags', text: 'LS涂鸦' },
             { value: 'street_dealers', text: '街头毒贩' },
             { value: 'playing_cards', text: '纸牌' },
-            { value: 'smoke_on_the_water_product', text: '吞云吐雾馆产品' },
+            { value: 'smoke_on_the_water_product', text: '吞云吐雾馆产品（测试）' },
             { value: 'action_figures', text: '手办' },
             { value: 'yuanbao', text: '元宝' },
             { value: 'stunt_jumps', text: '特技跳跃点' },
@@ -12435,6 +12484,19 @@
                     ev.preventDefault();
                     panelToggle.click();
                 });
+                // 防止侧边栏内的交互触发地图行为（滚动/拖拽/点击等）
+                try {
+                    if (typeof L !== 'undefined' && L.DomEvent) {
+                        L.DomEvent.disableClickPropagation(sidePanel);
+                        L.DomEvent.disableScrollPropagation(sidePanel);
+                    }
+                } catch (e) {}
+                const stopEvents = ['wheel','mousewheel','DOMMouseScroll','touchstart','touchmove','touchend','pointerdown','pointermove','pointerup','mousedown','mousemove','mouseup','click','dblclick','contextmenu'];
+                stopEvents.forEach(evtName => {
+                    sidePanel.addEventListener(evtName, (ev) => {
+                        ev.stopPropagation();
+                    }, { passive: false });
+                });
             }
 
             // 缩放按钮绑定
@@ -12443,39 +12505,122 @@
             if (zoomInBtn) zoomInBtn.addEventListener('click', () => map.zoomIn());
             if (zoomOutBtn) zoomOutBtn.addEventListener('click', () => map.zoomOut());
 
-            // 使用静态选项数组生成侧边栏多选项
+            // 分组渲染 + 搜索过滤
             const sidebarContainer = document.getElementById('sidebar-item-selectors');
+            const searchInput = document.getElementById('sidebar-item-search');
             if (sidebarContainer) {
-                sidebarItemOptions.forEach(opt => {
+                const groupMap = {
+                    '车行配置': [
+                        'dealerships'
+                    ],
+                    '每日活动': [
+                        'gun_van',
+                        'dead_drop',
+                        'street_dealers',
+                        'smoke_on_the_water_product'
+                    ],
+                    '任务与活动': [
+                        'yuanbao',
+                        'stunt_jumps',
+                        'payphone_hits',
+                        'rc_time_trial',
+                        'bike_time_trial',
+                        'skydives',
+                        'gang_attacks',
+                        'treasure_hunt_dba_revolver',
+                        'serial_killer_slasher',
+                        'maude_bounty_targets',
+                        'stash_houses',
+                        'madrazo_hits',
+                        'police_rescue_patrick_mcreary',
+                        'random_missions',
+                        'drug_vehicle',
+                        'drunk_guard',
+                        'metal_detector',
+                        'smuggler_plane',
+                        'smuggler_trail',
+                        'crime_scenes',
+                        'wea',
+                        'community_outreach',
+                        'store_robbery',
+                        'convoy',
+                        'armored_truck',
+                        'exotic_exports1',
+                        'exotic_exports2'
+                    ],
+                    '收藏品': [
+                        'hidden_caches',
+                        'shipwrecked',
+                        'ls_tags',
+                        'playing_cards',
+                        'action_figures',
+                        'spray',
+                        'ld_organics_products',
+                        'signal_jammers',
+                        'movie_props',
+                        'media_sticks',
+                        'v_telescopes',
+                        'ppl',
+                        'ppw'
+                    ],
+                    '地点与服务': [
+                        'golf_holes',
+                        'metro',
+                        'police',
+                        'fire_stations',
+                        'hospitals',
+                        'clothing',
+                        'tattoos',
+                        'barbers',
+                        'ammunation',
+                        'mod_shop',
+                        'car_wash',
+                        'shops_to_rob',
+                        'gas_stations',
+                        'atms',
+                        'vend_sprunk',
+                        'vend_ecola'
+                    ],
+                    '季节性/特殊事件': [
+                        'jack_o_lanterns',
+                        'snowmen',
+                        'ghosts3',
+                        'ufo',
+                        'halloween_slashers',
+                        'possessed_animals',
+                        'cerberus',
+                        'yeti',
+                        'happy_holidays_hauler'
+                    ]
+                };
+
+                const typeToOption = Object.fromEntries(sidebarItemOptions.map(o => [o.value, o]));
+
+                function createCheckboxRow(opt) {
                     const type = opt.value;
-                    // 包裹一层，便于样式控制
                     const wrapper = document.createElement('div');
                     wrapper.className = 'item-checkbox-wrapper';
 
-                    // 复选框
                     const chk = document.createElement('input');
                     chk.type = 'checkbox';
                     chk.className = 'item-checkbox';
                     chk.dataset.itemType = type;
                     chk.id = `sidebar-item-${type}`;
+                    chk.checked = activeItemTypes && activeItemTypes.has && activeItemTypes.has(type);
 
-                    // label
                     const label = document.createElement('label');
                     label.setAttribute('for', chk.id);
                     label.style.display = 'flex';
                     label.style.alignItems = 'center';
                     label.style.gap = '8px';
 
-                    // 图标
                     if (type !== 'dealerships' && type !== 'gang_attacks') {
                         let iconSrc = null;
-                        // 优先使用菜单配置中的icon属性
                         if (opt.icon) {
                             iconSrc = opt.icon;
                         } else if (typeof itemIcons !== 'undefined' && itemIcons[type]) {
                             iconSrc = itemIcons[type];
                         }
-                        
                         if (iconSrc) {
                         const ico = document.createElement('img');
                             ico.src = iconSrc;
@@ -12487,45 +12632,30 @@
                         }
                     }
 
-                    // 文本
                     const span = document.createElement('span');
                     span.textContent = opt.text;
                     label.appendChild(span);
 
                     wrapper.appendChild(chk);
                     wrapper.appendChild(label);
-                    sidebarContainer.appendChild(wrapper);
 
-                    // 变更时更新显示的 markers
                     chk.addEventListener('change', (e) => {
                         const t = e.target.dataset.itemType;
-                        
-                        // 特殊处理dealerships - 同时控制所有已迁移的车行标记
                         if (t === 'dealerships') {
                             const migratedDealerships = ['casino', 'car_meet', 'premium_deluxe_motorsport', 'luxury_autos'];
                             if (e.target.checked) {
                                 activeItemTypes.add(t);
-                                // 同时激活所有已迁移的车行标记
-                                migratedDealerships.forEach(dealershipType => {
-                                    activeItemTypes.add(dealershipType);
-                                });
+                                migratedDealerships.forEach(dealershipType => activeItemTypes.add(dealershipType));
                             } else {
                                 activeItemTypes.delete(t);
-                                // 同时取消激活所有已迁移的车行标记
-                                migratedDealerships.forEach(dealershipType => {
-                                    activeItemTypes.delete(dealershipType);
-                                });
+                                migratedDealerships.forEach(dealershipType => activeItemTypes.delete(dealershipType));
                             }
                         } else {
-                            if (e.target.checked) {
-                                activeItemTypes.add(t);
-                            } else {
-                                activeItemTypes.delete(t);
-                            }
+                            if (e.target.checked) { activeItemTypes.add(t); } else { activeItemTypes.delete(t); }
                         }
 
                         if (activeItemTypes.size > 0) {
-                            updateItemMarkers(); // 物品选择变化时需要重新创建标记
+                            updateItemMarkers();
                             if (typeof updateDealershipMarkers === 'function') updateDealershipMarkers();
                             if (typeof updateTilePanePosition === 'function') updateTilePanePosition();
                         } else {
@@ -12535,7 +12665,57 @@
                             if (typeof updateTilePanePosition === 'function') updateTilePanePosition();
                         }
                     });
-                });
+
+                    return wrapper;
+                }
+
+                function renderSidebar(filterText = '') {
+                    sidebarContainer.innerHTML = '';
+                    const normalized = (filterText || '').trim().toLowerCase();
+                    Object.keys(groupMap).forEach(groupName => {
+                        const types = groupMap[groupName];
+                        const visibleOpts = types
+                            .map(t => typeToOption[t])
+                            .filter(Boolean)
+                            .filter(opt => {
+                                if (!normalized) return true;
+                                const text = (opt.text || '').toLowerCase();
+                                const value = (opt.value || '').toLowerCase();
+                                return text.includes(normalized) || value.includes(normalized);
+                            });
+                        if (visibleOpts.length === 0) return;
+
+                        const header = document.createElement('div');
+                        header.className = 'item-group-header';
+                        const titleSpan = document.createElement('span');
+                        titleSpan.textContent = groupName;
+                        const chevron = document.createElement('i');
+                        chevron.className = 'fas fa-chevron-down chevron';
+                        header.appendChild(titleSpan);
+                        header.appendChild(chevron);
+
+                        const content = document.createElement('div');
+                        content.className = 'item-group-content';
+
+                        visibleOpts.forEach(opt => {
+                            const row = createCheckboxRow(opt);
+                            content.appendChild(row);
+                        });
+
+                        header.addEventListener('click', () => {
+                            const isCollapsed = content.classList.toggle('collapsed');
+                            chevron.style.transform = isCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)';
+                        });
+
+                        sidebarContainer.appendChild(header);
+                        sidebarContainer.appendChild(content);
+                    });
+                }
+
+                renderSidebar('');
+                if (searchInput) {
+                    searchInput.addEventListener('input', (e) => renderSidebar(e.target.value));
+                }
             }
 
             // 显示全部/隐藏全部按钮

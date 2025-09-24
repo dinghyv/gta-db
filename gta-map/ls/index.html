@@ -983,6 +983,14 @@
 
                 <div class="side-panel-section">
                     <div class="side-panel-section-title">显示物品</div>
+                    <div style="display:flex; gap:8px; margin: 6px 0 10px 0;">
+                        <button id="show-all-items" class="nav-button" style="flex:1;">
+                            <i class="fas fa-eye"></i> 显示全部
+                        </button>
+                        <button id="hide-all-items" class="nav-button" style="flex:1;">
+                            <i class="fas fa-eye-slash"></i> 隐藏全部
+                        </button>
+                    </div>
                     <div class="item-selector-container" id="sidebar-item-selectors">
                         <!-- 复用现有 item 选择（稍后通过 JS 填充） -->
                     </div>
@@ -1148,6 +1156,7 @@
             'mod_shop',
             'car_wash',
             'shops_to_rob',
+            'drunk_guard',
             
             // 第17组：便民设施
             'gas_stations',
@@ -1272,7 +1281,7 @@
             halloween_slashers: '../src/assets/slasher.svg',
             // 鬼上身的动物
             possessed_animals: '../src/assets/cerberus.svg',
-            // 地域犬
+            // 地狱犬
             cerberus: '../src/assets/cerberus.svg',
             // 雪怪
             yeti: '../src/assets/what.svg',
@@ -1511,44 +1520,44 @@
             { value: 'stash_houses', text: '藏匿屋' },
             { value: 'madrazo_hits', text: '玛德拉索雇凶' },
             { value: 'police_rescue_patrick_mcreary', text: '帕特里克救援', icon: '../src/assets/patrick.svg' },
-            { value: 'random_missions', text: '🎲 随机任务', icon: '../src/assets/random.svg' },
-            { value: 'drug_vehicle', text: '🚗 毒品载具', icon: '../src/assets/drug_vehicle.svg' },
-            { value: 'drunk_guard', text: '🛌 沉睡的保安', icon: '../src/assets/drunk_guard.svg' },
-            { value: 'metal_detector', text: '🧭 金属探测器', icon: '../src/assets/metal.svg' },
-            { value: 'smuggler_plane', text: '✈️ 走私贩飞机', icon: '../src/assets/smuggler_plane.svg' },
-            { value: 'smuggler_trail', text: '🛤️ 走私贩踪迹', icon: '../src/assets/smuggler_trail.svg' },
-            { value: 'crime_scenes', text: '🔍 犯罪现场', icon: '../src/assets/crime_scenes.svg' },
-            { value: 'ufo', text: '🛸 UFO观光', icon: '../src/assets/ufo.svg' },
-            { value: 'halloween_slashers', text: '🎃 万圣节杀人狂', icon: '../src/assets/slasher.svg' },
-            { value: 'possessed_animals', text: '🐺 鬼上身的动物', icon: '../src/assets/cerberus.svg' },
-            { value: 'cerberus', text: '🐕 地域犬', icon: '../src/assets/cerberus.svg' },
-            { value: 'yeti', text: '❄️ 雪怪', icon: '../src/assets/what.svg' },
-            { value: 'happy_holidays_hauler', text: '🎄 节日快乐卡车', icon: '../src/assets/happy.svg' },
-            { value: 'wea', text: '🏢 威泽尔大楼枪战', icon: '../src/assets/wea.svg' },
-            { value: 'ppl', text: '🌵 陆地迷幻仙人掌', icon: '../src/assets/ppl.svg' },
-            { value: 'ppw', text: '🌊 水下迷幻仙人掌', icon: '../src/assets/ppw.svg' },
-            { value: 'metro', text: '🚇 地铁站', icon: '../src/assets/metro.svg' },
-            { value: 'police', text: '🚔 警察局', icon: '../src/assets/police.svg' },
-            { value: 'v_telescopes', text: '🔭 望远镜', icon: '../src/assets/telescopes.svg' },
-            { value: 'fire_stations', text: '🚒 消防局', icon: '../src/assets/fire.svg' },
-            { value: 'hospitals', text: '🏥 医院', icon: '../src/assets/hospitals.svg' },
-            { value: 'clothing', text: '👕 服装店', icon: '../src/assets/clothing.svg' },
-            { value: 'tattoos', text: '🎨 纹身店', icon: '../src/assets/tattoos.svg' },
-            { value: 'barbers', text: '💇 理发店', icon: '../src/assets/barbers.svg' },
-            { value: 'ammunation', text: '🔫 武装国度', icon: '../src/assets/ammunation.svg' },
-            { value: 'mod_shop', text: '🔧 洛圣都改车王', icon: '../src/assets/mod_shop.svg' },
-            { value: 'car_wash', text: '🧽 洗车店', icon: '../src/assets/car_wash.svg' },
-            { value: 'shops_to_rob', text: '🏪 可抢劫的商店', icon: '../src/assets/shops_to_rob.svg' },
-            { value: 'gas_stations', text: '⛽ 加油站', icon: '../src/assets/gas_stations.svg' },
-            { value: 'atms', text: '💰 ATM机', icon: '../src/assets/atms.svg' },
-            { value: 'vend_sprunk', text: '🥤 霜碧售卖机', icon: '../src/assets/vend_sprunk.svg' },
-            { value: 'vend_ecola', text: '🥤 易可乐售卖机', icon: '../src/assets/vend_ecola.svg' },
-            { value: 'community_outreach', text: '🏘️ 社区边界', icon: '../src/assets/community_outreach.svg' },
-            { value: 'store_robbery', text: '🏪 商店抢劫', icon: '../src/assets/store_robbery.svg' },
-            { value: 'convoy', text: '🚛 车队', icon: '../src/assets/convoy.svg' },
-            { value: 'armored_truck', text: '💰 装甲运钞车', icon: '../src/assets/armored_truck.svg' },
-            { value: 'exotic_exports1', text: '🚗 外贸出口载具1', icon: '../src/assets/exotic_exports1.svg' },
-            { value: 'exotic_exports2', text: '🚗 外贸出口载具2', icon: '../src/assets/exotic_exports2.svg' }
+            { value: 'random_missions', text: '随机任务', icon: '../src/assets/random.svg' },
+            { value: 'drug_vehicle', text: '毒品载具', icon: '../src/assets/drug_vehicle.svg' },
+            { value: 'drunk_guard', text: '沉睡的保安', icon: '../src/assets/drunk_guard.svg' },
+            { value: 'metal_detector', text: '金属探测器', icon: '../src/assets/metal.svg' },
+            { value: 'smuggler_plane', text: '走私贩飞机', icon: '../src/assets/smuggler_plane.svg' },
+            { value: 'smuggler_trail', text: '走私贩踪迹', icon: '../src/assets/smuggler_trail.svg' },
+            { value: 'crime_scenes', text: '犯罪现场', icon: '../src/assets/crime_scenes.svg' },
+            { value: 'ufo', text: 'UFO观光', icon: '../src/assets/ufo.svg' },
+            { value: 'halloween_slashers', text: '万圣节杀人狂', icon: '../src/assets/slasher.svg' },
+            { value: 'possessed_animals', text: '鬼上身的动物', icon: '../src/assets/cerberus.svg' },
+            { value: 'cerberus', text: '万圣节地狱犬事件', icon: '../src/assets/cerberus.svg' },
+            { value: 'yeti', text: '雪怪', icon: '../src/assets/what.svg' },
+            { value: 'happy_holidays_hauler', text: '节日快乐卡车', icon: '../src/assets/happy.svg' },
+            { value: 'wea', text: '威泽尔大楼枪战', icon: '../src/assets/wea.svg' },
+            { value: 'ppl', text: '陆地迷幻仙人掌', icon: '../src/assets/ppl.svg' },
+            { value: 'ppw', text: '水下迷幻仙人掌', icon: '../src/assets/ppw.svg' },
+            { value: 'metro', text: '地铁站', icon: '../src/assets/metro.svg' },
+            { value: 'police', text: '警察局', icon: '../src/assets/police.svg' },
+            { value: 'v_telescopes', text: '望远镜', icon: '../src/assets/telescopes.svg' },
+            { value: 'fire_stations', text: '消防局', icon: '../src/assets/fire.svg' },
+            { value: 'hospitals', text: '医院', icon: '../src/assets/hospitals.svg' },
+            { value: 'clothing', text: '服装店', icon: '../src/assets/clothing.svg' },
+            { value: 'tattoos', text: '纹身店', icon: '../src/assets/tattoos.svg' },
+            { value: 'barbers', text: '理发店', icon: '../src/assets/barbers.svg' },
+            { value: 'ammunation', text: '武装国度', icon: '../src/assets/ammunation.svg' },
+            { value: 'mod_shop', text: '洛圣都改车王', icon: '../src/assets/mod_shop.svg' },
+            { value: 'car_wash', text: '洗车店', icon: '../src/assets/car_wash.svg' },
+            { value: 'shops_to_rob', text: '可抢劫的商店', icon: '../src/assets/shops_to_rob.svg' },
+            { value: 'gas_stations', text: '加油站', icon: '../src/assets/gas_stations.svg' },
+            { value: 'atms', text: 'ATM机', icon: '../src/assets/atms.svg' },
+            { value: 'vend_sprunk', text: '霜碧售卖机', icon: '../src/assets/vend_sprunk.svg' },
+            { value: 'vend_ecola', text: '易可乐售卖机', icon: '../src/assets/vend_ecola.svg' },
+            { value: 'community_outreach', text: '社区边界', icon: '../src/assets/community_outreach.svg' },
+            { value: 'store_robbery', text: '商店抢劫', icon: '../src/assets/store_robbery.svg' },
+            { value: 'convoy', text: '车队', icon: '../src/assets/convoy.svg' },
+            { value: 'armored_truck', text: '装甲运钞车', icon: '../src/assets/armored_truck.svg' },
+            { value: 'exotic_exports1', text: '外贸出口载具1', icon: '../src/assets/exotic_exports1.svg' },
+            { value: 'exotic_exports2', text: '外贸出口载具2', icon: '../src/assets/exotic_exports2.svg' }
         ];
         const loader = document.getElementById('loader');
         const tilePaneDom = document.getElementById('tile-pane');
@@ -2281,15 +2290,15 @@
                         itemData.possessed_animals = [];
                     }
                     
-                    // 额外加载：地域犬（cerberus）
+                    // 额外加载：地狱犬（cerberus）
                     try {
                         if (cardsData && cardsData.cerberus && Array.isArray(cardsData.cerberus)) {
                             itemData.cerberus = cardsData.cerberus.map((item, index) => ({
                                 x: item.x,
                                 y: item.y,
-                                name: `地域犬 ${index + 1}`
+                                name: `地狱犬 ${index + 1}`
                             }));
-                            console.log(`cerberus 数据加载成功：${itemData.cerberus.length} 个地域犬位置`);
+                            console.log(`cerberus 数据加载成功：${itemData.cerberus.length} 个地狱犬位置`);
                         } else {
                             console.log('cerberus 数据未找到或格式不正确');
                         }
@@ -3571,7 +3580,7 @@
                 return marker;
             }
             
-            // 特殊处理cerberus - 地域犬（只显示图标，无圆圈）
+            // 特殊处理cerberus - 地狱犬（只显示图标，无圆圈）
             if (type === 'cerberus') {
                 const customIcon = L.icon({
                     iconUrl: itemIcons[type],
@@ -4247,7 +4256,7 @@
                             leafletMarkers.push(marker);
                         });
                     }
-                    // 特殊处理cerberus - 地域犬（只显示图标）
+                    // 特殊处理cerberus - 地狱犬（只显示图标）
                     else if (type === 'cerberus') {
                         if (!itemData[type] || !Array.isArray(itemData[type])) return;
                         
@@ -4465,7 +4474,7 @@
 
             // 注意：鬼上身动物现在使用Leaflet标记系统渲染，不再需要DOM渲染
 
-            // 注意：地域犬现在使用Leaflet标记系统渲染，不再需要DOM渲染
+            // 注意：地狱犬现在使用Leaflet标记系统渲染，不再需要DOM渲染
 
             // 注意：雪怪现在使用Leaflet标记系统渲染，不再需要DOM渲染
 
@@ -5675,6 +5684,7 @@
                 vend_sprunk: '霜碧售卖机',
                 vend_ecola: '易可乐售卖机'
             };
+            titleMap.drunk_guard = '沉睡的保安';
 
 
             // 如果没有有效 item，则不显示小信息面板
@@ -9210,22 +9220,22 @@
                 }
             }
             
-            // 检查当前是否显示地域犬（支持多选）
+            // 检查当前是否显示地狱犬（支持多选）
             if (activeItemTypes.has('cerberus') && itemData.cerberus) {
-                // 检查点击位置是否在任意地域犬附近
+                // 检查点击位置是否在任意地狱犬附近
                 const nearbyCerberus = itemData.cerberus.find(cerberus => {
                     const distance = Math.sqrt(Math.pow(cerberus.x - clickX, 2) + Math.pow(cerberus.y - clickY, 2));
                     return distance <= 100; // 检测半径100单位
                 });
                 
                 if (nearbyCerberus) {
-                    console.log('点击了地域犬:', nearbyCerberus.name);
+                    console.log('点击了地狱犬:', nearbyCerberus.name);
                     // 找到对应的索引
                     const cerberusIndex = itemData.cerberus.findIndex(cerberus => 
                         cerberus.x === nearbyCerberus.x && cerberus.y === nearbyCerberus.y
                     );
                     showCerberusPopup(nearbyCerberus, cerberusIndex);
-                    return; // 找到地域犬，停止后续检测
+                    return; // 找到地狱犬，停止后续检测
                 }
             }
         }
@@ -10140,9 +10150,9 @@
             document.body.appendChild(popup);
         }
 
-        // 地域犬弹窗
+        // 地狱犬弹窗
         function showCerberusPopup(item, index) {
-            const title = `🐕 地域犬 #${index + 1}`;
+            const title = `地狱犬 #${index + 1}`;
             const content = `偷窃外贸出口载具的同时，请务必小心紧追您的地狱犬。`;
             
             const popup = document.createElement('div');
@@ -12431,6 +12441,45 @@
                             if (typeof updateTilePanePosition === 'function') updateTilePanePosition();
                         }
                     });
+                });
+            }
+
+            // 显示全部/隐藏全部按钮
+            const showAllBtn = document.getElementById('show-all-items');
+            const hideAllBtn = document.getElementById('hide-all-items');
+            if (showAllBtn) {
+                showAllBtn.addEventListener('click', () => {
+                    // 二次确认：提示可能卡顿
+                    const proceed = window.confirm('物品信息较多，显示全部可能造成卡顿，是否继续显示？');
+                    if (!proceed) return;
+                    // 全选复选框
+                    document.querySelectorAll('#sidebar-item-selectors .item-checkbox').forEach(c => c.checked = true);
+                    // 重建 activeItemTypes
+                    try { if (activeItemTypes && typeof activeItemTypes.clear === 'function') activeItemTypes.clear(); } catch(e) {}
+                    const migratedDealerships = ['casino', 'car_meet', 'premium_deluxe_motorsport', 'luxury_autos'];
+                    sidebarItemOptions.forEach(opt => {
+                        activeItemTypes.add(opt.value);
+                        if (opt.value === 'dealerships') {
+                            migratedDealerships.forEach(t => activeItemTypes.add(t));
+                        }
+                    });
+                    // 刷新标记
+                    updateItemMarkers();
+                    if (typeof updateDealershipMarkers === 'function') updateDealershipMarkers();
+                    if (typeof updateTilePanePosition === 'function') updateTilePanePosition();
+                });
+            }
+            if (hideAllBtn) {
+                hideAllBtn.addEventListener('click', () => {
+                    // 取消全选
+                    document.querySelectorAll('#sidebar-item-selectors .item-checkbox').forEach(c => c.checked = false);
+                    // 清除标记与激活集合
+                    clearAllItemMarkers();
+                    // 同步清理Leaflet标记
+                    if (typeof clearLeafletMarkers === 'function') clearLeafletMarkers();
+                    try { if (activeItemTypes && typeof activeItemTypes.clear === 'function') activeItemTypes.clear(); } catch(e) {}
+                    if (typeof updateDealershipMarkers === 'function') updateDealershipMarkers();
+                    if (typeof updateTilePanePosition === 'function') updateTilePanePosition();
                 });
             }
 

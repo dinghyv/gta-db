@@ -1051,7 +1051,7 @@
 
         // 获取瓦片URL
         function getTileUrl(style, zoom, x, y) {
-            const baseUrl = 'https://eo-gta-maps.antwen.com/maps/island_map';
+            const baseUrl = 'https://gta-maps.antwen.com/maps/island_map';
             return `${baseUrl}/island_map_${style}/${zoom}/${x}_${y}.jpg`;
         }
 
@@ -1621,7 +1621,7 @@
             `;
 
             // 弹窗内容
-            const imageUrl = `https://eo-gta-maps.antwen.com/collectibles_images/cp_st/cp_st_${index + 1}.webp`;
+            const imageUrl = `https://gta-maps.antwen.com/collectibles_images/cp_st/cp_st_${index + 1}.webp`;
             
             popup.innerHTML = `
                 <div style="position: relative;">
@@ -1795,7 +1795,7 @@
             `;
 
             // 弹窗内容
-            const imageUrl = `https://eo-gta-maps.antwen.com/collectibles_images/cp_bc/cp_bc_${index + 1}.webp`;
+            const imageUrl = `https://gta-maps.antwen.com/collectibles_images/cp_bc/cp_bc_${index + 1}.webp`;
             
             popup.innerHTML = `
                 <div style="position: relative;">
@@ -1945,7 +1945,7 @@
             `;
 
             // 弹窗内容
-            const imageUrl = `https://eo-gta-maps.antwen.com/collectibles_images/cp_ge/cp_ge_${index + 1}.webp`;
+            const imageUrl = `https://gta-maps.antwen.com/collectibles_images/cp_ge/cp_ge_${index + 1}.webp`;
             
             popup.innerHTML = `
                 <div style="position: relative;">
@@ -2119,7 +2119,7 @@
             `;
 
             // 弹窗内容
-            const imageUrl = `https://eo-gta-maps.antwen.com/collectibles_images/cp_st2/cp_st2_${index + 1}.webp`;
+            const imageUrl = `https://gta-maps.antwen.com/collectibles_images/cp_st2/cp_st2_${index + 1}.webp`;
             
             popup.innerHTML = `
                 <div style="position: relative;">
@@ -2293,7 +2293,7 @@
             `;
 
             // 弹窗内容
-            const imageUrl = `https://eo-gta-maps.antwen.com/collectibles_images/cp_wt/cp_wt_${index + 1}.webp`;
+            const imageUrl = `https://gta-maps.antwen.com/collectibles_images/cp_wt/cp_wt_${index + 1}.webp`;
             
             popup.innerHTML = `
                 <div style="position: relative;">
@@ -2838,7 +2838,7 @@
             `;
 
             // 弹窗内容
-            const imageUrl = `https://eo-gta-maps.antwen.com/collectibles_images/cp_cp/cp_cp_${index + 1}.webp`;
+            const imageUrl = `https://gta-maps.antwen.com/collectibles_images/cp_cp/cp_cp_${index + 1}.webp`;
             
             popup.innerHTML = `
                 <div style="position: relative;">
@@ -3048,7 +3048,7 @@
             `;
 
             // 弹窗内容
-            const imageUrl = `https://eo-gta-maps.antwen.com/collectibles_images/cp_gc/cp_gc_${index + 1}.webp`;
+            const imageUrl = `https://gta-maps.antwen.com/collectibles_images/cp_gc/cp_gc_${index + 1}.webp`;
             
             popup.innerHTML = `
                 <div style="position: relative;">
@@ -3204,7 +3204,7 @@
             `;
 
             // 弹窗内容
-            const imageUrl = `https://eo-gta-maps.antwen.com/collectibles_images/cp_com/cp_com_${index + 1}.webp`;
+            const imageUrl = `https://gta-maps.antwen.com/collectibles_images/cp_com/cp_com_${index + 1}.webp`;
             
             popup.innerHTML = `
                 <div style="position: relative;">
@@ -3378,7 +3378,7 @@
             `;
 
             // 弹窗内容
-            const imageUrl = `https://eo-gta-maps.antwen.com/collectibles_images/cp_ps/cp_ps_${index + 1}.webp`;
+            const imageUrl = `https://gta-maps.antwen.com/collectibles_images/cp_ps/cp_ps_${index + 1}.webp`;
             
             popup.innerHTML = `
                 <div style="position: relative;">
@@ -3552,7 +3552,7 @@
             `;
 
             // 弹窗内容
-            const imageUrl = `https://eo-gta-maps.antwen.com/collectibles_images/cp_ct/cp_ct_${index + 1}.webp`;
+            const imageUrl = `https://gta-maps.antwen.com/collectibles_images/cp_ct/cp_ct_${index + 1}.webp`;
             
             popup.innerHTML = `
                 <div style="position: relative;">
@@ -3744,7 +3744,7 @@
             }
             
             // 弹窗内容
-            const imageUrl = `https://eo-gta-maps.antwen.com/collectibles_images/cp_bs/cp_bs_${imageIndex}.webp`;
+            const imageUrl = `https://gta-maps.antwen.com/collectibles_images/cp_bs/cp_bs_${imageIndex}.webp`;
             
             popup.innerHTML = `
                 <div style="position: relative;">
@@ -3939,10 +3939,10 @@
                             chestType = '水下藏宝箱';
                             imageIndex = imageIndex - 10;
                             if (imageIndex <= 0) imageIndex = 1;
-                            imageUrl = `https://eo-gta-maps.antwen.com/collectibles_images/cp_tc_w/cp_tc_w_${imageIndex}.webp`;
+                            imageUrl = `https://gta-maps.antwen.com/collectibles_images/cp_tc_w/cp_tc_w_${imageIndex}.webp`;
                         } else { // 陆地藏宝箱
                             chestType = '陆地藏宝箱';
-                            imageUrl = `https://eo-gta-maps.antwen.com/collectibles_images/cp_tc_l/cp_tc_l_${imageIndex}.webp`;
+                            imageUrl = `https://gta-maps.antwen.com/collectibles_images/cp_tc_l/cp_tc_l_${imageIndex}.webp`;
                         }
                         break;
                     }
@@ -3956,11 +3956,11 @@
                     chestType = '水下藏宝箱';
                     imageIndex = index + 1 - 10;
                     if (imageIndex <= 0) imageIndex = 1;
-                    imageUrl = `https://eo-gta-maps.antwen.com/collectibles_images/cp_tc_w/cp_tc_w_${imageIndex}.webp`;
+                    imageUrl = `https://gta-maps.antwen.com/collectibles_images/cp_tc_w/cp_tc_w_${imageIndex}.webp`;
                 } else { // 陆地藏宝箱
                     chestType = '陆地藏宝箱';
                     imageIndex = index + 1;
-                    imageUrl = `https://eo-gta-maps.antwen.com/collectibles_images/cp_tc_l/cp_tc_l_${imageIndex}.webp`;
+                    imageUrl = `https://gta-maps.antwen.com/collectibles_images/cp_tc_l/cp_tc_l_${imageIndex}.webp`;
                 }
             }
             

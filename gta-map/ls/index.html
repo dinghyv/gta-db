@@ -3056,7 +3056,17 @@
             const groups = itemData[type] || [];
             const z = map.getZoom();
             
+            // 初始化组标记存储
+            if (!window.smugglerGroupMarkers) {
+                window.smugglerGroupMarkers = {};
+            }
+            if (!window.smugglerGroupMarkers[type]) {
+                window.smugglerGroupMarkers[type] = [];
+            }
+            
             groups.forEach((group, gIndex) => {
+                // 为每个组创建标记数组
+                const groupMarkers = [];
                 const tp = group.triggerpoint; // [x, y]
                 const routes = Array.isArray(group.routes) ? group.routes : [];
                 
@@ -3079,6 +3089,11 @@
                         zIndexOffset: 1000
                     }).addTo(map);
                     
+                    // 为走私贩飞机标记添加CSS类名，用于隐藏/显示功能
+                    if (type === 'smuggler_plane') {
+                        triggerMarker.getElement().classList.add('smuggler-plane-marker');
+                    }
+                    
                     // 添加点击事件
                     triggerMarker.on('click', function(e) {
                         if (type === 'smuggler_plane') {
@@ -3089,6 +3104,7 @@
                     });
                     
                     leafletMarkers.push(triggerMarker);
+                    groupMarkers.push(triggerMarker); // 添加到组标记数组
                     
                     // 创建路线标记和连接线
                     routes.forEach((route, rIndex) => {
@@ -3125,6 +3141,11 @@
                                 zIndexOffset: 1000
                             }).addTo(map);
                             
+                            // 为走私贩飞机路线标记添加CSS类名，用于隐藏/显示功能
+                            if (type === 'smuggler_plane') {
+                                routeMarker.getElement().classList.add('smuggler-plane-marker');
+                            }
+                            
                             // 添加点击事件
                             routeMarker.on('click', function(e) {
                                 if (type === 'smuggler_plane') {
@@ -3135,6 +3156,7 @@
                             });
                             
                             leafletMarkers.push(routeMarker);
+                            groupMarkers.push(routeMarker); // 添加到组标记数组
                             
                             // 创建连接线
                             const line = L.polyline([latlng, routeLatlng], {
@@ -3145,9 +3167,13 @@
                             }).addTo(map);
                             
                             leafletMarkers.push(line);
+                            groupMarkers.push(line); // 添加到组标记数组
                         }
                     });
                 }
+                
+                // 将组标记数组存储到全局变量中
+                window.smugglerGroupMarkers[type][gIndex] = groupMarkers;
             });
         }
 
@@ -9999,37 +10025,177 @@
             document.body.appendChild(popup);
         }
 
+        // 辅助函数：通过DOM元素查找对应的Leaflet标记对象
+        function findLeafletMarkerByElement(element) {
+            console.log('查找Leaflet标记，leafletMarkers.length:', leafletMarkers.length);
+            for (let i = 0; i < leafletMarkers.length; i++) {
+                const marker = leafletMarkers[i];
+                if (marker && marker.getElement) {
+                    const markerElement = marker.getElement();
+                    console.log(`标记${i}:`, marker, '元素:', markerElement);
+                    if (markerElement === element) {
+                        console.log('找到匹配的标记!');
+                        return marker;
+                    }
+                }
+            }
+            console.log('没有找到匹配的标记');
+            return null;
+        }
+
         // 走私贩飞机弹窗
         function showSmugglerPlanePopup(item, index) {
-            const title = `✈️ 走私贩飞机 #${index + 1}`;
             const content = `在飞机坠毁处收集装有 25.000 GTA$ 和 2.000 RP 的公文包。`;
             const imageUrl = 'https://gta-maps.antwen.com/collectibles_images/smuggler_plane/smuggler_plane.webp';
+            
+            // 检查是否已存在弹窗，如果存在则移除
+            const existingPopup = document.querySelector('.smuggler-plane-popup');
+            if (existingPopup) {
+                existingPopup.remove();
+            }
+            
+            // 获取走私贩飞机组标记
+            const smugglerGroups = window.smugglerGroupMarkers && window.smugglerGroupMarkers['smuggler_plane'] ? window.smugglerGroupMarkers['smuggler_plane'] : [];
+            const totalCount = smugglerGroups.length;
+            
+            // 计算当前隐藏的组数量
+            let hiddenCount = 0;
+            smugglerGroups.forEach((groupMarkers, groupIndex) => {
+                if (groupMarkers && groupMarkers.length > 0) {
+                    // 检查组中第一个标记的透明度来判断整个组是否隐藏
+                    const firstMarker = groupMarkers[0];
+                    if (firstMarker && firstMarker.getElement) {
+                        const element = firstMarker.getElement();
+                        if (element && element.style.opacity === '0.3') {
+                            hiddenCount++;
+                        }
+                    }
+                }
+            });
+            
+            // 检查当前点击的组是否已隐藏
+            const currentGroupMarkers = smugglerGroups[index];
+            let isCurrentHidden = false;
+            if (currentGroupMarkers && currentGroupMarkers.length > 0) {
+                const firstMarker = currentGroupMarkers[0];
+                if (firstMarker && firstMarker.getElement) {
+                    const element = firstMarker.getElement();
+                    isCurrentHidden = element && element.style.opacity === '0.3';
+                }
+            }
+            
+            console.log('调试信息:');
+            console.log('index:', index);
+            console.log('smugglerGroups.length:', totalCount);
+            console.log('currentGroupMarkers:', currentGroupMarkers);
+            console.log('isCurrentHidden:', isCurrentHidden);
+            
+            // 构建标题，包含隐藏状态信息
+            const title = `✈️ 走私贩飞机 #${index + 1} (${hiddenCount}/${totalCount})`;
             
             const popup = document.createElement('div');
             popup.className = 'smuggler-plane-popup';
             popup.style.cssText = `
                 position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-                background: #fff; border: 3px solid #FF5252; border-radius: 12px; padding: 18px;
-                z-index: 10000; max-width: 520px; max-height: 80vh; box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-                font-family: Arial, sans-serif; text-align: left; overflow-y: auto;`;
+                background: var(--gta-bg-medium);
+                border: 1px solid var(--gta-border);
+                border-radius: 8px;
+                box-shadow: 0 2px 15px rgba(0,0,0,0.5);
+                padding: 15px;
+                z-index: 10000;
+                max-width: 520px;
+                max-height: 80vh;
+                color: var(--gta-text);
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                overflow-y: auto;
+            `;
 
             popup.innerHTML = `
-                <div style="margin-bottom: 14px; font-size: 20px; font-weight: bold; color: #D32F2F; text-align:center;">${title}</div>
-                <img src="${imageUrl}" alt="走私贩飞机图片" style="max-width: 100%; height: auto; border-radius: 6px; margin: 8px 0; display:block;"/>
-                <div style="margin: 10px 0; padding: 10px; background: #FFEBEE; border-radius: 8px; color: #3e2723; font-size: 13px; line-height: 1.6;">
+                <div class="popup-header" style="position: relative; margin-bottom: 14px;">
+                    <h3 style="color: var(--gta-primary); font-size: 18px; margin: 0; font-weight: bold;">${title}</h3>
+                    <span class="popup-close" style="position: absolute; top: 0; right: 0; color: var(--gta-text-secondary); font-size: 20px; cursor: pointer; transition: color 0.3s ease;">×</span>
+                </div>
+                <img src="${imageUrl}" alt="走私贩飞机图片" style="max-width: 100%; height: auto; border-radius: 6px; margin: 8px 0; display: block;"/>
+                <div style="margin: 10px 0; padding: 10px; background: rgba(25, 118, 210, 0.1); border-radius: 8px; color: var(--gta-text); font-size: 14px; line-height: 1.6;">
                     ${content}
                 </div>
                 <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px;">
-                    <button id="close-smuggler-plane-btn" style="padding: 10px 18px; background: #f44336; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">关闭</button>
+                    <button id="hide-smuggler-plane-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease; display: ${isCurrentHidden ? 'none' : 'inline-block'};">隐藏</button>
+                    <button id="show-smuggler-plane-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease; display: ${isCurrentHidden ? 'inline-block' : 'none'};">显示</button>
+                    <button id="close-smuggler-plane-btn" style="padding: 8px 16px; background: var(--gta-primary); color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease;">关闭</button>
                 </div>
             `;
 
+            // 添加按钮事件监听器
             const closeBtn = popup.querySelector('#close-smuggler-plane-btn');
+            const hideBtn = popup.querySelector('#hide-smuggler-plane-btn');
+            const showBtn = popup.querySelector('#show-smuggler-plane-btn');
+            const popupClose = popup.querySelector('.popup-close');
+
+            // 关闭按钮
             closeBtn.addEventListener('click', () => popup.remove());
+            popupClose.addEventListener('click', () => popup.remove());
+
+            // 隐藏按钮功能 - 隐藏整个组
+            if (hideBtn) {
+                hideBtn.addEventListener('click', () => {
+                    console.log('隐藏按钮被点击，隐藏组', index);
+                    
+                    // 隐藏当前组的所有标记
+                    if (currentGroupMarkers && currentGroupMarkers.length > 0) {
+                        currentGroupMarkers.forEach((marker, markerIndex) => {
+                            if (marker && marker.setOpacity) {
+                                marker.setOpacity(0.3);
+                                console.log(`隐藏组${index}的标记${markerIndex}`);
+                            }
+                        });
+                    }
+                    
+                    // 更新标题中的隐藏数量
+                    const titleElement = popup.querySelector('h3');
+                    const newHiddenCount = hiddenCount + 1;
+                    titleElement.textContent = `✈️ 走私贩飞机 #${index + 1} (${newHiddenCount}/${totalCount})`;
+                    // 切换按钮显示
+                    hideBtn.style.display = 'none';
+                    showBtn.style.display = 'inline-block';
+                });
+            }
+
+            // 显示按钮功能 - 显示整个组
+            if (showBtn) {
+                showBtn.addEventListener('click', () => {
+                    console.log('显示按钮被点击，显示组', index);
+                    
+                    // 显示当前组的所有标记
+                    if (currentGroupMarkers && currentGroupMarkers.length > 0) {
+                        currentGroupMarkers.forEach((marker, markerIndex) => {
+                            if (marker && marker.setOpacity) {
+                                marker.setOpacity(1);
+                                console.log(`显示组${index}的标记${markerIndex}`);
+                            }
+                        });
+                    }
+                    
+                    // 更新标题中的隐藏数量
+                    const titleElement = popup.querySelector('h3');
+                    const newHiddenCount = hiddenCount - 1;
+                    titleElement.textContent = `✈️ 走私贩飞机 #${index + 1} (${newHiddenCount}/${totalCount})`;
+                    // 切换按钮显示
+                    showBtn.style.display = 'none';
+                    hideBtn.style.display = 'inline-block';
+                });
+            }
+
+            // 防止点击弹窗内容时关闭
             popup.addEventListener('click', (e) => e.stopPropagation());
+            
+            // 点击外部关闭弹窗
             setTimeout(() => {
                 const closePopupHandler = (e) => {
-                    if (!popup.contains(e.target)) { popup.remove(); document.removeEventListener('click', closePopupHandler); }
+                    if (!popup.contains(e.target)) { 
+                        popup.remove(); 
+                        document.removeEventListener('click', closePopupHandler); 
+                    }
                 };
                 document.addEventListener('click', closePopupHandler);
             }, 50);

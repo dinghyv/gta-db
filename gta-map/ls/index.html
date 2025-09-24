@@ -3854,19 +3854,22 @@
                 else if (type === 'jack_o_lanterns') {
                     showJackOLanternImage(index);
                 }
-                // 特殊处理RC时间挑战赛，显示弹窗
+                // 特殊处理RC时间挑战赛，显示图片弹窗
                 else if (type === 'rc_time_trial') {
-                    showRCTimeTrialPopup(item, index);
+                    showRCTimeTrialImage(index);
                 }
-                // 特殊处理自行车时间挑战赛，显示弹窗
+                // 特殊处理自行车时间挑战赛，显示图片弹窗
                 else if (type === 'bike_time_trial') {
-                    showBikeTimeTrialPopup(item, index);
+                    showBikeTimeTrialImage(index);
                 }
-                // 特殊处理跳伞，显示弹窗
+                // 特殊处理跳伞，显示图片弹窗
                 else if (type === 'skydives') {
-                    showSkydivesPopup(item, index);
+                    showSkydivesImage(index);
                 }
-                // 注意：隐藏包裹没有专门的图片弹窗，使用通用处理
+                // 特殊处理隐藏包裹，显示图片弹窗
+                else if (type === 'hidden_caches') {
+                    showHiddenCachesImage(index);
+                }
                 // 特殊处理LS涂鸦，显示图片弹窗
                 else if (type === 'ls_tags') {
                     showLSTagsImage(index);

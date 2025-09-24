@@ -12462,6 +12462,7 @@
                             if (typeof updateTilePanePosition === 'function') updateTilePanePosition();
                         } else {
                             clearAllItemMarkers();
+                            if (typeof clearLeafletMarkers === 'function') clearLeafletMarkers();
                             if (typeof updateDealershipMarkers === 'function') updateDealershipMarkers();
                             if (typeof updateTilePanePosition === 'function') updateTilePanePosition();
                         }

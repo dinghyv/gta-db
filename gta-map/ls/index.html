@@ -1237,6 +1237,7 @@
             'drug_vehicle',
             'smuggler_plane',
             'smuggler_trail',
+            'metal_detector',
             
             // 特殊标记：有特殊处理逻辑的标记
             'media_sticks',
@@ -3764,6 +3765,10 @@
                 // 特殊处理drug_vehicle，使用专门的弹窗函数
                 if (type === 'drug_vehicle') {
                     showDrugVehiclePopup(item, index);
+                }
+                // 特殊处理metal_detector，使用专门的弹窗函数
+                else if (type === 'metal_detector') {
+                    showMetalDetectorPopup(item, index);
                 }
                 // 特殊处理车行标记，使用专门的车辆展示函数
                 else if (['casino', 'car_meet', 'premium_deluxe_motorsport', 'luxury_autos'].includes(type)) {
@@ -7894,8 +7899,7 @@
             resetViewForZoom(z, { x: centerPixel.x, y: centerPixel.y });
             updateTilePanePosition();
             probeTilesForStyleAndZoom(currentStyle, z);
-            // updatePossessedAnimalsCircleSizes(z); // 已迁移到Leaflet，由updateLeafletMarkersRadius处理
-            // 注意：雪怪现在使用Leaflet标记系统，不需要手动更新圆圈大小
+
         });
 
         // 地图点击事件 - 检测坐标值
@@ -7935,144 +7939,6 @@
                 game: { x: gameX.toFixed(2), y: gameY.toFixed(2) }
             });
 
-            // 检测是否点击在武器厢型车附近
-            checkGunVanClick(gameX, gameY);
-            
-            // 检测是否点击在街头毒贩附近
-            checkStreetDealersClick(gameX, gameY);
-            
-            // 检测是否点击在有机坊产品附近
-            checkOrganicFarmClick(gameX, gameY);
-            
-            // 检测是否点击在信号干扰器附近
-            checkSignalJammerClick(gameX, gameY);
-            
-            // 检测是否点击在南瓜灯附近
-            checkJackOLanternClick(gameX, gameY);
-            
-            // 检测是否点击在纸牌附近
-            checkPlayingCardsClick(gameX, gameY);
-            
-            // 检测是否点击在吞云吐雾馆产品附近
-            checkSmokeProductClick(gameX, gameY);
-            
-            // 检测是否点击在手办附近
-            checkActionFiguresClick(gameX, gameY);
-            
-            // 检测是否点击在元宝附近
-            checkYuanbaoClick(gameX, gameY);
-            
-            // 检测是否点击在沉船附近
-            checkShipwrecksClick(gameX, gameY);
-            
-            // 检测是否点击在电话暗杀附近
-            checkPayphoneHitsClick(gameX, gameY);
-            
-            // 检测是否点击在高尔夫球洞附近
-            checkGolfHolesClick(gameX, gameY);
-            
-            // 检测是否点击在雪人附近
-            checkSnowmenClick(gameX, gameY);
-            
-            // 检测是否点击在特技跳跃点附近
-            checkStuntJumpsClickNew(gameX, gameY);
-            
-            // 检测是否点击在杰拉德包裹附近
-            checkDeadDropClick(gameX, gameY);
-            
-            // 检测是否点击在LS涂鸦附近
-            checkLSTagsClick(gameX, gameY);
-            
-            // 检测是否点击在喷罐附近
-            checkSprayClickNew(gameX, gameY);
-            
-            // 检测是否点击在RC时间挑战赛附近
-            checkRCTimeTrialClickNew(gameX, gameY);
-            
-            // 检测是否点击在自行车时间挑战赛附近
-            checkBikeTimeTrialClickNew(gameX, gameY);
-            
-            // 检测是否点击在跳伞附近
-            checkSkydivesClickNew(gameX, gameY);
-            
-            // 检测是否点击在车行附近
-            checkDealershipClick(gameX, gameY);
-            
-            // 注意：帮派攻击和幽灵曝光现在使用Leaflet标记系统，点击事件由Leaflet自动处理
-
-            // 检测是否点击在左轮寻宝点附近
-            checkTreasureHuntClick(gameX, gameY);
-            
-            // 检测是否点击在电影道具附近
-            checkMoviePropsClick(gameX, gameY);
-            
-            // 检测是否点击在杀人狂附近
-            checkSlasherClick(gameX, gameY);
-            
-            // 注意：茉德悬赏目标现在使用Leaflet标记系统，点击事件由Leaflet自动处理
-            
-            // 检测是否点击在媒体记忆棒附近
-            checkMediaStickClick(gameX, gameY);
-            
-            // 检测是否点击在藏匿屋附近
-            checkStashHouseClick(gameX, gameY);
-            
-            // 检测是否点击在玛德拉索雇凶附近
-            checkMadrazoHitsClick(gameX, gameY);
-            
-            // 检测是否点击在帕特里克救援附近
-            checkPatrickRescueClick(gameX, gameY);
-            
-            // 检测是否点击在随机任务附近
-            checkRandomMissionClick(gameX, gameY);
-            
-            // 检测是否点击在毒品载具附近
-            checkDrugVehicleClick(gameX, gameY);
-
-            // 检测是否点击在沉睡的保安附近
-            checkDrunkGuardClick(gameX, gameY);
-
-            // 检测是否点击在金属探测器附近
-            checkMetalDetectorClick(gameX, gameY);
-
-            // 检测是否点击在走私贩飞机附近
-            checkSmugglerPlaneClick(gameX, gameY);
-
-            // 检测是否点击在走私贩踪迹附近
-            checkSmugglerTrailClick(gameX, gameY);
-
-            // 检测是否点击在犯罪现场附近
-            checkCrimeScenesClick(gameX, gameY);
-
-            // 检测是否点击在社区边界附近
-            checkCommunityOutreachClick(gameX, gameY);
-
-            // 检测是否点击在外贸出口载具附近
-            checkExoticExportsClick(gameX, gameY);
-
-            // 检测是否点击在商店抢劫附近
-            checkStoreRobberyClick(gameX, gameY);
-
-            // 检测是否点击在车队附近
-            checkConvoyClick(gameX, gameY);
-
-            // 检测是否点击在装甲运钞车附近
-            checkArmoredTruckClick(gameX, gameY);
-            
-            // 检测是否点击在雪怪和节日快乐卡车附近
-            checkYetiAndHaulerClick(gameX, gameY);
-            
-            // 检测是否点击在威泽尔大楼枪战附近
-            checkWeaClick(gameX, gameY);
-            
-            // 检测是否点击在陆地迷幻仙人掌附近
-            checkPplClick(gameX, gameY);
-            
-            // 检测是否点击在水下迷幻仙人掌附近
-            checkPpwClick(gameX, gameY);
-            
-            // 检测是否点击在新物品附近
-            checkNewItemClick(gameX, gameY);
         });
 
         // 检测武器厢型车点击
@@ -9206,25 +9072,7 @@
             }
         }
 
-        // 检测金属探测器点击（坐标检测）
-        function checkMetalDetectorClick(clickX, clickY) {
-            const METAL_DETECTOR_RADIUS = 100; // 检测半径100单位
-            
-            if (activeItemTypes.has('metal_detector') && Array.isArray(itemData.metal_detector)) {
-                const nearby = itemData.metal_detector.find((m) => {
-                    const dx = m.x - clickX;
-                    const dy = m.y - clickY;
-                    return Math.sqrt(dx * dx + dy * dy) <= METAL_DETECTOR_RADIUS;
-                });
-                
-                if (nearby) {
-                    const index = itemData.metal_detector.findIndex(m => m.x === nearby.x && m.y === nearby.y);
-                    console.log('点击了金属探测器附近:', nearby);
-                    showMetalDetectorPopup(nearby, index);
-                    return;
-                }
-            }
-        }
+        // 注意：金属探测器点击检测已删除，现在使用Leaflet标记系统处理点击事件
 
         // 检测走私贩飞机点击（坐标检测）
         function checkSmugglerPlaneClick(clickX, clickY) {
@@ -9809,7 +9657,7 @@
             document.body.appendChild(popup);
         }
 
-        // 金属探测器弹窗（带编号图片）
+        // 金属探测器弹窗（适配Leaflet标记系统）
         function showMetalDetectorPopup(item, index) {
             const title = `🧭 金属探测器 #${index + 1}`;
             const content = `您可以使用金属探测器在 佩里科岛 上定位 地下藏匿品 - 。<br/>搜索骷髅可获得 5.000 至 10.000 GTA$ 不等的现金奖励。`;
@@ -9830,32 +9678,11 @@
                     ${content}
                 </div>
                 <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px;">
-                    <button id="hide-metal-btn" style="padding: 10px 18px; background: #4CAF50; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">隐藏</button>
-                    <button id="show-metal-btn" style="padding: 10px 18px; background: #2196F3; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">显示</button>
                     <button id="close-metal-btn" style="padding: 10px 18px; background: #f44336; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">关闭</button>
                 </div>
             `;
 
-            const hideBtn = popup.querySelector('#hide-metal-btn');
-            const showBtn = popup.querySelector('#show-metal-btn');
             const closeBtn = popup.querySelector('#close-metal-btn');
-
-            function resolveTargetAndIndex() {
-                const el = document.querySelector(`.item-marker[data-type="metal_detector"][data-index="${index}"]`);
-                return { el, globalIndex: index };
-            }
-
-            hideBtn.addEventListener('click', () => {
-                const { el } = resolveTargetAndIndex();
-                if (!el) return;
-                el.style.opacity = '0.25';
-            });
-
-            showBtn.addEventListener('click', () => {
-                const { el } = resolveTargetAndIndex();
-                if (!el) return;
-                el.style.opacity = '1';
-            });
 
             closeBtn.addEventListener('click', () => popup.remove());
             popup.addEventListener('click', (e) => e.stopPropagation());

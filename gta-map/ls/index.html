@@ -974,9 +974,9 @@
                     <div class="map-style-selector">
 
                         <select id="map-style-select" style="width:100%; margin-top:6px;">
-                            <option value="https://eo-gta-maps.antwen.com/maps/gta_map/gta_map_game">游戏 (Game)</option>
-                            <option value="https://eo-gta-maps.antwen.com/maps/gta_map/gta_map_render">渲染 (Render)</option>
-                            <option value="https://eo-gta-maps.antwen.com/maps/gta_map/gta_map_print">印刷 (Print)</option>
+                            <option value="https://gta-maps.antwen.com/maps/gta_map/gta_map_game">游戏 (Game)</option>
+                            <option value="https://gta-maps.antwen.com/maps/gta_map/gta_map_render">渲染 (Render)</option>
+                            <option value="https://gta-maps.antwen.com/maps/gta_map/gta_map_print">印刷 (Print)</option>
                         </select>
                     </div>
                 </div>
@@ -3107,6 +3107,31 @@
                 return marker;
             }
             
+            // 特殊处理treasure_hunt_dba_revolver - 区分随机/固定图标
+            if (type === 'treasure_hunt_dba_revolver') {
+                const isRandom = item && item.subtype === 'random';
+                const iconUrl = isRandom ? '../src/assets/th1.svg' : '../src/assets/th2.svg';
+                const customIcon = L.icon({
+                    iconUrl: iconUrl,
+                    iconSize: [28, 28],
+                    iconAnchor: [14, 14],
+                    popupAnchor: [0, -14]
+                });
+                
+                const marker = L.marker(latlng, {
+                    icon: customIcon,
+                    interactive: true,
+                    zIndexOffset: 1000
+                }).addTo(map);
+                
+                marker.on('click', function(e) {
+                    const mode = isRandom ? 'random' : 'static';
+                    showTreasureHuntPopup(item, index, mode);
+                });
+                
+                return marker;
+            }
+            
             // 特殊处理exotic_exports1 - 外贸出口载具1（显示车辆信息）
             if (type === 'exotic_exports1') {
                 const customIcon = L.icon({
@@ -4322,12 +4347,12 @@
                         const sc = itemData.treasure_hunt_dba_revolver?.static_clues || [];
                         rc.forEach((p, i) => {
                             if (typeof p.x === 'undefined' || typeof p.y === 'undefined') return;
-                            const marker = createLeafletMarker(p, i, 'treasure_hunt_dba_revolver');
+                            const marker = createLeafletMarker({ ...p, subtype: 'random' }, i, 'treasure_hunt_dba_revolver');
                             leafletMarkers.push(marker);
                         });
                         sc.forEach((p, i) => {
                             if (typeof p.x === 'undefined' || typeof p.y === 'undefined') return;
-                            const marker = createLeafletMarker(p, i, 'treasure_hunt_dba_revolver');
+                            const marker = createLeafletMarker({ ...p, subtype: 'static' }, i, 'treasure_hunt_dba_revolver');
                             leafletMarkers.push(marker);
                         });
                     }
@@ -5525,7 +5550,7 @@
             
             vehicles.forEach((vehicle, index) => {
                 const vehicleType = Array.isArray(vehicleTypes) ? vehicleTypes[index] : vehicleTypes;
-                const imageUrl = vehicle.img ? `https://eo-gta-images.antwen.com/${vehicle.img.replace(/^\/+/, '')}` : '';
+                const imageUrl = vehicle.img ? `https://gta-images.antwen.com/${vehicle.img.replace(/^\/+/, '')}` : '';
                 const detailUrl = vehicle.modelHash ? `/vehicles#/vehicle/${vehicle.modelHash.toLowerCase()}` : '';
                 
                 // 处理涂装价格显示
@@ -6064,7 +6089,7 @@
              const sequenceNumber = index + 1;
              // 1-9使用单个数字，10+使用两位数
              const paddedNumber = sequenceNumber < 10 ? sequenceNumber.toString() : sequenceNumber.toString().padStart(2, '0');
-             const imageUrl = `https://eo-gta-maps.antwen.com/collectibles_images/signal_jammers/signal_jammers_${paddedNumber}.webp`;
+             const imageUrl = `https://gta-maps.antwen.com/collectibles_images/signal_jammers/signal_jammers_${paddedNumber}.webp`;
             
             // 创建弹窗
             const popup = document.createElement('div');
@@ -6179,7 +6204,7 @@
         function showJackOLanternImage(index) {
             // 序号从1开始
             const sequenceNumber = index + 1;
-            const imageUrl = `https://eo-gta-maps.antwen.com/collectibles_images/lantern/lantern_${sequenceNumber.toString().padStart(2, '0')}.webp`;
+            const imageUrl = `https://gta-maps.antwen.com/collectibles_images/lantern/lantern_${sequenceNumber.toString().padStart(2, '0')}.webp`;
             
             // 创建弹窗
             const popup = document.createElement('div');
@@ -6277,7 +6302,7 @@
         function showPlayingCardsImage(index) {
             // 序号从1开始
             const sequenceNumber = index + 1;
-            const imageUrl = `https://eo-gta-maps.antwen.com/collectibles_images/playing_cards/playing_cards_${sequenceNumber}.webp`;
+            const imageUrl = `https://gta-maps.antwen.com/collectibles_images/playing_cards/playing_cards_${sequenceNumber}.webp`;
             
             // 创建弹窗
             const popup = document.createElement('div');
@@ -6390,7 +6415,7 @@
         function showSmokeProductImage(index) {
             // 序号从1开始
             const sequenceNumber = index + 1;
-            const imageUrl = `https://eo-gta-maps.antwen.com/collectibles_images/smoke_on_the_water_product/smoke_on_the_water_product_${sequenceNumber}.webp`;
+            const imageUrl = `https://gta-maps.antwen.com/collectibles_images/smoke_on_the_water_product/smoke_on_the_water_product_${sequenceNumber}.webp`;
             
             // 创建弹窗
             const popup = document.createElement('div');
@@ -6506,7 +6531,7 @@
         function showActionFiguresImage(index) {
             // 序号从1开始
             const sequenceNumber = index + 1;
-            const imageUrl = `https://eo-gta-maps.antwen.com/collectibles_images/action_figures/action_figures_${sequenceNumber}.webp`;
+            const imageUrl = `https://gta-maps.antwen.com/collectibles_images/action_figures/action_figures_${sequenceNumber}.webp`;
             
             // 创建弹窗
             const popup = document.createElement('div');
@@ -6622,7 +6647,7 @@
         function showYuanbaoImage(index) {
             // 序号从1开始
             const sequenceNumber = index + 1;
-            const imageUrl = `https://eo-gta-maps.antwen.com/collectibles_images/yuanbao/yuanbao_${sequenceNumber}.webp`;
+            const imageUrl = `https://gta-maps.antwen.com/collectibles_images/yuanbao/yuanbao_${sequenceNumber}.webp`;
             
             // 创建弹窗
             const popup = document.createElement('div');
@@ -6749,7 +6774,7 @@
             }
             
             console.log('沉船sequenceNumber:', sequenceNumber);
-            const imageUrl = `https://eo-gta-maps.antwen.com/collectibles_images/shipwrecks/shipwrecks_${sequenceNumber}.webp`;
+            const imageUrl = `https://gta-maps.antwen.com/collectibles_images/shipwrecks/shipwrecks_${sequenceNumber}.webp`;
             
             // 创建弹窗
             const popup = document.createElement('div');
@@ -6969,7 +6994,7 @@
         function showGolfHolesImage(index) {
             // 序号从1开始
             const sequenceNumber = index + 1;
-            const imageUrl = `https://eo-gta-maps.antwen.com/collectibles_images/golf_holes/golf_holes_${sequenceNumber}.webp`;
+            const imageUrl = `https://gta-maps.antwen.com/collectibles_images/golf_holes/golf_holes_${sequenceNumber}.webp`;
             
             // 创建弹窗
             const popup = document.createElement('div');
@@ -7082,7 +7107,7 @@
         function showSprayImage(index) {
             // 序号从1开始
             const sequenceNumber = index + 1;
-            const imageUrl = `https://eo-gta-maps.antwen.com/collectibles_images/spray/spray_${sequenceNumber}.webp`;
+            const imageUrl = `https://gta-maps.antwen.com/collectibles_images/spray/spray_${sequenceNumber}.webp`;
             
             // 创建弹窗
             const popup = document.createElement('div');
@@ -7195,7 +7220,7 @@
         function showStuntJumpsImage(index) {
             // 序号从1开始
             const sequenceNumber = index + 1;
-            const imageUrl = `https://eo-gta-maps.antwen.com/collectibles_images/stunt_jumps/stunt_jumps_${sequenceNumber}.webp`;
+            const imageUrl = `https://gta-maps.antwen.com/collectibles_images/stunt_jumps/stunt_jumps_${sequenceNumber}.webp`;
             
             // 创建弹窗
             const popup = document.createElement('div');
@@ -7307,7 +7332,7 @@
         function showSnowmenImage(index) {
             // 序号从1开始
             const sequenceNumber = index + 1;
-            const imageUrl = `https://eo-gta-maps.antwen.com/collectibles_images/snowmen/snowmen_${sequenceNumber}.webp`;
+            const imageUrl = `https://gta-maps.antwen.com/collectibles_images/snowmen/snowmen_${sequenceNumber}.webp`;
             
             // 创建弹窗
             const popup = document.createElement('div');
@@ -7517,7 +7542,7 @@
         function showDeadDropImage(index) {
             // 序号从1开始
             const sequenceNumber = index + 1;
-            const imageUrl = `https://eo-gta-maps.antwen.com/collectibles_images/dead_drop/dead_drop_${sequenceNumber}.webp`;
+            const imageUrl = `https://gta-maps.antwen.com/collectibles_images/dead_drop/dead_drop_${sequenceNumber}.webp`;
             
             // 创建弹窗
             const popup = document.createElement('div');
@@ -7631,7 +7656,7 @@
         function showOrganicFarmImage(index) {
             // 序号从1开始
             const sequenceNumber = index + 1;
-            const imageUrl = `https://eo-gta-maps.antwen.com/collectibles_images/ld_organics/ld_organics_${sequenceNumber.toString().padStart(2, '0')}.webp`;
+            const imageUrl = `https://gta-maps.antwen.com/collectibles_images/ld_organics/ld_organics_${sequenceNumber.toString().padStart(2, '0')}.webp`;
             
             // 创建弹窗
             const popup = document.createElement('div');
@@ -8063,7 +8088,7 @@
         function showLSTagsImage(tag) {
             // 使用API返回的编号数字
             const sequenceNumber = tag.sequenceNumber;
-            const imageUrl = `https://eo-gta-maps.antwen.com/collectibles_images/ls_tags/ls_tags_${sequenceNumber}.webp`;
+            const imageUrl = `https://gta-maps.antwen.com/collectibles_images/ls_tags/ls_tags_${sequenceNumber}.webp`;
             
             // 创建弹窗
             const popup = document.createElement('div');
@@ -8741,40 +8766,40 @@
             if (label.includes('circoloco_green_ep')) {
                 title = '🎵 CircoLoco Records - Green EP';
                 content = `游戏中共有 4 个包含音乐的 CircoLoco Records 媒体记忆棒。收集一个媒体记忆棒可获得 1.000 RP，同时在媒体播放器上解锁相应曲目。完成全部收集还可解锁额外的曲目：CLR Launch Party (Seth Troxler)，并解锁CircoLoco T 恤。<br><br>Green EP - 在游戏厅的吧台上 - 您的游戏厅的位置可能与本标记不同。`;
-                imageUrl = 'https://eo-gta-maps.antwen.com/collectibles_images/media_sticks/circoloco_green_ep.webp';
+                imageUrl = 'https://gta-maps.antwen.com/collectibles_images/media_sticks/circoloco_green_ep.webp';
             } else if (label.includes('circoloco_violet_ep')) {
                 title = '🎵 CircoLoco Records - Violet EP';
                 content = `游戏中共有 4 个包含音乐的 CircoLoco Records 媒体记忆棒。收集一个媒体记忆棒可获得 1.000 RP，同时在媒体播放器上解锁相应曲目。完成全部收集还可解锁额外的曲目：CLR Launch Party (Seth Troxler)，并解锁CircoLoco T 恤。<br><br>Violet EP - 在夜总会的桌子上 - 您的夜总会的位置可能与本地图的标记不同。`;
-                imageUrl = 'https://eo-gta-maps.antwen.com/collectibles_images/media_sticks/circoloco_violet_ep.webp';
+                imageUrl = 'https://gta-maps.antwen.com/collectibles_images/media_sticks/circoloco_violet_ep.webp';
             } else if (label.includes('circoloco_blue_ep')) {
                 title = '🎵 CircoLoco Records - Blue EP';
                 content = `游戏中共有 4 个包含音乐的 CircoLoco Records 媒体记忆棒。收集一个媒体记忆棒可获得 1.000 RP，同时在媒体播放器上解锁相应曲目。完成全部收集还可解锁额外的曲目：CLR Launch Party (Seth Troxler)，并解锁CircoLoco T 恤。<br><br>Blue EP - 在名钻假日赌场的露台，其中的一张桌子上。`;
-                imageUrl = 'https://eo-gta-maps.antwen.com/collectibles_images/media_sticks/circoloco_blue_ep.webp';
+                imageUrl = 'https://gta-maps.antwen.com/collectibles_images/media_sticks/circoloco_blue_ep.webp';
             } else if (label.includes('circoloco_black_ep')) {
                 title = '🎵 CircoLoco Records - Black EP';
                 content = `游戏中共有 4 个包含音乐的 CircoLoco Records 媒体记忆棒。收集一个媒体记忆棒可获得 1.000 RP，同时在媒体播放器上解锁相应曲目。完成全部收集还可解锁额外的曲目：CLR Launch Party (Seth Troxler)，并解锁CircoLoco T 恤。<br><br>Black EP - 在洛圣都车友会内，在改装工坊旁边的一个工具台上。`;
-                imageUrl = 'https://eo-gta-maps.antwen.com/collectibles_images/media_sticks/circoloco_black_ep.webp';
+                imageUrl = 'https://gta-maps.antwen.com/collectibles_images/media_sticks/circoloco_black_ep.webp';
             } else if (label.includes('dam_funk')) {
                 title = '🎵 DâM-FunK – Even the Score';
                 content = `它将提供 1.000 RP 奖励，并在媒体播放器上解锁新的曲目<br><br>呼叫 6115550110 后会在 5 个可能位置之一出现。游戏内地图上会标出大致位置。本地图显示的是确切位置。`;
-                imageUrl = 'https://eo-gta-maps.antwen.com/collectibles_images/media_sticks/dam_funk.webp';
+                imageUrl = 'https://gta-maps.antwen.com/collectibles_images/media_sticks/dam_funk.webp';
             } else if (label.includes('dr_dre')) {
                 title = '🎵 Dr. Dre - 在事务所里';
                 content = `它将奖励您 马拉松连帽上衣 与 1.000 RP，并在媒体播放器上解锁新的曲目<br><br>Dr. Dre - 在事务所里 - 您的事务所的位置可能与本地图的标记不同。该媒体记忆棒将在以主持人身份完成全部德瑞博士的故事后可用。`;
-                imageUrl = 'https://eo-gta-maps.antwen.com/collectibles_images/media_sticks/dr_dre.webp';
+                imageUrl = 'https://gta-maps.antwen.com/collectibles_images/media_sticks/dr_dre.webp';
             } else if (label.includes('moodymann')) {
                 title = '🎵 Moodymann - Kenny\'s Backyard Boogie';
                 content = `它将提供 1.000 RP 奖励，并在媒体播放器上解锁新的曲目<br><br>Moodymann - Kenny's Backyard Boogie -在穆迪曼的车的后备箱上 - 这辆车在 洛圣都车友会 随机生成。`;
-                imageUrl = 'https://eo-gta-maps.antwen.com/collectibles_images/media_sticks/moodymann.webp';
+                imageUrl = 'https://gta-maps.antwen.com/collectibles_images/media_sticks/moodymann.webp';
             } else if (label.includes('nez')) {
                 title = '🎵 NEZ - You Wanna?';
                 content = `它将提供 1.000 RP 奖励，并在媒体播放器上解锁新的曲目<br><br>NEZ - You Wanna?`;
-                imageUrl = 'https://eo-gta-maps.antwen.com/collectibles_images/media_sticks/nez.webp';
+                imageUrl = 'https://gta-maps.antwen.com/collectibles_images/media_sticks/nez.webp';
             } else {
                 // 默认内容
                 title = `🎵 媒体记忆棒 #${index + 1}`;
                 content = `媒体记忆棒位置信息。<br><br>标签: ${label}`;
-                imageUrl = 'https://eo-gta-maps.antwen.com/collectibles_images/media_sticks/default.webp';
+                imageUrl = 'https://gta-maps.antwen.com/collectibles_images/media_sticks/default.webp';
             }
             
             const popup = document.createElement('div');
@@ -8862,7 +8887,7 @@
         // 藏匿屋弹窗
         function showStashHousePopup(item, index) {
             const title = `🏠 藏匿屋 #${index + 1}`;
-            const imageUrl = 'https://eo-gta-maps.antwen.com/collectibles_images/stash_house/stash_house.webp';
+            const imageUrl = 'https://gta-maps.antwen.com/collectibles_images/stash_house/stash_house.webp';
             const content = `藏匿屋随机生成在 25 个可能位置之一，其位置会直接标记在游戏内地图上。<br><br>袭击藏匿屋即可获得 1.000 RP 与 30.000 GTA$ 奖励，或为您正在运营的产业之一补充原材料。`;
             
             const popup = document.createElement('div');
@@ -11378,7 +11403,7 @@
                 'rumpo': 'ls_c_mp_rumpo'
             };
             
-            const imageUrl = `https://eo-gta-maps.antwen.com/collectibles_images/${imageUrls[subtype]}/${imageUrls[subtype]}_${(index + 1)}.webp`;
+            const imageUrl = `https://gta-maps.antwen.com/collectibles_images/${imageUrls[subtype]}/${imageUrls[subtype]}_${(index + 1)}.webp`;
             const title = `🎬 电影道具 - ${typeNames[subtype]} #${index + 1}`;
 
             const popup = document.createElement('div');
@@ -11464,7 +11489,7 @@
             const isFirst = subtype === 'first';
             const base = isFirst ? 'ls_slasher' : 'ls_slasher_final';
             const title = isFirst ? `🩸 杀人狂线索 #${index + 1}` : `🩸 最后一条线索 #${index + 1}`;
-            const imageUrl = `https://eo-gta-maps.antwen.com/collectibles_images/${base}/${base}_${(index + 1)}.webp`;
+            const imageUrl = `https://gta-maps.antwen.com/collectibles_images/${base}/${base}_${(index + 1)}.webp`;
 
             const popup = document.createElement('div');
             popup.className = 'slasher-popup';
@@ -11548,7 +11573,7 @@
             const isRandom = subtype === 'random';
             const title = isRandom ? '🔎 左轮寻宝 - 随机线索' : '🔎 左轮寻宝 - 固定线索';
             const base = isRandom ? 'ls_th_dba_fc' : 'ls_th_dba_ltc';
-            const imageUrl = `https://eo-gta-maps.antwen.com/collectibles_images/${base}/${base}_${(index + 1)}.webp`;
+            const imageUrl = `https://gta-maps.antwen.com/collectibles_images/${base}/${base}_${(index + 1)}.webp`;
 
             const popup = document.createElement('div');
             popup.className = 'treasure-hunt-popup';

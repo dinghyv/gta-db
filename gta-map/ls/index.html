@@ -81,13 +81,7 @@
         }
         #map-container:active { cursor: grabbing; }
 
-        #tile-pane {
-            position: absolute;
-            top: 0;
-            left: 0;
-            pointer-events: none;
-            z-index: 650;
-        }
+        /* #tile-pane 已废弃（DOM 标记层已移除） */
 
         /* 隐藏地图上的游戏原点显示（若存在） */
         #origin-marker {
@@ -132,22 +126,7 @@
         #file-status.warn { background: rgba(170,85,0,0.9); }
         #file-status.err { background: rgba(128,20,20,0.9); }
 
-        /* 物品标记样式 */
-        .item-marker {
-            position: absolute;
-            transform: translate(-50%, -50%);
-            z-index: 670;
-            cursor: pointer;
-            transition: transform 0.2s ease;
-        }
-        .item-marker:hover {
-            transform: translate(-50%, -50%) scale(1.2);
-        }
-        .item-marker img {
-            width: 32px;
-            height: 32px;
-            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
-        }
+        /* 物品标记样式（已废弃，DOM 标记已移除） */
 
         /* 佩里科岛风格：物品选择器（蓝色主题） */
         .item-selector-container {
@@ -1104,7 +1083,6 @@
                 </div>
             </div>
         </div>
-        <div id="tile-pane"></div>
     </div>
 
     <!-- GTA风格导航栏 -->
@@ -1602,6 +1580,603 @@
         // 沉船位置缓存（每天变化）
         let shipwreckedLastUpdate = 0;
 
+        // ==================== 缓存管理系统 ====================
+        // 缓存键名常量
+        const CACHE_KEYS = {
+            SIDEBAR_STATE: 'gta_map_sidebar_state',
+            ITEM_VISIBILITY: 'gta_map_item_visibility',
+            COUNTERS: 'gta_map_counters',
+            USER_PREFERENCES: 'gta_map_preferences'
+        };
+
+        // 缓存管理器
+        const CacheManager = {
+            // 保存数据到localStorage
+            save(key, data) {
+                try {
+                    const serialized = JSON.stringify({
+                        data: data,
+                        timestamp: Date.now(),
+                        version: '1.0'
+                    });
+                    localStorage.setItem(key, serialized);
+                    console.log(`缓存已保存: ${key}`, data);
+                } catch (error) {
+                    console.warn(`保存缓存失败: ${key}`, error);
+                }
+            },
+
+            // 从localStorage加载数据
+            load(key, defaultValue = null) {
+                try {
+                    const stored = localStorage.getItem(key);
+                    if (!stored) return defaultValue;
+                    
+                    const parsed = JSON.parse(stored);
+                    // 检查版本兼容性（可选）
+                    if (parsed.version && parsed.version !== '1.0') {
+                        console.warn(`缓存版本不匹配: ${key}, 期望 1.0, 实际 ${parsed.version}`);
+                    }
+                    
+                    console.log(`缓存已加载: ${key}`, parsed.data);
+                    return parsed.data;
+                } catch (error) {
+                    console.warn(`加载缓存失败: ${key}`, error);
+                    return defaultValue;
+                }
+            },
+
+            // 删除缓存
+            remove(key) {
+                try {
+                    localStorage.removeItem(key);
+                    console.log(`缓存已删除: ${key}`);
+                } catch (error) {
+                    console.warn(`删除缓存失败: ${key}`, error);
+                }
+            },
+
+            // 清空所有GTA地图相关缓存
+            clearAll() {
+                Object.values(CACHE_KEYS).forEach(key => {
+                    this.remove(key);
+                });
+                console.log('所有GTA地图缓存已清空');
+            },
+
+            // 获取缓存信息（用于调试）
+            getCacheInfo() {
+                const info = {};
+                Object.entries(CACHE_KEYS).forEach(([name, key]) => {
+                    const stored = localStorage.getItem(key);
+                    if (stored) {
+                        try {
+                            const parsed = JSON.parse(stored);
+                            info[name] = {
+                                size: stored.length,
+                                timestamp: parsed.timestamp,
+                                version: parsed.version
+                            };
+                        } catch (e) {
+                            info[name] = { error: '解析失败' };
+                        }
+                    } else {
+                        info[name] = null;
+                    }
+                });
+                return info;
+            }
+        };
+
+        // 侧边栏状态缓存
+        const SidebarCache = {
+            // 保存侧边栏选择状态
+            saveState(activeTypes) {
+                const state = Array.from(activeTypes);
+                console.log('保存侧边栏状态:', state);
+                const result = CacheManager.save(CACHE_KEYS.SIDEBAR_STATE, state);
+                console.log('保存结果:', result);
+                return result;
+            },
+
+            // 加载侧边栏选择状态
+            loadState() {
+                return CacheManager.load(CACHE_KEYS.SIDEBAR_STATE, []);
+            },
+
+            // 应用缓存的侧边栏状态
+            applyState(activeTypes) {
+                const cachedState = this.loadState();
+                console.log('尝试恢复侧边栏状态，缓存数据:', cachedState);
+                if (cachedState.length > 0) {
+                    console.log('恢复侧边栏状态:', cachedState);
+                    // 清空当前状态
+                    activeTypes.clear();
+                    // 恢复缓存状态
+                    cachedState.forEach(type => {
+                        if (typeof type === 'string') {
+                            activeTypes.add(type);
+                        }
+                    });
+                    console.log('恢复后的activeItemTypes:', Array.from(activeTypes));
+                    return true;
+                }
+                console.log('无缓存状态可恢复');
+                return false;
+            }
+        };
+
+        // 物品可见性缓存
+        const VisibilityCache = {
+            // 保存物品可见性状态
+            saveVisibility(itemType, visibilityMap) {
+                const allVisibility = CacheManager.load(CACHE_KEYS.ITEM_VISIBILITY, {});
+                allVisibility[itemType] = visibilityMap;
+                CacheManager.save(CACHE_KEYS.ITEM_VISIBILITY, allVisibility);
+            },
+
+            // 加载物品可见性状态
+            loadVisibility(itemType) {
+                const allVisibility = CacheManager.load(CACHE_KEYS.ITEM_VISIBILITY, {});
+                return allVisibility[itemType] || {};
+            },
+
+            // 应用可见性状态到标记
+            applyVisibility(itemType, markers) {
+                const visibilityMap = this.loadVisibility(itemType);
+                if (Object.keys(visibilityMap).length > 0) {
+                    console.log(`恢复 ${itemType} 可见性状态:`, visibilityMap);
+                    markers.forEach((marker, index) => {
+                        const isHidden = visibilityMap[index];
+                        if (isHidden && marker.setOpacity) {
+                            marker.setOpacity(0.3);
+                        }
+                    });
+                    return true;
+                }
+                return false;
+            },
+
+            // 更新单个物品的可见性状态
+            updateItemVisibility(itemType, index, isHidden) {
+                const visibilityMap = this.loadVisibility(itemType);
+                visibilityMap[index] = isHidden;
+                this.saveVisibility(itemType, visibilityMap);
+            }
+        };
+
+        // 计数器缓存
+        const CounterCache = {
+            // 保存计数器状态
+            saveCounters(counters) {
+                CacheManager.save(CACHE_KEYS.COUNTERS, counters);
+            },
+
+            // 加载计数器状态
+            loadCounters() {
+                return CacheManager.load(CACHE_KEYS.COUNTERS, {});
+            },
+
+            // 更新特定物品类型的计数器
+            updateCounter(itemType, hiddenCount, totalCount) {
+                const counters = this.loadCounters();
+                counters[itemType] = { hidden: hiddenCount, total: totalCount };
+                this.saveCounters(counters);
+            },
+
+            // 获取特定物品类型的计数器
+            getCounter(itemType) {
+                const counters = this.loadCounters();
+                return counters[itemType] || { hidden: 0, total: 0 };
+            }
+        };
+
+        // ==================== 增强版走私贩飞机模板（集成缓存） ====================
+        
+        // 创建侧边栏条目时，为 smuggler_plane 增加一个计数器占位
+        function attachSmugglerPlaneCounterToLabel(sidebarCheckboxId) {
+            const label = document.querySelector(`#${sidebarCheckboxId} + label`);
+            if (!label) return;
+
+            let counter = label.querySelector('.smuggler-counter');
+            if (!counter) {
+                counter = document.createElement('span');
+                counter.className = 'smuggler-counter';
+                counter.style.marginLeft = '6px';
+                counter.style.color = 'var(--gta-text-secondary)';
+                label.appendChild(counter);
+            }
+
+            // 初次渲染计数
+            updateSmugglerPlaneSidebarCount();
+        }
+
+        // 统计隐藏/总数，并更新侧边栏计数器文本（集成缓存）
+        function updateSmugglerPlaneSidebarCount() {
+            try {
+                const counterEl = document.querySelector('#sidebar-item-smuggler_plane + label .smuggler-counter');
+                if (!counterEl) return;
+
+                // groups: window.smugglerGroupMarkers['smuggler_plane'] 结构：每组为数组，含 marker 与 polyline
+                const groups = (window.smugglerGroupMarkers && window.smugglerGroupMarkers['smuggler_plane']) || [];
+                let total = 0;
+                let hidden = 0;
+
+                if (Array.isArray(groups) && groups.length > 0) {
+                    total = groups.length;
+                    groups.forEach((groupMarkers, index) => {
+                        if (groupMarkers && groupMarkers.length > 0) {
+                            const first = groupMarkers[0];
+                            if (first && first.getElement) {
+                                const el = first.getElement();
+                                if (el && el.style.opacity === '0.3') {
+                                    hidden++;
+                                }
+                            }
+                        }
+                    });
+                } else {
+                    // 回退：仅有数据尚未渲染 Leaflet 标记时
+                    total = Array.isArray(window.itemData?.smuggler_plane) ? window.itemData.smuggler_plane.length : 0;
+                    // 从缓存中获取隐藏数量
+                    const cachedCounter = CounterCache.getCounter('smuggler_plane');
+                    hidden = cachedCounter.hidden || 0;
+                }
+
+                // 更新缓存
+                CounterCache.updateCounter('smuggler_plane', hidden, total);
+                counterEl.textContent = total > 0 ? ` (${hidden}/${total})` : '';
+            } catch (e) {
+                console.warn('更新走私贩飞机计数器失败:', e);
+            }
+        }
+
+        // 弹窗模板（含隐藏/显示联动红线与计数器、图片点击放大、缓存集成）
+        function showSmugglerPlanePopup(item, index) {
+            const content = `在飞机坠毁处收集装有 25.000 GTA$ 和 2.000 RP 的公文包。`;
+            const imageUrl = 'https://gta-maps.antwen.com/collectibles_images/smuggler_plane/smuggler_plane.webp';
+
+            // 关闭已存在的弹窗
+            const existingPopup = document.querySelector('.smuggler-plane-popup');
+            if (existingPopup) existingPopup.remove();
+
+            // 统计隐藏/总数
+            const smugglerGroups = (window.smugglerGroupMarkers && window.smugglerGroupMarkers['smuggler_plane']) || [];
+            const totalCount = smugglerGroups.length;
+
+            let hiddenCount = 0;
+            smugglerGroups.forEach((groupMarkers) => {
+                const first = groupMarkers && groupMarkers[0];
+                if (first && first.getElement) {
+                    const el = first.getElement();
+                    if (el && el.style.opacity === '0.3') hiddenCount++;
+                }
+            });
+
+            const currentGroupMarkers = smugglerGroups[index] || [];
+            let isCurrentHidden = false;
+            if (currentGroupMarkers && currentGroupMarkers.length > 0) {
+                const first = currentGroupMarkers[0];
+                if (first && first.getElement) {
+                    const el = first.getElement();
+                    isCurrentHidden = el && el.style.opacity === '0.3';
+                }
+            }
+
+            const title = `✈️ 走私贩飞机 #${index + 1} (${hiddenCount}/${totalCount})`;
+
+            // 构建弹窗
+            const popup = document.createElement('div');
+            popup.className = 'smuggler-plane-popup';
+            popup.style.cssText = `
+                position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+                background: var(--gta-bg-medium);
+                border: 1px solid var(--gta-border);
+                border-radius: 8px;
+                box-shadow: 0 2px 15px rgba(0,0,0,0.5);
+                padding: 15px;
+                z-index: 10000;
+                width: min(92vw, 520px);
+                max-height: 80vh;
+                color: var(--gta-text);
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                overflow-y: auto;
+            `;
+
+            popup.innerHTML = `
+                <div class="popup-header" style="position: relative; margin-bottom: 14px;">
+                    <h3 style="color: var(--gta-primary); font-size: 18px; margin: 0; font-weight: bold;">${title}</h3>
+                    <span class="popup-close" style="position: absolute; top: 0; right: 0; color: var(--gta-text-secondary); font-size: 20px; cursor: pointer; transition: color 0.3s ease;">×</span>
+                </div>
+                <img src="${imageUrl}" alt="走私贩飞机图片" style="max-width: 100%; height: auto; border-radius: 6px; margin: 8px 0; display: block; cursor: zoom-in;"/>
+                <div style="margin: 10px 0; padding: 10px; background: rgba(25, 118, 210, 0.1); border-radius: 8px; color: var(--gta-text); font-size: 14px; line-height: 1.6;">
+                    ${content}
+                </div>
+                <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
+                    <button id="hide-smuggler-plane-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease; display: ${isCurrentHidden ? 'none' : 'inline-block'};">隐藏</button>
+                    <button id="show-smuggler-plane-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease; display: ${isCurrentHidden ? 'inline-block' : 'none'};">显示</button>
+                    <button id="close-smuggler-plane-btn" style="padding: 8px 16px; background: var(--gta-primary); color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease;">关闭</button>
+                </div>
+            `;
+
+            // 绑定元素
+            const closeBtn = popup.querySelector('#close-smuggler-plane-btn');
+            const hideBtn = popup.querySelector('#hide-smuggler-plane-btn');
+            const showBtn = popup.querySelector('#show-smuggler-plane-btn');
+            const popupClose = popup.querySelector('.popup-close');
+            const titleElement = popup.querySelector('h3');
+
+            // 关闭弹窗
+            const removePopup = () => popup.remove();
+            closeBtn.addEventListener('click', removePopup);
+            popupClose.addEventListener('click', removePopup);
+            popup.addEventListener('click', (e) => e.stopPropagation());
+            setTimeout(() => {
+                const closePopupHandler = (e) => {
+                    if (!popup.contains(e.target)) {
+                        removePopup();
+                        document.removeEventListener('click', closePopupHandler);
+                    }
+                };
+                document.addEventListener('click', closePopupHandler);
+            }, 50);
+
+            // 图片点击放大（PC/移动端）
+            const popupImage = popup.querySelector('img');
+            if (popupImage) {
+                popupImage.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const overlay = document.createElement('div');
+                    overlay.className = 'smuggler-image-overlay';
+                    overlay.style.cssText = `
+                        position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+                        display: flex; align-items: center; justify-content: center;
+                        z-index: 10002; cursor: zoom-out;
+                    `;
+                    const bigImg = document.createElement('img');
+                    bigImg.src = popupImage.src;
+                    bigImg.alt = popupImage.alt || '';
+                    bigImg.style.cssText = `max-width: 95vw; max-height: 95vh; border-radius: 6px; box-shadow: 0 4px 24px rgba(0,0,0,0.6);`;
+                    overlay.appendChild(bigImg);
+
+                    const removeOverlay = () => {
+                        document.removeEventListener('keydown', onKey);
+                        overlay.remove();
+                    };
+                    const onKey = (ev) => { if (ev.key === 'Escape') removeOverlay(); };
+                    overlay.addEventListener('click', removeOverlay);
+                    document.addEventListener('keydown', onKey);
+                    document.body.appendChild(overlay);
+                });
+            }
+
+            // 工具：隐藏/显示当前组（包含 marker 与 polyline；兼容旧 DOM 红线）
+            function setCurrentGroupVisibility(opacity) {
+                if (currentGroupMarkers && currentGroupMarkers.length > 0) {
+                    currentGroupMarkers.forEach((layer) => {
+                        if (layer && typeof layer.setOpacity === 'function') {
+                            layer.setOpacity(opacity);
+                        } else if (layer && typeof layer.setStyle === 'function') {
+                            layer.setStyle({ opacity });
+                        }
+                    });
+                }
+                // 同步旧版 DOM 红线
+                document.querySelectorAll(`.smuggler-connector-line[data-type="smuggler_plane_line"][data-index="${index}"]`).forEach((el) => {
+                    el.style.opacity = String(opacity);
+                });
+                
+                // 更新缓存
+                VisibilityCache.updateItemVisibility('smuggler_plane', index, opacity === 0.3);
+            }
+
+            // 隐藏按钮
+            if (hideBtn) {
+                hideBtn.addEventListener('click', () => {
+                    setCurrentGroupVisibility(0.3);
+                    const newHiddenCount = hiddenCount + (isCurrentHidden ? 0 : 1);
+                    titleElement.textContent = `✈️ 走私贩飞机 #${index + 1} (${newHiddenCount}/${totalCount})`;
+                    hideBtn.style.display = 'none';
+                    showBtn.style.display = 'inline-block';
+                    isCurrentHidden = true;
+
+                    // 刷新侧边栏计数
+                    updateSmugglerPlaneSidebarCount();
+                });
+            }
+
+            // 显示按钮
+            if (showBtn) {
+                showBtn.addEventListener('click', () => {
+                    setCurrentGroupVisibility(1);
+                    const newHiddenCount = hiddenCount - (isCurrentHidden ? 1 : 0);
+                    titleElement.textContent = `✈️ 走私贩飞机 #${index + 1} (${newHiddenCount}/${totalCount})`;
+                    showBtn.style.display = 'none';
+                    hideBtn.style.display = 'inline-block';
+                    isCurrentHidden = false;
+
+                    // 刷新侧边栏计数
+                    updateSmugglerPlaneSidebarCount();
+                });
+            }
+
+            document.body.appendChild(popup);
+        }
+
+        // 应用缓存的可见性状态到走私贩飞机标记
+        function applySmugglerPlaneVisibilityCache() {
+            const groups = (window.smugglerGroupMarkers && window.smugglerGroupMarkers['smuggler_plane']) || [];
+            if (groups.length > 0) {
+                const visibilityMap = VisibilityCache.loadVisibility('smuggler_plane');
+                groups.forEach((groupMarkers, index) => {
+                    const isHidden = visibilityMap[index];
+                    if (isHidden && groupMarkers && groupMarkers.length > 0) {
+                        groupMarkers.forEach((layer) => {
+                            if (layer && typeof layer.setOpacity === 'function') {
+                                layer.setOpacity(0.3);
+                            } else if (layer && typeof layer.setStyle === 'function') {
+                                layer.setStyle({ opacity: 0.3 });
+                            }
+                        });
+                    }
+                });
+                console.log('已应用走私贩飞机可见性缓存');
+                return true;
+            }
+            return false;
+        }
+
+        // ==================== 缓存管理工具 ====================
+        
+        // 创建缓存管理面板
+        function createCacheManagementPanel() {
+            const panel = document.createElement('div');
+            panel.id = 'cache-management-panel';
+            panel.style.cssText = `
+                position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+                z-index: 10001; background: var(--gta-bg-medium); border: 1px solid var(--gta-border);
+                border-radius: 8px; padding: 15px; min-width: 300px; max-width: 90vw;
+                color: var(--gta-text); font-family: 'Segoe UI', sans-serif;
+                box-shadow: 0 4px 20px rgba(0,0,0,0.3); max-height: 80vh;
+                overflow-y: auto; display: none;
+            `;
+
+            const cacheInfo = CacheManager.getCacheInfo();
+            let infoHtml = '<h3 style="margin: 0 0 15px 0; color: var(--gta-primary);">缓存管理</h3>';
+            
+            // 添加调试信息
+            infoHtml += `<div style="margin: 8px 0; padding: 8px; background: rgba(0, 150, 136, 0.1); border-radius: 4px;">
+                <strong>当前状态:</strong><br>
+                侧边栏选择: ${Array.from(activeItemTypes).join(', ') || '无'}<br>
+                缓存键数量: ${Object.keys(cacheInfo).length}
+            </div>`;
+            
+            Object.entries(cacheInfo).forEach(([name, info]) => {
+                if (info) {
+                    const sizeKB = (info.size / 1024).toFixed(2);
+                    const date = new Date(info.timestamp).toLocaleString();
+                    infoHtml += `
+                        <div style="margin: 8px 0; padding: 8px; background: rgba(25, 118, 210, 0.1); border-radius: 4px;">
+                            <strong>${name}:</strong><br>
+                            大小: ${sizeKB} KB<br>
+                            时间: ${date}<br>
+                            版本: ${info.version || 'N/A'}
+                        </div>
+                    `;
+                } else {
+                    infoHtml += `
+                        <div style="margin: 8px 0; padding: 8px; background: rgba(255, 152, 0, 0.1); border-radius: 4px;">
+                            <strong>${name}:</strong> 无缓存数据
+                        </div>
+                    `;
+                }
+            });
+
+            infoHtml += `
+                <div style="margin-top: 15px; display: flex; gap: 10px; flex-wrap: wrap;">
+                    <button id="save-cache-btn" style="padding: 8px 12px; background: #4caf50; color: white; border: none; border-radius: 4px; cursor: pointer;">保存当前状态</button>
+                    <button id="clear-cache-btn" style="padding: 8px 12px; background: #f44336; color: white; border: none; border-radius: 4px; cursor: pointer;">清空缓存</button>
+                    <button id="refresh-cache-btn" style="padding: 8px 12px; background: var(--gta-primary); color: white; border: none; border-radius: 4px; cursor: pointer;">刷新信息</button>
+                    <button id="close-cache-panel" style="padding: 8px 12px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 4px; cursor: pointer;">关闭</button>
+                </div>
+            `;
+
+            panel.innerHTML = infoHtml;
+            document.body.appendChild(panel);
+
+            // 绑定事件
+            panel.querySelector('#save-cache-btn').addEventListener('click', () => {
+                try {
+                    SidebarCache.saveState(activeItemTypes);
+                    alert('当前状态已保存到缓存');
+                    panel.remove();
+                    createCacheManagementPanel().style.display = 'block';
+                } catch (error) {
+                    alert('保存失败: ' + error.message);
+                }
+            });
+
+            panel.querySelector('#clear-cache-btn').addEventListener('click', () => {
+                if (confirm('确定要清空所有缓存吗？这将重置所有用户设置和进度。')) {
+                    CacheManager.clearAll();
+                    alert('缓存已清空');
+                    panel.remove();
+                }
+            });
+
+            panel.querySelector('#refresh-cache-btn').addEventListener('click', () => {
+                panel.remove();
+                createCacheManagementPanel();
+            });
+
+            panel.querySelector('#close-cache-panel').addEventListener('click', () => {
+                panel.remove();
+            });
+
+            return panel;
+        }
+
+        // 添加缓存管理按钮到页面（放在侧边栏最底下）
+        function addCacheManagementButton() {
+            // 查找侧边栏内容容器
+            const sidePanelContent = document.querySelector('.side-panel-content');
+            if (!sidePanelContent) {
+                console.warn('未找到侧边栏内容容器，将按钮放在页面底部');
+                // 如果找不到侧边栏容器，放在页面底部
+                const button = document.createElement('button');
+                button.id = 'cache-management-btn';
+                button.innerHTML = '🗄️ 缓存';
+                button.style.cssText = `
+                    position: fixed; bottom: 20px; right: 20px; z-index: 10000;
+                    padding: 8px 12px; background: var(--gta-bg-medium);
+                    color: var(--gta-text); border: 1px solid var(--gta-border);
+                    border-radius: 6px; cursor: pointer; font-size: 12px;
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+                    transition: all 0.3s ease;
+                `;
+                addButtonEvents(button);
+                document.body.appendChild(button);
+                return;
+            }
+
+            // 在侧边栏内容容器内创建按钮
+            const button = document.createElement('button');
+            button.id = 'cache-management-btn';
+            button.innerHTML = '🗄️ 缓存';
+            button.style.cssText = `
+                width: 100%; margin-top: 8px; padding: 8px 12px; 
+                background: var(--gta-bg-medium); color: var(--gta-text); 
+                border: 1px solid var(--gta-border); border-radius: 6px; 
+                cursor: pointer; font-size: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+                transition: all 0.3s ease;
+            `;
+
+            addButtonEvents(button);
+            sidePanelContent.appendChild(button);
+        }
+
+        // 添加按钮事件处理
+        function addButtonEvents(button) {
+            button.addEventListener('mouseenter', () => {
+                button.style.background = 'var(--gta-primary)';
+                button.style.color = 'white';
+            });
+
+            button.addEventListener('mouseleave', () => {
+                button.style.background = 'var(--gta-bg-medium)';
+                button.style.color = 'var(--gta-text)';
+            });
+
+            button.addEventListener('click', () => {
+                const existingPanel = document.getElementById('cache-management-panel');
+                if (existingPanel) {
+                    existingPanel.remove();
+                } else {
+                    createCacheManagementPanel().style.display = 'block';
+                }
+            });
+        }
+
         // DOM元素
         const styleSelect = document.getElementById('map-style-select');
         // 右上角的 item-type-select 已移除，侧边栏使用静态选项数组生成复选框
@@ -1678,7 +2253,6 @@
             { value: 'exotic_exports2', text: '外贸出口载具2', icon: '../src/assets/exotic_exports2.svg' }
         ];
         const loader = document.getElementById('loader');
-        const tilePaneDom = document.getElementById('tile-pane');
         const fileStatus = document.getElementById('file-status');
         const itemInfo = document.getElementById('item-info');
 
@@ -1744,8 +2318,7 @@
             // 设置视图到指定位置，不再强制居中
                 map.setView(centerLatLng, z, { animate: false });
 
-            tilePaneDom.style.width = size.width + 'px';
-            tilePaneDom.style.height = size.height + 'px';
+            // DOM 标记层已移除
         }
 
         resetViewForZoom(initialZoom);
@@ -1830,9 +2403,8 @@
             let translateY = -topLeftPoint.y;
             // 移除额外的居中偏移，避免在地图尺寸小于容器时重复居中导致偏差
 
-            tilePaneDom.style.transform = `translate(${Math.round(translateX)}px, ${Math.round(translateY)}px)`;
+            // DOM 标记层已移除，无需同步 transform
             updateOriginMarker();
-            updateItemMarkersPosition(); // 更新标记位置而不是重新创建
             updateLeafletMarkersRadius(); // 更新Leaflet标记半径以响应缩放
             updateDealershipMarkers(); // 更新车行标记位置
         }
@@ -4225,153 +4797,7 @@
         }
         
 
-        // 创建物品标记
-        function createItemMarker(item, index, type) {
-            // 创建标记元素
-            const marker = document.createElement('div');
-            marker.className = 'item-marker';
-            marker.dataset.index = index;
-            marker.dataset.type = type;
-            
-            // 特殊处理帮派攻击 - 创建红色圆圈
-            if (type === 'gang_attacks') {
-                // 检查时间是否匹配
-                if (!isGangAttackActive(item.time)) {
-                    return null; // 不在时间范围内，不显示
-                }
-                
-                // 获取当前缩放等级来计算圆圈大小
-                const z = map.getZoom();
-                const level = getLevelByZoom(z);
-                if (!level) return null;
-                
-                const totalWidth = level.cols * TILE_SIZE;
-                const totalHeight = level.rows * TILE_SIZE;
-                
-                // 计算游戏坐标100单位对应的像素大小
-                const gameRadius = 100; // 游戏坐标半径
-                const gameWidth = GAME_RIGHT - GAME_LEFT; // 9000
-                const pixelRadius = (gameRadius / gameWidth) * totalWidth;
-                const circleSize = pixelRadius * 2; // 直径
-                
-                console.log('帮派攻击圆圈大小计算:', {
-                    gameRadius,
-                    gameWidth,
-                    totalWidth,
-                    pixelRadius,
-                    circleSize
-                });
-                
-                // 创建红色圆圈
-                marker.style.width = `${circleSize}px`;
-                marker.style.height = `${circleSize}px`;
-                marker.style.borderRadius = '50%';
-                marker.style.border = '3px solid #ff0000';
-                marker.style.backgroundColor = 'rgba(255, 0, 0, 0.1)';
-                marker.style.position = 'absolute';
-                marker.style.transform = 'translate(-50%, -50%)';
-                marker.style.cursor = 'pointer';
-                marker.style.pointerEvents = 'all';
-                
-                // 添加中心图标
-                const img = document.createElement('img');
-                img.src = itemIcons[type];
-                img.style.width = '32px';
-                img.style.height = '32px';
-                img.style.position = 'absolute';
-                img.style.top = '50%';
-                img.style.left = '50%';
-                img.style.transform = 'translate(-50%, -50%)';
-                marker.appendChild(img);
-            } else if (type === 'ghosts3') {
-                // 幽灵曝光：最后一个用 ge252.svg，其余 ge251.svg
-                const isLast = index === (itemData[type]?.length ?? 0) - 1;
-                const img = document.createElement('img');
-                img.src = isLast ? '../src/assets/ge252.svg' : '../src/assets/ge251.svg';
-                img.style.width = '32px';
-                img.style.height = '32px';
-                marker.appendChild(img);
-
-                // 在下方添加时间标签
-                const timeLabel = document.createElement('div');
-                timeLabel.style.position = 'absolute';
-                timeLabel.style.bottom = '-20px';
-                timeLabel.style.left = '50%';
-                timeLabel.style.transform = 'translateX(-50%)';
-                timeLabel.style.background = 'rgba(0, 0, 0, 0.8)';
-                timeLabel.style.color = 'white';
-                timeLabel.style.padding = '2px 6px';
-                timeLabel.style.borderRadius = '4px';
-                timeLabel.style.fontSize = '10px';
-                timeLabel.style.whiteSpace = 'nowrap';
-                timeLabel.style.pointerEvents = 'none';
-                timeLabel.textContent = item.time || '未知时间';
-                marker.appendChild(timeLabel);
-            } else if (type === 'treasure_hunt_dba_revolver_random') {
-                // 寻宝-随机线索: th1.svg
-                const img = document.createElement('img');
-                img.src = '../src/assets/th1.svg';
-                img.style.width = '28px';
-                img.style.height = '28px';
-                marker.appendChild(img);
-            } else if (type === 'treasure_hunt_dba_revolver_static') {
-                // 寻宝-固定线索: th2.svg
-                const img = document.createElement('img');
-                img.src = '../src/assets/th2.svg';
-                img.style.width = '28px';
-                img.style.height = '28px';
-                marker.appendChild(img);
-            } else if (type === 'serial_killer_slasher_first') {
-                // 杀人狂前四条线索：slasher.svg
-                const img = document.createElement('img');
-                img.src = '../src/assets/slasher.svg';
-                img.style.width = '32px';
-                img.style.height = '32px';
-                marker.appendChild(img);
-            } else if (type === 'serial_killer_slasher_last') {
-                // 杀人狂最后一条线索：slasher2.svg
-                const img = document.createElement('img');
-                img.src = '../src/assets/slasher2.svg';
-                img.style.width = '32px';
-                img.style.height = '32px';
-                marker.appendChild(img);
-            } else if (type === 'movie_props') {
-                // 电影道具：根据子类型选择不同图标
-                const img = document.createElement('img');
-                let iconSrc = '../src/assets/mp_static.svg'; // 默认图标
-                
-                if (item.type === 'fixed_position') {
-                    iconSrc = '../src/assets/mp_static.svg';
-                } else if (item.type === 'pony') {
-                    iconSrc = '../src/assets/mp_pony.svg';
-                } else if (item.type === 'rebel') {
-                    iconSrc = '../src/assets/mp_rebel.svg';
-                } else if (item.type === 'rumpo') {
-                    iconSrc = '../src/assets/mp_rumpo.svg';
-                }
-                
-                img.src = iconSrc;
-                img.style.width = '32px';
-                img.style.height = '32px';
-                marker.appendChild(img);
-            } else {
-                // 普通标记处理
-                const img = document.createElement('img');
-                img.src = itemIcons[type];
-                img.style.width = '32px';
-                img.style.height = '32px';
-                marker.appendChild(img);
-                
-                // 调试信息
-                if (type === 'crime_scenes') {
-                    console.log('创建crime_scenes标记，图标路径:', itemIcons[type]);
-                }
-            }
-            
-            // 注意：点击事件已在上面通过 marker.on('click', ...) 处理，这里不需要重复处理
-            
-            return marker;
-        }
+        // DOM 标记创建函数已废弃
 
         // 更新物品标记位置
         function updateItemMarkers() {
@@ -4382,11 +4808,7 @@
             const totalWidth = level.cols * TILE_SIZE;
             const totalHeight = level.rows * TILE_SIZE;
 
-            // 清除现有 DOM 标记
-            itemMarkers.forEach(m => m.el.remove());
-            itemMarkers = [];
-
-            // 清除现有 Leaflet 标记
+            // 仅清除现有 Leaflet 标记（DOM 标记已废弃）
             clearLeafletMarkers();
 
             // 处理试点标记类型（使用Leaflet原生标记）
@@ -4807,41 +5229,10 @@
                 }
             });
 
-            // 为每个激活的类型创建标记
-            activeItemTypes.forEach(type => {
-                // 跳过试点标记类型（已使用Leaflet处理）
-                if (pilotMarkerTypes.has(type)) return;
-                
-                // 跳过有特殊渲染逻辑的类型
-                if (type === 'serial_killer_slasher' || type === 'movie_props' || type === 'treasure_hunt_dba_revolver' || type === 'stash_houses' || type === 'madrazo_hits' || type === 'police_rescue_patrick_mcreary' || type === 'random_missions' || type === 'drug_vehicle' || type === 'smuggler_plane' || type === 'smuggler_trail' || type === 'convoy') return;
-                
-                // 调试信息
-                if (type === 'crime_scenes') {
-                    console.log('正在渲染crime_scenes标记，数据:', itemData[type]);
-                }
-                
-                if (!itemData[type] || !Array.isArray(itemData[type])) return;
-                itemData[type].forEach((item, index) => {
-                    if (typeof item.x === 'undefined' || typeof item.y === 'undefined') return;
-
-                    const percentX = (item.x - GAME_LEFT) / (GAME_RIGHT - GAME_LEFT);
-                    const percentY = (GAME_TOP - item.y) / (GAME_TOP - GAME_BOTTOM);
-
-                    const itemX = percentX * totalWidth;
-                    const itemY = percentY * totalHeight;
-
-                    const markerEl = createItemMarker(item, index, type);
-                    if (markerEl) { // 检查是否创建成功（帮派攻击可能返回null）
-                        markerEl.style.left = `${itemX}px`;
-                        markerEl.style.top = `${itemY}px`;
-                        tilePaneDom.appendChild(markerEl);
-                        itemMarkers.push({ type, index, el: markerEl });
-                    }
-                });
-            });
+            // DOM 标记渲染已废弃，所有类型均由 Leaflet 标记系统处理
 
             // 特殊：左轮寻宝两个子类型分别渲染（DOM版保留兼容，若Leaflet已处理则跳过）
-            if (activeItemTypes.has('treasure_hunt_dba_revolver') && !pilotMarkerTypes.has('treasure_hunt_dba_revolver')) {
+            if (false && activeItemTypes.has('treasure_hunt_dba_revolver') && !pilotMarkerTypes.has('treasure_hunt_dba_revolver')) {
                 const rc = itemData.treasure_hunt_dba_revolver?.random_clue || [];
                 const sc = itemData.treasure_hunt_dba_revolver?.static_clues || [];
                 const renderList = [
@@ -4858,14 +5249,14 @@
                     if (markerEl) {
                         markerEl.style.left = `${itemX}px`;
                         markerEl.style.top = `${itemY}px`;
-                        tilePaneDom.appendChild(markerEl);
+                        // DOM 标记层已移除
                         itemMarkers.push({ type: it.__subtype, index: it.__index, el: markerEl });
                     }
                 });
             }
 
             // 特殊：洛圣都杀人狂两个子类型一起渲染（DOM兼容，Leaflet已处理则跳过）
-            if (activeItemTypes.has('serial_killer_slasher') && !pilotMarkerTypes.has('serial_killer_slasher')) {
+            if (false && activeItemTypes.has('serial_killer_slasher') && !pilotMarkerTypes.has('serial_killer_slasher')) {
                 const first = (itemData.serial_killer_slasher.first || []).map((p,i)=>({ ...p, __subtype:'serial_killer_slasher_first', __index:i }));
                 const last = (itemData.serial_killer_slasher.last || []).map((p,i)=>({ ...p, __subtype:'serial_killer_slasher_last', __index:i }));
                 const renderList = [...first, ...last];
@@ -4879,7 +5270,7 @@
                     if (markerEl) {
                         markerEl.style.left = `${itemX}px`;
                         markerEl.style.top = `${itemY}px`;
-                        tilePaneDom.appendChild(markerEl);
+                        // DOM 标记层已移除
                         itemMarkers.push({ type: it.__subtype, index: it.__index, el: markerEl });
                     }
                 });
@@ -4895,7 +5286,7 @@
 
 
             // 特殊：电影道具多个子类型分别渲染（DOM兼容，Leaflet已处理则跳过）
-            if (activeItemTypes.has('movie_props') && !pilotMarkerTypes.has('movie_props')) {
+            if (false && activeItemTypes.has('movie_props') && !pilotMarkerTypes.has('movie_props')) {
                 const mp = itemData.movie_props;
                 const renderList = [
                     ...(mp.fixed_position || []).map((p, i) => ({ ...p, __subtype: 'movie_props', __index: i })),
@@ -4913,7 +5304,7 @@
                     if (markerEl) {
                         markerEl.style.left = `${itemX}px`;
                         markerEl.style.top = `${itemY}px`;
-                        tilePaneDom.appendChild(markerEl);
+                        // DOM 标记层已移除
                         itemMarkers.push({ type: it.__subtype, index: it.__index, el: markerEl });
                     }
                 });
@@ -4923,7 +5314,7 @@
 
 
             // 特殊：走私贩飞机渲染（已迁移到Leaflet系统）
-            if (activeItemTypes.has('smuggler_plane') && !pilotMarkerTypes.has('smuggler_plane')) {
+            if (false && activeItemTypes.has('smuggler_plane') && !pilotMarkerTypes.has('smuggler_plane')) {
                 const groups = itemData.smuggler_plane || [];
                 groups.forEach((group, gIndex) => {
                     const tp = group.triggerpoint; // [x, y]
@@ -4952,7 +5343,7 @@
                             e.stopPropagation();
                             showSmugglerPlanePopup(group, gIndex);
                         });
-                        tilePaneDom.appendChild(marker);
+                        // DOM 标记层已移除
                         itemMarkers.push({ type: 'smuggler_plane', index: gIndex, el: marker });
                     }
                     // routes: array of arrays of [x,y]; draw marker at each and a red line from triggerpoint
@@ -4984,7 +5375,7 @@
                                 e.stopPropagation();
                                 showSmugglerPlanePopup(group, gIndex);
                             });
-                            tilePaneDom.appendChild(marker);
+                            // DOM 标记层已移除
                             itemMarkers.push({ type: 'smuggler_plane_route', index: gIndex, el: marker });
 
                             // 红线：用 div 绘制一条连接 tp 与 route 点的线
@@ -5009,7 +5400,7 @@
                                 line.style.transformOrigin = '0 0';
                                 line.style.transform = `rotate(${angle}deg)`;
                                 line.style.zIndex = '660';
-                                tilePaneDom.appendChild(line);
+                                // DOM 标记层已移除
                                 itemMarkers.push({ type: 'smuggler_plane_line', index: gIndex, el: line });
                             }
                         }
@@ -5018,7 +5409,7 @@
             }
 
             // 特殊：走私贩踪迹渲染（triggerpoint + routes + 蓝线）
-            if (activeItemTypes.has('smuggler_trail') && !pilotMarkerTypes.has('smuggler_trail')) {
+            if (false && activeItemTypes.has('smuggler_trail') && !pilotMarkerTypes.has('smuggler_trail')) {
                 const groups = itemData.smuggler_trail || [];
                 groups.forEach((group, gIndex) => {
                     const tp = group.triggerpoint; // [x, y]
@@ -5047,7 +5438,7 @@
                             e.stopPropagation();
                             showSmugglerTrailPopup(group, gIndex);
                         });
-                        tilePaneDom.appendChild(marker);
+                        // DOM 标记层已移除
                         itemMarkers.push({ type: 'smuggler_trail', index: gIndex, el: marker });
                     }
                     // routes: array of arrays of [x,y]; draw numbered markers and blue lines connecting them in sequence
@@ -5089,7 +5480,7 @@
                                 e.stopPropagation();
                                 showSmugglerTrailPopup(group, gIndex);
                             });
-                            tilePaneDom.appendChild(marker);
+                            // DOM 标记层已移除
                             itemMarkers.push({ type: 'smuggler_trail_route', index: gIndex, el: marker });
 
                             // 蓝线：连接triggerpoint到第一个route点，然后按顺序连接route点
@@ -5137,7 +5528,7 @@
                                 line.style.transformOrigin = '0 0';
                                 line.style.transform = `rotate(${angle}deg)`;
                                 line.style.zIndex = '660';
-                                tilePaneDom.appendChild(line);
+                                // DOM 标记层已移除
                                 itemMarkers.push({ type: 'smuggler_trail_line', index: gIndex, el: line });
                             }
                         }
@@ -5185,13 +5576,13 @@
             //             showDrugVehiclePopup(vehicle, index);
             //         });
                     
-            //         tilePaneDom.appendChild(marker);
+            //         // DOM 标记层已移除
             //         itemMarkers.push({ type: 'drug_vehicle', index: index, el: marker });
             //     });
             // }
             
             // 特殊：随机任务渲染（需要特殊处理嵌套结构）- 若已迁移到Leaflet则跳过DOM渲染
-            if (activeItemTypes.has('random_missions') && !pilotMarkerTypes.has('random_missions')) {
+            if (false && activeItemTypes.has('random_missions') && !pilotMarkerTypes.has('random_missions')) {
                 console.log('处理随机任务DOM标记，数据:', itemData.random_missions);
                 console.log('pilotMarkerTypes.has(random_missions):', pilotMarkerTypes.has('random_missions'));
                 const randomMissions = itemData.random_missions || {};
@@ -5246,7 +5637,7 @@
                             showRandomMissionPopup(missionData, timeSlot, index);
                         });
                         
-                        tilePaneDom.appendChild(marker);
+                        // DOM 标记层已移除
                         itemMarkers.push({ type: 'random_missions', index: globalIndex, el: marker });
                         globalIndex++;
                     });
@@ -5255,7 +5646,7 @@
             }
         }
 
-        // 更新物品标记位置（不重新创建）
+        // DOM 标记已移除，无需更新位置
         function updateItemMarkersPosition() {
             const z = map.getZoom();
             const level = getLevelOrNearest(z);
@@ -5668,7 +6059,7 @@
                 dealership.coordinates.forEach((coord, index) => {
                     const marker = createDealershipMarker(coord[0], coord[1], dealership, dealershipType);
                     dealershipMarkers.push(marker);
-                    tilePaneDom.appendChild(marker);
+                    // DOM 标记层已移除
                     // 设置初始可见性，防止创建后需缩放才显示
                     try {
                         marker.style.display = activeItemTypes && activeItemTypes.has && activeItemTypes.has('dealerships') ? 'block' : 'none';
@@ -8254,10 +8645,9 @@
             const totalWidth = level.cols * TILE_SIZE;
             const totalHeight = level.rows * TILE_SIZE;
             
-            // 获取地图容器的变换信息
-            const transform = tilePaneDom.style.transform;
-            const translateX = parseInt(transform.match(/translate\(([-\d.]+)px/)[1]) || 0;
-            const translateY = parseInt(transform.match(/translate\([-\d.]+px,\s*([-\d.]+)px/)[1]) || 0;
+            // DOM 标记层已移除，无需读取 transform 偏移
+            const translateX = 0;
+            const translateY = 0;
             
             // 计算点击位置在瓦片容器中的像素坐标
             const tileX = clickX - translateX;
@@ -10090,217 +10480,6 @@
             } catch (e) {}
         }
 
-        // 走私贩飞机弹窗
-        function showSmugglerPlanePopup(item, index) {
-            const content = `在飞机坠毁处收集装有 25.000 GTA$ 和 2.000 RP 的公文包。`;
-            const imageUrl = 'https://gta-maps.antwen.com/collectibles_images/smuggler_plane/smuggler_plane.webp';
-            
-            // 检查是否已存在弹窗，如果存在则移除
-            const existingPopup = document.querySelector('.smuggler-plane-popup');
-            if (existingPopup) {
-                existingPopup.remove();
-            }
-            
-            // 获取走私贩飞机组标记
-            const smugglerGroups = window.smugglerGroupMarkers && window.smugglerGroupMarkers['smuggler_plane'] ? window.smugglerGroupMarkers['smuggler_plane'] : [];
-            const totalCount = smugglerGroups.length;
-            
-            // 计算当前隐藏的组数量
-            let hiddenCount = 0;
-            smugglerGroups.forEach((groupMarkers, groupIndex) => {
-                if (groupMarkers && groupMarkers.length > 0) {
-                    // 检查组中第一个标记的透明度来判断整个组是否隐藏
-                    const firstMarker = groupMarkers[0];
-                    if (firstMarker && firstMarker.getElement) {
-                        const element = firstMarker.getElement();
-                        if (element && element.style.opacity === '0.3') {
-                            hiddenCount++;
-                        }
-                    }
-                }
-            });
-            
-            // 检查当前点击的组是否已隐藏
-            const currentGroupMarkers = smugglerGroups[index];
-            let isCurrentHidden = false;
-            if (currentGroupMarkers && currentGroupMarkers.length > 0) {
-                const firstMarker = currentGroupMarkers[0];
-                if (firstMarker && firstMarker.getElement) {
-                    const element = firstMarker.getElement();
-                    isCurrentHidden = element && element.style.opacity === '0.3';
-                }
-            }
-            
-            console.log('调试信息:');
-            console.log('index:', index);
-            console.log('smugglerGroups.length:', totalCount);
-            console.log('currentGroupMarkers:', currentGroupMarkers);
-            console.log('isCurrentHidden:', isCurrentHidden);
-            
-            // 构建标题，包含隐藏状态信息
-            const title = `✈️ 走私贩飞机 #${index + 1} (${hiddenCount}/${totalCount})`;
-            
-            const popup = document.createElement('div');
-            popup.className = 'smuggler-plane-popup';
-            popup.style.cssText = `
-                position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-                background: var(--gta-bg-medium);
-                border: 1px solid var(--gta-border);
-                border-radius: 8px;
-                box-shadow: 0 2px 15px rgba(0,0,0,0.5);
-                padding: 15px;
-                z-index: 10000;
-                width: min(92vw, 520px);
-                max-height: 80vh;
-                color: var(--gta-text);
-                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                overflow-y: auto;
-            `;
-
-            popup.innerHTML = `
-                <div class="popup-header" style="position: relative; margin-bottom: 14px;">
-                    <h3 style="color: var(--gta-primary); font-size: 18px; margin: 0; font-weight: bold;">${title}</h3>
-                    <span class="popup-close" style="position: absolute; top: 0; right: 0; color: var(--gta-text-secondary); font-size: 20px; cursor: pointer; transition: color 0.3s ease;">×</span>
-                </div>
-                <img src="${imageUrl}" alt="走私贩飞机图片" style="max-width: 100%; height: auto; border-radius: 6px; margin: 8px 0; display: block; cursor: zoom-in;"/>
-                <div style="margin: 10px 0; padding: 10px; background: rgba(25, 118, 210, 0.1); border-radius: 8px; color: var(--gta-text); font-size: 14px; line-height: 1.6;">
-                    ${content}
-                </div>
-                <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
-                    <button id="hide-smuggler-plane-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease; display: ${isCurrentHidden ? 'none' : 'inline-block'};">隐藏</button>
-                    <button id="show-smuggler-plane-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease; display: ${isCurrentHidden ? 'inline-block' : 'none'};">显示</button>
-                    <button id="close-smuggler-plane-btn" style="padding: 8px 16px; background: var(--gta-primary); color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease;">关闭</button>
-                </div>
-            `;
-            // 图片点击放大（PC/移动端）
-            const popupImage = popup.querySelector('img');
-            if (popupImage) {
-                popupImage.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    const overlay = document.createElement('div');
-                    overlay.className = 'smuggler-image-overlay';
-                    overlay.style.cssText = `
-                        position: fixed; inset: 0; background: rgba(0,0,0,0.85);
-                        display: flex; align-items: center; justify-content: center;
-                        z-index: 10002; cursor: zoom-out;
-                    `;
-                    const bigImg = document.createElement('img');
-                    bigImg.src = popupImage.src;
-                    bigImg.alt = popupImage.alt || '';
-                    bigImg.style.cssText = `
-                        max-width: 95vw; max-height: 95vh; border-radius: 6px; box-shadow: 0 4px 24px rgba(0,0,0,0.6);
-                    `;
-                    overlay.appendChild(bigImg);
-
-                    const removeOverlay = () => {
-                        document.removeEventListener('keydown', onKey);
-                        if (overlay && overlay.parentNode) overlay.parentNode.removeChild(overlay);
-                    };
-                    const onKey = (ev) => {
-                        if (ev.key === 'Escape') removeOverlay();
-                    };
-                    overlay.addEventListener('click', removeOverlay);
-                    document.addEventListener('keydown', onKey);
-                    document.body.appendChild(overlay);
-                });
-            }
-
-            // 添加按钮事件监听器
-            const closeBtn = popup.querySelector('#close-smuggler-plane-btn');
-            const hideBtn = popup.querySelector('#hide-smuggler-plane-btn');
-            const showBtn = popup.querySelector('#show-smuggler-plane-btn');
-            const popupClose = popup.querySelector('.popup-close');
-
-            // 关闭按钮
-            closeBtn.addEventListener('click', () => popup.remove());
-            popupClose.addEventListener('click', () => popup.remove());
-
-            // 隐藏按钮功能 - 隐藏整个组
-            if (hideBtn) {
-                hideBtn.addEventListener('click', () => {
-                    console.log('隐藏按钮被点击，隐藏组', index);
-                    
-                    // 隐藏当前组的所有标记与连线
-                    if (currentGroupMarkers && currentGroupMarkers.length > 0) {
-                        currentGroupMarkers.forEach((layer, markerIndex) => {
-                            if (layer && layer.setOpacity) {
-                                layer.setOpacity(0.3);
-                                console.log(`隐藏组${index}的标记/线${markerIndex}`);
-                            } else if (layer && layer.setStyle) {
-                                layer.setStyle({ opacity: 0.3 });
-                                console.log(`隐藏组${index}的线${markerIndex}`);
-                            }
-                        });
-                    }
-                    // 同步处理旧版 DOM 红线
-                    document.querySelectorAll(`.smuggler-connector-line[data-type="smuggler_plane_line"][data-index="${index}"]`).forEach((el) => {
-                        el.style.opacity = '0.3';
-                    });
-                    
-                    // 更新标题中的隐藏数量
-                    const titleElement = popup.querySelector('h3');
-                    const newHiddenCount = hiddenCount + 1;
-                    titleElement.textContent = `✈️ 走私贩飞机 #${index + 1} (${newHiddenCount}/${totalCount})`;
-                    // 切换按钮显示
-                    hideBtn.style.display = 'none';
-                    showBtn.style.display = 'inline-block';
-
-                    // 更新侧边栏计数器
-                    try { updateSmugglerPlaneSidebarCount(); } catch(e) {}
-                });
-            }
-
-            // 显示按钮功能 - 显示整个组
-            if (showBtn) {
-                showBtn.addEventListener('click', () => {
-                    console.log('显示按钮被点击，显示组', index);
-                    
-                    // 显示当前组的所有标记与连线
-                    if (currentGroupMarkers && currentGroupMarkers.length > 0) {
-                        currentGroupMarkers.forEach((layer, markerIndex) => {
-                            if (layer && layer.setOpacity) {
-                                layer.setOpacity(1);
-                                console.log(`显示组${index}的标记/线${markerIndex}`);
-                            } else if (layer && layer.setStyle) {
-                                layer.setStyle({ opacity: 1 });
-                                console.log(`显示组${index}的线${markerIndex}`);
-                            }
-                        });
-                    }
-                    // 同步处理旧版 DOM 红线
-                    document.querySelectorAll(`.smuggler-connector-line[data-type="smuggler_plane_line"][data-index="${index}"]`).forEach((el) => {
-                        el.style.opacity = '1';
-                    });
-                    
-                    // 更新标题中的隐藏数量
-                    const titleElement = popup.querySelector('h3');
-                    const newHiddenCount = hiddenCount - 1;
-                    titleElement.textContent = `✈️ 走私贩飞机 #${index + 1} (${newHiddenCount}/${totalCount})`;
-                    // 切换按钮显示
-                    showBtn.style.display = 'none';
-                    hideBtn.style.display = 'inline-block';
-
-                    // 更新侧边栏计数器
-                    try { updateSmugglerPlaneSidebarCount(); } catch(e) {}
-                });
-            }
-
-            // 防止点击弹窗内容时关闭
-            popup.addEventListener('click', (e) => e.stopPropagation());
-            
-            // 点击外部关闭弹窗
-            setTimeout(() => {
-                const closePopupHandler = (e) => {
-                    if (!popup.contains(e.target)) { 
-                        popup.remove(); 
-                        document.removeEventListener('click', closePopupHandler); 
-                    }
-                };
-                document.addEventListener('click', closePopupHandler);
-            }, 50);
-
-            document.body.appendChild(popup);
-        }
 
         // 走私贩踪迹弹窗
         function showSmugglerTrailPopup(item, index) {
@@ -12561,7 +12740,22 @@
             probeTilesForStyleAndZoom(currentStyle, map.getZoom());
             loadItemData().then(() => {
                 console.log('物品数据加载完成');
-                        try { updateGunVanSidebarCount(); } catch(e) {}
+                try { updateGunVanSidebarCount(); } catch(e) {}
+                
+                // 数据加载完成后，应用缓存状态
+                setTimeout(() => {
+                    try {
+                        // 应用走私贩飞机可见性缓存
+                        applySmugglerPlaneVisibilityCache();
+                        
+                        // 更新所有计数器
+                        updateSmugglerPlaneSidebarCount();
+                        
+                        console.log('缓存状态已恢复');
+                    } catch (e) {
+                        console.warn('恢复缓存状态时出错:', e);
+                    }
+                }, 500); // 延迟500ms确保所有标记都已渲染
             });
             
             // 初始化车行标记
@@ -12569,6 +12763,9 @@
             
             // 初始化游戏时间和天气显示
             initGameTimeWeatherDisplay();
+            
+            // 添加缓存管理按钮
+            addCacheManagementButton();
         });
 
         window.addEventListener('resize', () => {
@@ -13185,10 +13382,53 @@
                     try { updateSmugglerPlaneSidebarCount(); } catch(e) {}
                 }
 
+                // 应用缓存的侧边栏状态
+                const hasCachedState = SidebarCache.applyState(activeItemTypes);
+                if (hasCachedState) {
+                    console.log('已恢复侧边栏缓存状态');
+                }
+
                 renderSidebar('');
                 if (searchInput) {
                     searchInput.addEventListener('input', (e) => renderSidebar(e.target.value));
                 }
+
+                // 如果有缓存状态，需要重新渲染标记
+                if (hasCachedState) {
+                    setTimeout(() => {
+                        try {
+                            updateItemMarkers();
+                            if (typeof updateDealershipMarkers === 'function') updateDealershipMarkers();
+                            if (typeof updateTilePanePosition === 'function') updateTilePanePosition();
+                            console.log('已根据缓存状态重新渲染标记');
+                        } catch (e) {
+                            console.warn('重新渲染标记时出错:', e);
+                        }
+                    }, 100);
+                }
+
+                // 保存侧边栏状态到缓存（在状态变化时）
+                const originalAdd = activeItemTypes.add.bind(activeItemTypes);
+                const originalDelete = activeItemTypes.delete.bind(activeItemTypes);
+                const originalClear = activeItemTypes.clear.bind(activeItemTypes);
+                
+                activeItemTypes.add = function(value) {
+                    const result = originalAdd(value);
+                    setTimeout(() => SidebarCache.saveState(activeItemTypes), 0);
+                    return result;
+                };
+                
+                activeItemTypes.delete = function(value) {
+                    const result = originalDelete(value);
+                    setTimeout(() => SidebarCache.saveState(activeItemTypes), 0);
+                    return result;
+                };
+                
+                activeItemTypes.clear = function() {
+                    const result = originalClear();
+                    setTimeout(() => SidebarCache.saveState(activeItemTypes), 0);
+                    return result;
+                };
             }
 
             // 显示全部/隐藏全部按钮

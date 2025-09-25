@@ -2026,6 +2026,280 @@
             return false;
         }
 
+        // ==================== 杰拉德包裹增强版弹窗（集成缓存） ====================
+        
+        // 创建侧边栏条目时，为 dead_drop 增加一个计数器占位
+        function attachDeadDropCounterToLabel(sidebarCheckboxId) {
+            const label = document.querySelector(`#${sidebarCheckboxId} + label`);
+            if (!label) return;
+
+            let counter = label.querySelector('.dead-drop-counter');
+            if (!counter) {
+                counter = document.createElement('span');
+                counter.className = 'dead-drop-counter';
+                counter.style.marginLeft = '6px';
+                counter.style.color = 'var(--gta-text-secondary)';
+                label.appendChild(counter);
+            }
+
+            // 初次渲染计数
+            updateDeadDropSidebarCount();
+        }
+
+        // 统计隐藏/总数，并更新侧边栏计数器文本（杰拉德包裹特殊：0/1）
+        function updateDeadDropSidebarCount() {
+            try {
+                const counterEl = document.querySelector('#sidebar-item-dead_drop + label .dead-drop-counter');
+                if (!counterEl) return;
+
+                // 杰拉德包裹特殊：只有一个标记，所以总数固定为1
+                const total = 1;
+                let hidden = 0;
+
+                // 检查是否有缓存的隐藏状态
+                const visibilityMap = VisibilityCache.loadVisibility('dead_drop');
+                if (visibilityMap[0] === true) {
+                    hidden = 1;
+                }
+
+                // 更新缓存
+                CounterCache.updateCounter('dead_drop', hidden, total);
+                counterEl.textContent = total > 0 ? ` (${hidden}/${total})` : '';
+            } catch (e) {
+                console.warn('更新杰拉德包裹计数器失败:', e);
+            }
+        }
+
+        // 杰拉德包裹增强版弹窗（集成缓存，特殊处理：隐藏全部标记）
+        function showDeadDropPopup(item, index) {
+            const content = `杰拉德提供的秘密包裹投递点，完成可获得丰厚奖励。`;
+            const imageUrl = `https://gta-maps.antwen.com/collectibles_images/dead_drop/dead_drop_${index + 1}.webp`;
+
+            // 关闭已存在的弹窗
+            const existingPopup = document.querySelector('.dead-drop-popup');
+            if (existingPopup) existingPopup.remove();
+
+            // 杰拉德包裹特殊：只有一个标记，所以总数固定为1
+            const totalCount = 1;
+            let hiddenCount = 0;
+
+            // 检查当前隐藏状态
+            const visibilityMap = VisibilityCache.loadVisibility('dead_drop');
+            const isCurrentHidden = visibilityMap[0] === true;
+            if (isCurrentHidden) {
+                hiddenCount = 1;
+            }
+
+            const title = `📦 杰拉德包裹 #${index + 1} (${hiddenCount}/${totalCount})`;
+
+            // 构建弹窗
+            const popup = document.createElement('div');
+            popup.className = 'dead-drop-popup';
+            popup.style.cssText = `
+                position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+                background: var(--gta-bg-medium);
+                border: 1px solid var(--gta-border);
+                border-radius: 8px;
+                box-shadow: 0 2px 15px rgba(0,0,0,0.5);
+                padding: 15px;
+                z-index: 10000;
+                width: min(92vw, 520px);
+                max-height: 80vh;
+                color: var(--gta-text);
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                overflow-y: auto;
+            `;
+
+            popup.innerHTML = `
+                <div class="popup-header" style="position: relative; margin-bottom: 14px;">
+                    <h3 style="color: #9C6EAF; font-size: 18px; margin: 0; font-weight: bold;">${title}</h3>
+                    <span class="popup-close" style="position: absolute; top: 0; right: 0; color: var(--gta-text-secondary); font-size: 20px; cursor: pointer; transition: color 0.3s ease;">×</span>
+                </div>
+                <img src="${imageUrl}" alt="杰拉德包裹图片" style="max-width: 100%; height: auto; border-radius: 6px; margin: 8px 0; display: block; cursor: zoom-in;"/>
+                <div style="margin: 10px 0; padding: 10px; background: rgba(156, 110, 175, 0.1); border-radius: 8px; color: var(--gta-text); font-size: 14px; line-height: 1.6;">
+                    ${content}
+                </div>
+                <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
+                    <button id="hide-dead-drop-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease; display: ${isCurrentHidden ? 'none' : 'inline-block'};">隐藏</button>
+                    <button id="show-dead-drop-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease; display: ${isCurrentHidden ? 'inline-block' : 'none'};">显示</button>
+                    <button id="close-dead-drop-btn" style="padding: 8px 16px; background: #9C6EAF; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease;">关闭</button>
+                </div>
+            `;
+
+            // 绑定元素
+            const closeBtn = popup.querySelector('#close-dead-drop-btn');
+            const hideBtn = popup.querySelector('#hide-dead-drop-btn');
+            const showBtn = popup.querySelector('#show-dead-drop-btn');
+            const popupClose = popup.querySelector('.popup-close');
+            const titleElement = popup.querySelector('h3');
+
+            // 关闭弹窗
+            const removePopup = () => popup.remove();
+            closeBtn.addEventListener('click', removePopup);
+            popupClose.addEventListener('click', removePopup);
+            popup.addEventListener('click', (e) => e.stopPropagation());
+            setTimeout(() => {
+                const closePopupHandler = (e) => {
+                    if (!popup.contains(e.target)) {
+                        removePopup();
+                        document.removeEventListener('click', closePopupHandler);
+                    }
+                };
+                document.addEventListener('click', closePopupHandler);
+            }, 50);
+
+            // 图片点击放大（PC/移动端）
+            const popupImage = popup.querySelector('img');
+            if (popupImage) {
+                popupImage.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const overlay = document.createElement('div');
+                    overlay.className = 'dead-drop-image-overlay';
+                    overlay.style.cssText = `
+                        position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+                        display: flex; align-items: center; justify-content: center;
+                        z-index: 10002; cursor: zoom-out;
+                    `;
+                    const bigImg = document.createElement('img');
+                    bigImg.src = popupImage.src;
+                    bigImg.alt = popupImage.alt || '';
+                    bigImg.style.cssText = `max-width: 95vw; max-height: 95vh; border-radius: 6px; box-shadow: 0 4px 24px rgba(0,0,0,0.6);`;
+                    overlay.appendChild(bigImg);
+
+                    const removeOverlay = () => {
+                        document.removeEventListener('keydown', onKey);
+                        overlay.remove();
+                    };
+                    const onKey = (ev) => { if (ev.key === 'Escape') removeOverlay(); };
+                    overlay.addEventListener('click', removeOverlay);
+                    document.addEventListener('keydown', onKey);
+                    document.body.appendChild(overlay);
+                });
+            }
+
+            // 工具：隐藏/显示杰拉德包裹标记（特殊：隐藏全部标记）
+            function setDeadDropVisibility(opacity) {
+                // 隐藏所有杰拉德包裹相关的标记
+                document.querySelectorAll('.item-marker').forEach(marker => {
+                    const img = marker.querySelector('img');
+                    if (img && img.src && img.src.includes('dead_drop')) {
+                        marker.style.opacity = String(opacity);
+                    }
+                });
+
+            // 同时处理通用的 Leaflet 标记（通过图标URL识别 dead_drop）
+            if (Array.isArray(leafletMarkers) && leafletMarkers.length > 0) {
+                leafletMarkers.forEach((layer) => {
+                    try {
+                        const iconUrl = layer && layer.options && layer.options.icon && layer.options.icon.options && layer.options.icon.options.iconUrl;
+                        if (iconUrl && iconUrl.includes('dead_drop')) {
+                            if (typeof layer.setOpacity === 'function') {
+                                layer.setOpacity(opacity);
+                            } else if (typeof layer.setStyle === 'function') {
+                                layer.setStyle({ opacity });
+                            } else if (layer.getElement && layer.getElement()) {
+                                layer.getElement().style.opacity = String(opacity);
+                            }
+                        }
+                    } catch (e) { /* no-op */ }
+                });
+            }
+
+                // 同时处理Leaflet标记（如果存在）
+                if (window.smugglerGroupMarkers && window.smugglerGroupMarkers['dead_drop']) {
+                    window.smugglerGroupMarkers['dead_drop'].forEach((layer) => {
+                        if (layer && typeof layer.setOpacity === 'function') {
+                            layer.setOpacity(opacity);
+                        } else if (layer && typeof layer.setStyle === 'function') {
+                            layer.setStyle({ opacity });
+                        }
+                    });
+                }
+                
+                // 更新缓存
+                VisibilityCache.updateItemVisibility('dead_drop', 0, opacity === 0.3);
+            }
+
+            // 隐藏按钮
+            if (hideBtn) {
+                hideBtn.addEventListener('click', () => {
+                    setDeadDropVisibility(0.3);
+                    const newHiddenCount = 1;
+                    titleElement.textContent = `📦 杰拉德包裹 #${index + 1} (${newHiddenCount}/${totalCount})`;
+                    hideBtn.style.display = 'none';
+                    showBtn.style.display = 'inline-block';
+
+                    // 刷新侧边栏计数
+                    updateDeadDropSidebarCount();
+                });
+            }
+
+            // 显示按钮
+            if (showBtn) {
+                showBtn.addEventListener('click', () => {
+                    setDeadDropVisibility(1);
+                    const newHiddenCount = 0;
+                    titleElement.textContent = `📦 杰拉德包裹 #${index + 1} (${newHiddenCount}/${totalCount})`;
+                    showBtn.style.display = 'none';
+                    hideBtn.style.display = 'inline-block';
+
+                    // 刷新侧边栏计数
+                    updateDeadDropSidebarCount();
+                });
+            }
+
+            document.body.appendChild(popup);
+        }
+
+        // 应用缓存的可见性状态到杰拉德包裹标记
+        function applyDeadDropVisibilityCache() {
+            const visibilityMap = VisibilityCache.loadVisibility('dead_drop');
+            const isHidden = visibilityMap[0] === true;
+            
+            if (isHidden) {
+                // 隐藏所有杰拉德包裹相关的标记
+                document.querySelectorAll('.item-marker').forEach(marker => {
+                    const img = marker.querySelector('img');
+                    if (img && img.src && img.src.includes('dead_drop')) {
+                        marker.style.opacity = '0.3';
+                    }
+                });
+
+                // 同时处理通用的 Leaflet 标记（通过图标URL识别 dead_drop）
+                if (Array.isArray(leafletMarkers) && leafletMarkers.length > 0) {
+                    leafletMarkers.forEach((layer) => {
+                        try {
+                            const iconUrl = layer && layer.options && layer.options.icon && layer.options.icon.options && layer.options.icon.options.iconUrl;
+                            if (iconUrl && iconUrl.includes('dead_drop')) {
+                                if (typeof layer.setOpacity === 'function') {
+                                    layer.setOpacity(0.3);
+                                } else if (typeof layer.setStyle === 'function') {
+                                    layer.setStyle({ opacity: 0.3 });
+                                } else if (layer.getElement && layer.getElement()) {
+                                    layer.getElement().style.opacity = '0.3';
+                                }
+                            }
+                        } catch (e) { /* no-op */ }
+                    });
+                }
+
+                // 同时处理Leaflet标记（如果存在）
+                if (window.smugglerGroupMarkers && window.smugglerGroupMarkers['dead_drop']) {
+                    window.smugglerGroupMarkers['dead_drop'].forEach((layer) => {
+                        if (layer && typeof layer.setOpacity === 'function') {
+                            layer.setOpacity(0.3);
+                        } else if (layer && typeof layer.setStyle === 'function') {
+                            layer.setStyle({ opacity: 0.3 });
+                        }
+                    });
+                }
+                
+                console.log('已应用杰拉德包裹可见性缓存');
+                return true;
+            }
+            return false;
+        }
+
         // ==================== 缓存管理工具 ====================
         
         // 创建缓存管理面板
@@ -4512,9 +4786,9 @@
                 else if (type === 'snowmen') {
                     showSnowmenImage(index);
                 }
-                // 特殊处理杰拉德包裹，显示图片弹窗
+                // 特殊处理杰拉德包裹，显示增强版弹窗
                 else if (type === 'dead_drop') {
-                    showDeadDropImage(index);
+                    showDeadDropPopup(item, index);
                 }
                 // 特殊处理特技跳跃点，显示图片弹窗
                 else if (type === 'stunt_jumps') {
@@ -6610,9 +6884,9 @@
                 showSnowmenImage(index);
             }
             
-            // 如果是杰拉德包裹，显示图片弹窗
+            // 如果是杰拉德包裹，显示增强版弹窗
             if (type === 'dead_drop') {
-                showDeadDropImage(index);
+                showDeadDropPopup(item, index);
             }
             
             // 如果是帮派攻击，显示弹窗
@@ -9115,7 +9389,7 @@
                     const deadDropIndex = itemData.dead_drop.findIndex(deadDrop => 
                         deadDrop.x === nearbyDeadDrop.x && deadDrop.y === nearbyDeadDrop.y
                     );
-                    showDeadDropImage(deadDropIndex);
+                    showDeadDropPopup(nearbyDeadDrop, deadDropIndex);
                 }
             }
         }
@@ -12748,8 +13022,12 @@
                         // 应用走私贩飞机可见性缓存
                         applySmugglerPlaneVisibilityCache();
                         
+                        // 应用杰拉德包裹可见性缓存
+                        applyDeadDropVisibilityCache();
+                        
                         // 更新所有计数器
                         updateSmugglerPlaneSidebarCount();
+                        updateDeadDropSidebarCount();
                         
                         console.log('缓存状态已恢复');
                     } catch (e) {
@@ -13294,6 +13572,17 @@
                         // 初始渲染一次
                         setTimeout(() => { try { updateGunVanSidebarCount(); } catch(e) {} }, 0);
                     }
+                    // 右侧计数器（dead_drop）
+                    if (type === 'dead_drop') {
+                        const counter = document.createElement('span');
+                        counter.className = 'dead-drop-counter';
+                        counter.style.marginLeft = '6px';
+                        counter.style.color = 'var(--gta-text-secondary)';
+                        counter.textContent = '';
+                        label.appendChild(counter);
+                        // 初始渲染一次
+                        setTimeout(() => { try { updateDeadDropSidebarCount(); } catch(e) {} }, 0);
+                    }
 
                     wrapper.appendChild(chk);
                     wrapper.appendChild(label);
@@ -13330,6 +13619,9 @@
                         }
                         if (t === 'gun_van') {
                             try { updateGunVanSidebarCount(); } catch(e) {}
+                        }
+                        if (t === 'dead_drop') {
+                            try { updateDeadDropSidebarCount(); } catch(e) {}
                         }
                     });
 
@@ -13378,8 +13670,9 @@
                         sidebarContainer.appendChild(content);
                     });
 
-                    // 渲染完成后，刷新一次 smuggler_plane 计数
+                    // 渲染完成后，刷新一次计数器
                     try { updateSmugglerPlaneSidebarCount(); } catch(e) {}
+                    try { updateDeadDropSidebarCount(); } catch(e) {}
                 }
 
                 // 应用缓存的侧边栏状态

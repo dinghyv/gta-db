@@ -1791,6 +1791,26 @@
             updateSmugglerPlaneSidebarCount();
         }
 
+        // ==================== 增强版街头毒贩模板（集成缓存） ====================
+        
+        // 创建侧边栏条目时，为 street_dealers 增加一个计数器占位
+        function attachStreetDealersCounterToLabel(sidebarCheckboxId) {
+            const label = document.querySelector(`#${sidebarCheckboxId} + label`);
+            if (!label) return;
+
+            let counter = label.querySelector('.street-dealers-counter');
+            if (!counter) {
+                counter = document.createElement('span');
+                counter.className = 'street-dealers-counter';
+                counter.style.marginLeft = '6px';
+                counter.style.color = 'var(--gta-text-secondary)';
+                label.appendChild(counter);
+            }
+
+            // 初次渲染计数
+            updateStreetDealersSidebarCount();
+        }
+
         // 统计隐藏/总数，并更新侧边栏计数器文本（集成缓存）
         function updateSmugglerPlaneSidebarCount() {
             try {
@@ -1828,6 +1848,44 @@
                 counterEl.textContent = total > 0 ? ` (${hidden}/${total})` : '';
             } catch (e) {
                 console.warn('更新走私贩飞机计数器失败:', e);
+            }
+        }
+
+        // 统计隐藏/总数，并更新侧边栏计数器文本（集成缓存）
+        function updateStreetDealersSidebarCount() {
+            try {
+                const counterEl = document.querySelector('#sidebar-item-street_dealers + label .street-dealers-counter');
+                if (!counterEl) return;
+
+                // 获取街头毒贩标记
+                const markers = (window.streetDealersMarkers && window.streetDealersMarkers) || [];
+                let total = 0;
+                let hidden = 0;
+
+                if (Array.isArray(markers) && markers.length > 0) {
+                    // 使用实际渲染的标记数量（当天实际显示的数量）
+                    total = markers.length;
+                    markers.forEach((marker) => {
+                        if (marker && typeof marker.getElement === 'function') {
+                            const el = marker.getElement();
+                            if (el && el.style.opacity === '0.3') {
+                                hidden++;
+                            }
+                        }
+                    });
+                } else {
+                    // 回退：仅有数据尚未渲染 Leaflet 标记时，使用实际数据长度
+                    total = Array.isArray(window.itemData?.street_dealers) ? window.itemData.street_dealers.length : 0;
+                    // 从缓存中获取隐藏数量
+                    const cachedCounter = CounterCache.getCounter('street_dealers');
+                    hidden = cachedCounter.hidden || 0;
+                }
+
+                // 更新缓存
+                CounterCache.updateCounter('street_dealers', hidden, total);
+                counterEl.textContent = total > 0 ? ` (${hidden}/${total})` : '';
+            } catch (e) {
+                console.warn('更新街头毒贩计数器失败:', e);
             }
         }
 
@@ -2003,6 +2061,172 @@
             document.body.appendChild(popup);
         }
 
+        // 街头毒贩弹窗模板（含隐藏/显示联动与计数器、缓存集成）
+        function showStreetDealersPopup(item, index) {
+            // 从API动态获取街头毒贩信息
+            fetch('https://api-gta.antwen.com/api/items/street-dealers')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        displayStreetDealersPopup(data.data.message, item, index);
+                    } else {
+                        console.error('获取街头毒贩信息失败:', data.error);
+                        alert('获取街头毒贩信息失败，请稍后重试');
+                    }
+                })
+                .catch(error => {
+                    console.error('API请求错误:', error);
+                    alert('网络请求失败，请检查网络连接');
+                });
+        }
+
+        function displayStreetDealersPopup(message, item, index) {
+            // 关闭已存在的弹窗
+            const existingPopup = document.querySelector('.street-dealers-popup');
+            if (existingPopup) existingPopup.remove();
+
+            // 统计隐藏/总数（使用当天实际显示的数量）
+            const markers = (window.streetDealersMarkers && window.streetDealersMarkers) || [];
+            const totalCount = markers.length;
+
+            let hiddenCount = 0;
+            markers.forEach((marker) => {
+                if (marker && typeof marker.getElement === 'function') {
+                    const el = marker.getElement();
+                    if (el && el.style.opacity === '0.3') hiddenCount++;
+                }
+            });
+
+            const currentMarker = markers[index];
+            let isCurrentHidden = false;
+            if (currentMarker && typeof currentMarker.getElement === 'function') {
+                const el = currentMarker.getElement();
+                isCurrentHidden = el && el.style.opacity === '0.3';
+            }
+
+            const title = `💊 街头毒贩 #${index + 1} (${hiddenCount}/${totalCount})`;
+
+            // 构建弹窗
+            const popup = document.createElement('div');
+            popup.className = 'street-dealers-popup';
+            popup.style.cssText = `
+                position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+                background: var(--gta-bg-medium);
+                border: 1px solid var(--gta-border);
+                border-radius: 8px;
+                box-shadow: 0 2px 15px rgba(0,0,0,0.5);
+                padding: 15px;
+                z-index: 10000;
+                width: min(92vw, 520px);
+                max-height: 80vh;
+                color: var(--gta-text);
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                overflow-y: auto;
+            `;
+
+            popup.innerHTML = `
+                <div class="popup-header" style="position: relative; margin-bottom: 14px;">
+                    <h3 style="color: var(--gta-primary); font-size: 18px; margin: 0; font-weight: bold;">${title}</h3>
+                    <span class="popup-close" style="position: absolute; top: 0; right: 0; color: var(--gta-text-secondary); font-size: 20px; cursor: pointer; transition: color 0.3s ease;">×</span>
+                </div>
+                <div style="margin: 10px 0; padding: 10px; background: rgba(25, 118, 210, 0.1); border-radius: 8px; color: var(--gta-text); font-size: 14px; line-height: 1.6;">
+                    ${message.replace(/\n/g, '<br>')}
+                </div>
+                <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
+                    <button id="hide-street-dealers-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease; display: ${isCurrentHidden ? 'none' : 'inline-block'};">隐藏</button>
+                    <button id="show-street-dealers-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease; display: ${isCurrentHidden ? 'inline-block' : 'none'};">显示</button>
+                    <button id="close-street-dealers-btn" style="padding: 8px 16px; background: var(--gta-primary); color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease;">关闭</button>
+                </div>
+            `;
+
+            // 绑定元素
+            const closeBtn = popup.querySelector('#close-street-dealers-btn');
+            const hideBtn = popup.querySelector('#hide-street-dealers-btn');
+            const showBtn = popup.querySelector('#show-street-dealers-btn');
+            const popupClose = popup.querySelector('.popup-close');
+            const titleElement = popup.querySelector('h3');
+
+            // 关闭弹窗
+            const removePopup = () => popup.remove();
+            closeBtn.addEventListener('click', removePopup);
+            popupClose.addEventListener('click', removePopup);
+            popup.addEventListener('click', (e) => e.stopPropagation());
+            setTimeout(() => {
+                const closePopupHandler = (e) => {
+                    if (!popup.contains(e.target)) {
+                        removePopup();
+                        document.removeEventListener('click', closePopupHandler);
+                    }
+                };
+                document.addEventListener('click', closePopupHandler);
+            }, 50);
+
+            // 工具：隐藏/显示当前标记
+            function setCurrentMarkerVisibility(opacity) {
+                if (currentMarker && typeof currentMarker.setOpacity === 'function') {
+                    currentMarker.setOpacity(opacity);
+                } else if (currentMarker && typeof currentMarker.setStyle === 'function') {
+                    currentMarker.setStyle({ opacity });
+                }
+                
+                // 更新缓存
+                VisibilityCache.updateItemVisibility('street_dealers', index, opacity === 0.3);
+            }
+
+            // 隐藏按钮
+            if (hideBtn) {
+                hideBtn.addEventListener('click', () => {
+                    setCurrentMarkerVisibility(0.3);
+                    const newHiddenCount = hiddenCount + (isCurrentHidden ? 0 : 1);
+                    titleElement.textContent = `💊 街头毒贩 #${index + 1} (${newHiddenCount}/${totalCount})`;
+                    hideBtn.style.display = 'none';
+                    showBtn.style.display = 'inline-block';
+                    isCurrentHidden = true;
+
+                    // 刷新侧边栏计数
+                    updateStreetDealersSidebarCount();
+                });
+            }
+
+            // 显示按钮
+            if (showBtn) {
+                showBtn.addEventListener('click', () => {
+                    setCurrentMarkerVisibility(1);
+                    const newHiddenCount = hiddenCount - (isCurrentHidden ? 1 : 0);
+                    titleElement.textContent = `💊 街头毒贩 #${index + 1} (${newHiddenCount}/${totalCount})`;
+                    showBtn.style.display = 'none';
+                    hideBtn.style.display = 'inline-block';
+                    isCurrentHidden = false;
+
+                    // 刷新侧边栏计数
+                    updateStreetDealersSidebarCount();
+                });
+            }
+
+            document.body.appendChild(popup);
+        }
+
+        // 应用缓存的可见性状态到街头毒贩标记
+        function applyStreetDealersVisibilityCache() {
+            const markers = (window.streetDealersMarkers && window.streetDealersMarkers) || [];
+            if (markers.length > 0) {
+                const visibilityMap = VisibilityCache.loadVisibility('street_dealers');
+                markers.forEach((marker, index) => {
+                    const isHidden = visibilityMap[index];
+                    if (isHidden && marker) {
+                        if (typeof marker.setOpacity === 'function') {
+                            marker.setOpacity(0.3);
+                        } else if (typeof marker.setStyle === 'function') {
+                            marker.setStyle({ opacity: 0.3 });
+                        }
+                    }
+                });
+                console.log('已应用街头毒贩可见性缓存');
+                return true;
+            }
+            return false;
+        }
+
         // 应用缓存的可见性状态到走私贩飞机标记
         function applySmugglerPlaneVisibilityCache() {
             const groups = (window.smugglerGroupMarkers && window.smugglerGroupMarkers['smuggler_plane']) || [];
@@ -2024,6 +2248,68 @@
                 return true;
             }
             return false;
+        }
+
+        // 恢复缓存后的显示状态（优先调用显示逻辑而非加载坐标）
+        function restoreCachedDisplayState() {
+            try {
+                // 1) 应用侧边栏缓存到 activeItemTypes
+                const hadState = SidebarCache.applyState(activeItemTypes);
+
+                // 2) 同步侧边栏复选框的勾选状态
+                try {
+                    document.querySelectorAll('#sidebar-item-selectors .item-checkbox').forEach(chk => {
+                        const t = chk && chk.dataset ? chk.dataset.itemType : undefined;
+                        if (t) chk.checked = activeItemTypes.has(t);
+                    });
+                } catch (e) { /* no-op */ }
+
+                // 3) 若有缓存状态，则渲染标记（此时 itemData 已通过每日逻辑过滤）
+                if (hadState) {
+                    updateItemMarkers();
+                    if (typeof updateDealershipMarkers === 'function') updateDealershipMarkers();
+                    if (typeof updateTilePanePosition === 'function') updateTilePanePosition();
+                }
+
+                // 4) 渲染完成后再应用可见性缓存（需在标记存在后）
+                try { applySmugglerPlaneVisibilityCache(); } catch (e) {}
+                try { applyStreetDealersVisibilityCache(); } catch (e) {}
+                try { applyDeadDropVisibilityCache(); } catch (e) {}
+
+                // 5) 刷新计数器（如有）
+                try { updateSmugglerPlaneSidebarCount(); } catch (e) {}
+                try { updateStreetDealersSidebarCount(); } catch (e) {}
+                try { updateDeadDropSidebarCount(); } catch (e) {}
+                try { updateGunVanSidebarCount(); } catch (e) {}
+
+                console.log('已按缓存恢复显示状态');
+            } catch (e) {
+                console.warn('恢复缓存显示状态失败:', e);
+            }
+        }
+
+        // 启动/结束恢复阶段时隐藏/显示 Leaflet 图层面板，避免短暂的“全量坐标”闪烁
+        function hideLeafletPanesForRestore() {
+            try {
+                const panes = map && typeof map.getPanes === 'function' ? map.getPanes() : null;
+                if (!panes) return;
+                if (panes.markerPane) panes.markerPane.style.visibility = 'hidden';
+                if (panes.overlayPane) panes.overlayPane.style.visibility = 'hidden';
+                if (panes.shadowPane) panes.shadowPane.style.visibility = 'hidden';
+                if (panes.tooltipPane) panes.tooltipPane.style.visibility = 'hidden';
+                if (panes.popupPane) panes.popupPane.style.visibility = 'hidden';
+            } catch (e) { /* no-op */ }
+        }
+        function showLeafletPanesForRestore() {
+            try {
+                const panes = map && typeof map.getPanes === 'function' ? map.getPanes() : null;
+                if (!panes) return;
+                if (panes.markerPane) panes.markerPane.style.visibility = 'visible';
+                if (panes.overlayPane) panes.overlayPane.style.visibility = 'visible';
+                if (panes.shadowPane) panes.shadowPane.style.visibility = 'visible';
+                if (panes.tooltipPane) panes.tooltipPane.style.visibility = 'visible';
+                if (panes.popupPane) panes.popupPane.style.visibility = 'visible';
+            } catch (e) { /* no-op */ }
         }
 
         // ==================== 杰拉德包裹增强版弹窗（集成缓存） ====================
@@ -4726,6 +5012,11 @@
                     if (!window.gunVanMarkers) window.gunVanMarkers = [];
                     window.gunVanMarkers[index] = marker;
                 }
+                // 记录 street_dealers 标记以便弹窗隐藏/显示控制
+                else if (type === 'street_dealers') {
+                    if (!window.streetDealersMarkers) window.streetDealersMarkers = [];
+                    window.streetDealersMarkers[index] = marker;
+                }
             } catch (e) {}
             
             // 添加点击事件
@@ -4744,7 +5035,7 @@
                 }
                 // 特殊处理街头毒贩，使用专门的信息弹窗
                 else if (type === 'street_dealers') {
-                    showStreetDealersInfo();
+                    showStreetDealersPopup(item, index);
                 }
                 // 特殊处理有机坊产品，显示图片弹窗
                 else if (type === 'ld_organics_products') {
@@ -4972,6 +5263,14 @@
                 }
             });
             leafletMarkers = [];
+            
+            // 清空特殊标记存储数组
+            if (window.streetDealersMarkers) {
+                window.streetDealersMarkers = [];
+            }
+            if (window.gunVanMarkers) {
+                window.gunVanMarkers = [];
+            }
         }
         
         // 更新Leaflet标记的半径（响应地图缩放）
@@ -5504,6 +5803,11 @@
             });
 
             // DOM 标记渲染已废弃，所有类型均由 Leaflet 标记系统处理
+
+            // 重新应用隐藏可见性缓存，确保被隐藏的标记在切换显示后仍保持状态
+            try { applySmugglerPlaneVisibilityCache(); } catch (e) {}
+            try { applyStreetDealersVisibilityCache(); } catch (e) {}
+            try { applyDeadDropVisibilityCache(); } catch (e) {}
 
             // 特殊：左轮寻宝两个子类型分别渲染（DOM版保留兼容，若Leaflet已处理则跳过）
             if (false && activeItemTypes.has('treasure_hunt_dba_revolver') && !pilotMarkerTypes.has('treasure_hunt_dba_revolver')) {
@@ -8974,8 +9278,11 @@
                 });
 
                 if (nearbyDealer) {
+                    const index = itemData.street_dealers.findIndex(dealer => 
+                        dealer.x === nearbyDealer.x && dealer.y === nearbyDealer.y
+                    );
                     console.log('点击了街头毒贩附近:', nearbyDealer.name);
-                    showStreetDealersInfo();
+                    showStreetDealersPopup(nearbyDealer, index);
                 }
             }
         }
@@ -10742,17 +11049,8 @@
             } catch (e) {}
         }
 
-        // 更新侧边栏 gun_van 计数（显示当前已加载数/总数；gun_van 一般为 1/1）
-        function updateGunVanSidebarCount() {
-            try {
-                const counterEl = document.querySelector('#sidebar-item-gun_van + label .gunvan-counter');
-                if (!counterEl) return;
-
-                const total = Array.isArray(itemData?.gun_van) ? itemData.gun_van.length : 0;
-                const shown = (activeItemTypes && activeItemTypes.has && activeItemTypes.has('gun_van')) ? total : 0;
-                counterEl.textContent = total > 0 ? ` (${shown}/${total})` : '';
-            } catch (e) {}
-        }
+        // gun_van 侧边计数器已移除（占位空函数，避免旧调用报错）
+        function updateGunVanSidebarCount() {}
 
 
         // 走私贩踪迹弹窗
@@ -12842,8 +13140,6 @@
                         <div style="margin: 10px 0; font-weight: bold; color: #555;">投掷武器:</div>
                     ${throwables.map(throwable => `<div style=\"margin: 5px 0; color: #666;\">${throwable.name} - <span style=\"color: #e74c3c;\">${throwable.discountText}</span></div>`).join('')}
                     <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
-                        <button id="hide-gunvan-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease; display: inline-block;">隐藏</button>
-                        <button id="show-gunvan-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease; display: none;">显示</button>
                         <button id="close-popup-btn" style="padding: 8px 16px; background: var(--gta-primary); color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease;">关闭</button>
                         </div>
                 `;
@@ -12851,8 +13147,6 @@
                 // 添加关闭按钮事件监听
                 const closeBtn = popup.querySelector('#close-popup-btn');
                 const popupClose = popup.querySelector('.popup-close');
-                const hideBtn = popup.querySelector('#hide-gunvan-btn');
-                const showBtn = popup.querySelector('#show-gunvan-btn');
                 const removePopup = () => popup.remove();
                 closeBtn.addEventListener('click', removePopup);
                 if (popupClose) popupClose.addEventListener('click', removePopup);
@@ -12886,26 +13180,7 @@
                     });
                 }
 
-                // 隐藏/显示：控制 gun_van 标记透明度
-                function setGunVanOpacity(opacity) {
-                    try {
-                        const markers = window.gunVanMarkers || [];
-                        markers.forEach(m => {
-                            if (!m) return;
-                            if (typeof m.setOpacity === 'function') m.setOpacity(opacity);
-                        });
-                    } catch (e) {}
-                }
-                if (hideBtn) hideBtn.addEventListener('click', () => {
-                    setGunVanOpacity(0.3);
-                    if (hideBtn) hideBtn.style.display = 'none';
-                    if (showBtn) showBtn.style.display = 'inline-block';
-                });
-                if (showBtn) showBtn.addEventListener('click', () => {
-                    setGunVanOpacity(1);
-                    if (showBtn) showBtn.style.display = 'none';
-                    if (hideBtn) hideBtn.style.display = 'inline-block';
-                });
+                // 移除隐藏/显示功能，保留仅关闭
 
                 // 添加到页面
                 document.body.appendChild(popup);
@@ -12926,114 +13201,23 @@
             }
         }
 
-        // 显示街头毒贩信息
-        function showStreetDealersInfo() {
-            // 从API动态获取街头毒贩信息
-            fetch('https://api-gta.antwen.com/api/items/street-dealers')
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        displayStreetDealersInfo(data.data.message);
-                    } else {
-                        console.error('获取街头毒贩信息失败:', data.error);
-                        alert('获取街头毒贩信息失败，请稍后重试');
-                    }
-                })
-                .catch(error => {
-                    console.error('API请求错误:', error);
-                    alert('网络请求失败，请检查网络连接');
-                });
-
-            function displayStreetDealersInfo(message) {
-                // 创建弹窗
-                const popup = document.createElement('div');
-                popup.className = 'street-dealers-popup';
-                popup.style.cssText = `
-                    position: absolute;
-                    top: 50%;
-                    left: 50%;
-                    transform: translate(-50%, -50%);
-                    background: white;
-                    border: 2px solid #333;
-                    border-radius: 8px;
-                    padding: 20px;
-                    z-index: 1000;
-                    max-width: 500px;
-                    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-                    font-family: Arial, sans-serif;
-                    max-height: 80vh;
-                    overflow-y: auto;
-                `;
-
-                // 弹窗内容
-                popup.innerHTML = `
-                    <div style="margin-bottom: 15px; font-size: 18px; font-weight: bold; color: #333;">
-                        💊 街头毒贩商品信息
-                    </div>
-                    <div style="white-space: pre-line; line-height: 1.5; color: #666;">
-                        ${message.replace(/\n/g, '<br>')}
-                    </div>
-                    <button id="close-popup-btn" 
-                            style="margin-top: 15px; padding: 8px 16px; 
-                                   background: #e74c3c; color: white; 
-                                   border: none; border-radius: 4px; 
-                                   cursor: pointer;">
-                        关闭
-                    </button>
-                `;
-
-                // 添加关闭按钮事件监听
-                const closeBtn = popup.querySelector('#close-popup-btn');
-                closeBtn.addEventListener('click', () => {
-                    popup.remove();
-                });
-
-                // 添加到页面
-                document.body.appendChild(popup);
-
-                // 点击弹窗外部关闭
-                popup.addEventListener('click', (e) => e.stopPropagation());
-                
-                // 使用setTimeout延迟添加document点击事件，避免立即触发
-                setTimeout(() => {
-                    const closePopupHandler = (e) => {
-                        if (!popup.contains(e.target)) {
-                            popup.remove();
-                            document.removeEventListener('click', closePopupHandler);
-                        }
-                    };
-                    document.addEventListener('click', closePopupHandler);
-                }, 100);
-            }
-        }
 
         // 初始加载
         map.whenReady(() => {
             updateTilePanePosition();
             updateOriginMarker();
             probeTilesForStyleAndZoom(currentStyle, map.getZoom());
+            // 恢复阶段：先隐藏 Leaflet 面板，避免“全量坐标”闪烁
+            hideLeafletPanesForRestore();
             loadItemData().then(() => {
                 console.log('物品数据加载完成');
-                try { updateGunVanSidebarCount(); } catch(e) {}
-                
-                // 数据加载完成后，应用缓存状态
+                // 通过“显示逻辑”恢复缓存（避免一次性加载全部坐标）
                 setTimeout(() => {
-                    try {
-                        // 应用走私贩飞机可见性缓存
-                        applySmugglerPlaneVisibilityCache();
-                        
-                        // 应用杰拉德包裹可见性缓存
-                        applyDeadDropVisibilityCache();
-                        
-                        // 更新所有计数器
-                        updateSmugglerPlaneSidebarCount();
-                        updateDeadDropSidebarCount();
-                        
-                        console.log('缓存状态已恢复');
-                    } catch (e) {
-                        console.warn('恢复缓存状态时出错:', e);
-                    }
-                }, 500); // 延迟500ms确保所有标记都已渲染
+                    try { restoreCachedDisplayState(); } finally { showLeafletPanesForRestore(); }
+                }, 0);
+            }).catch(() => {
+                // 失败时也要确保恢复显示
+                showLeafletPanesForRestore();
             });
             
             // 初始化车行标记
@@ -13550,7 +13734,7 @@
                     span.textContent = opt.text;
                     label.appendChild(span);
 
-                    // 右侧计数器（仅 smuggler_plane 使用）
+                    // 右侧计数器（smuggler_plane 和 street_dealers 使用）
                     if (type === 'smuggler_plane') {
                         const counter = document.createElement('span');
                         counter.className = 'smuggler-counter';
@@ -13561,17 +13745,18 @@
                         // 初始渲染一次
                         setTimeout(() => { try { updateSmugglerPlaneSidebarCount(); } catch(e) {} }, 0);
                     }
-                    // 右侧计数器（gun_van）
-                    if (type === 'gun_van') {
+                    // 街头毒贩计数器
+                    else if (type === 'street_dealers') {
                         const counter = document.createElement('span');
-                        counter.className = 'gunvan-counter';
+                        counter.className = 'street-dealers-counter';
                         counter.style.marginLeft = '6px';
                         counter.style.color = 'var(--gta-text-secondary)';
                         counter.textContent = '';
                         label.appendChild(counter);
                         // 初始渲染一次
-                        setTimeout(() => { try { updateGunVanSidebarCount(); } catch(e) {} }, 0);
+                        setTimeout(() => { try { updateStreetDealersSidebarCount(); } catch(e) {} }, 0);
                     }
+                    // 右侧计数器（gun_van）已移除
                     // 右侧计数器（dead_drop）
                     if (type === 'dead_drop') {
                         const counter = document.createElement('span');
@@ -13617,9 +13802,11 @@
                         if (t === 'smuggler_plane') {
                             try { updateSmugglerPlaneSidebarCount(); } catch(e) {}
                         }
-                        if (t === 'gun_van') {
-                            try { updateGunVanSidebarCount(); } catch(e) {}
+                        // 街头毒贩计数器
+                        if (t === 'street_dealers') {
+                            try { updateStreetDealersSidebarCount(); } catch(e) {}
                         }
+                        // gun_van 不再有侧边计数器
                         if (t === 'dead_drop') {
                             try { updateDeadDropSidebarCount(); } catch(e) {}
                         }
@@ -13672,6 +13859,7 @@
 
                     // 渲染完成后，刷新一次计数器
                     try { updateSmugglerPlaneSidebarCount(); } catch(e) {}
+                    try { updateStreetDealersSidebarCount(); } catch(e) {}
                     try { updateDeadDropSidebarCount(); } catch(e) {}
                 }
 

@@ -3874,6 +3874,14 @@
                 zIndexOffset: 1000
             }).addTo(map);
             
+            // 记录 gun_van 标记以便弹窗隐藏/显示控制
+            try {
+                if (type === 'gun_van') {
+                    if (!window.gunVanMarkers) window.gunVanMarkers = [];
+                    window.gunVanMarkers[index] = marker;
+                }
+            } catch (e) {}
+            
             // 添加点击事件
             marker.on('click', function(e) {
                 // 特殊处理drug_vehicle，使用专门的弹窗函数
@@ -10043,6 +10051,45 @@
             return null;
         }
 
+        // 更新侧边栏 smuggler_plane 计数
+        function updateSmugglerPlaneSidebarCount() {
+            try {
+                const counterEl = document.querySelector('#sidebar-item-smuggler_plane + label .smuggler-counter');
+                if (!counterEl) return;
+                const groups = (window.smugglerGroupMarkers && window.smugglerGroupMarkers['smuggler_plane']) || [];
+                let total = 0;
+                let hidden = 0;
+                if (Array.isArray(groups) && groups.length > 0) {
+                    total = groups.length;
+                    groups.forEach((groupMarkers) => {
+                        if (groupMarkers && groupMarkers.length > 0) {
+                            const first = groupMarkers[0];
+                            if (first && first.getElement) {
+                                const el = first.getElement();
+                                if (el && el.style.opacity === '0.3') hidden++;
+                            }
+                        }
+                    });
+                } else {
+                    total = Array.isArray(itemData.smuggler_plane) ? itemData.smuggler_plane.length : 0;
+                    hidden = 0;
+                }
+                counterEl.textContent = total > 0 ? ` (${hidden}/${total})` : '';
+            } catch (e) {}
+        }
+
+        // 更新侧边栏 gun_van 计数（显示当前已加载数/总数；gun_van 一般为 1/1）
+        function updateGunVanSidebarCount() {
+            try {
+                const counterEl = document.querySelector('#sidebar-item-gun_van + label .gunvan-counter');
+                if (!counterEl) return;
+
+                const total = Array.isArray(itemData?.gun_van) ? itemData.gun_van.length : 0;
+                const shown = (activeItemTypes && activeItemTypes.has && activeItemTypes.has('gun_van')) ? total : 0;
+                counterEl.textContent = total > 0 ? ` (${shown}/${total})` : '';
+            } catch (e) {}
+        }
+
         // 走私贩飞机弹窗
         function showSmugglerPlanePopup(item, index) {
             const content = `在飞机坠毁处收集装有 25.000 GTA$ 和 2.000 RP 的公文包。`;
@@ -10103,7 +10150,7 @@
                 box-shadow: 0 2px 15px rgba(0,0,0,0.5);
                 padding: 15px;
                 z-index: 10000;
-                max-width: 520px;
+                width: min(92vw, 520px);
                 max-height: 80vh;
                 color: var(--gta-text);
                 font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -10115,16 +10162,48 @@
                     <h3 style="color: var(--gta-primary); font-size: 18px; margin: 0; font-weight: bold;">${title}</h3>
                     <span class="popup-close" style="position: absolute; top: 0; right: 0; color: var(--gta-text-secondary); font-size: 20px; cursor: pointer; transition: color 0.3s ease;">×</span>
                 </div>
-                <img src="${imageUrl}" alt="走私贩飞机图片" style="max-width: 100%; height: auto; border-radius: 6px; margin: 8px 0; display: block;"/>
+                <img src="${imageUrl}" alt="走私贩飞机图片" style="max-width: 100%; height: auto; border-radius: 6px; margin: 8px 0; display: block; cursor: zoom-in;"/>
                 <div style="margin: 10px 0; padding: 10px; background: rgba(25, 118, 210, 0.1); border-radius: 8px; color: var(--gta-text); font-size: 14px; line-height: 1.6;">
                     ${content}
                 </div>
-                <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px;">
+                <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
                     <button id="hide-smuggler-plane-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease; display: ${isCurrentHidden ? 'none' : 'inline-block'};">隐藏</button>
                     <button id="show-smuggler-plane-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease; display: ${isCurrentHidden ? 'inline-block' : 'none'};">显示</button>
                     <button id="close-smuggler-plane-btn" style="padding: 8px 16px; background: var(--gta-primary); color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease;">关闭</button>
                 </div>
             `;
+            // 图片点击放大（PC/移动端）
+            const popupImage = popup.querySelector('img');
+            if (popupImage) {
+                popupImage.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const overlay = document.createElement('div');
+                    overlay.className = 'smuggler-image-overlay';
+                    overlay.style.cssText = `
+                        position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+                        display: flex; align-items: center; justify-content: center;
+                        z-index: 10002; cursor: zoom-out;
+                    `;
+                    const bigImg = document.createElement('img');
+                    bigImg.src = popupImage.src;
+                    bigImg.alt = popupImage.alt || '';
+                    bigImg.style.cssText = `
+                        max-width: 95vw; max-height: 95vh; border-radius: 6px; box-shadow: 0 4px 24px rgba(0,0,0,0.6);
+                    `;
+                    overlay.appendChild(bigImg);
+
+                    const removeOverlay = () => {
+                        document.removeEventListener('keydown', onKey);
+                        if (overlay && overlay.parentNode) overlay.parentNode.removeChild(overlay);
+                    };
+                    const onKey = (ev) => {
+                        if (ev.key === 'Escape') removeOverlay();
+                    };
+                    overlay.addEventListener('click', removeOverlay);
+                    document.addEventListener('keydown', onKey);
+                    document.body.appendChild(overlay);
+                });
+            }
 
             // 添加按钮事件监听器
             const closeBtn = popup.querySelector('#close-smuggler-plane-btn');
@@ -10165,6 +10244,9 @@
                     // 切换按钮显示
                     hideBtn.style.display = 'none';
                     showBtn.style.display = 'inline-block';
+
+                    // 更新侧边栏计数器
+                    try { updateSmugglerPlaneSidebarCount(); } catch(e) {}
                 });
             }
 
@@ -10197,6 +10279,9 @@
                     // 切换按钮显示
                     showBtn.style.display = 'none';
                     hideBtn.style.display = 'inline-block';
+
+                    // 更新侧边栏计数器
+                    try { updateSmugglerPlaneSidebarCount(); } catch(e) {}
                 });
             }
 
@@ -12277,53 +12362,96 @@
                 const popup = document.createElement('div');
                 popup.className = 'gun-van-popup';
                 popup.style.cssText = `
-                    position: absolute;
-                    top: 50%;
-                    left: 50%;
-                    transform: translate(-50%, -50%);
-                    background: white;
-                    border: 2px solid #333;
+                    position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+                    background: var(--gta-bg-medium);
+                    border: 1px solid var(--gta-border);
                     border-radius: 8px;
-                    padding: 20px;
-                    z-index: 1000;
-                    max-width: 400px;
-                    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-                    font-family: Arial, sans-serif;
+                    box-shadow: 0 2px 15px rgba(0,0,0,0.5);
+                    padding: 15px;
+                    z-index: 10000;
+                    width: min(92vw, 520px);
+                    max-height: 80vh;
+                    color: var(--gta-text);
+                    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                    overflow-y: auto;
                 `;
 
                 // 弹窗内容
+                const gunVanImageUrl = 'https://gtaweb.eu/_sources/maps_gtao/tips/gun_van.webp';
                 popup.innerHTML = `
-                    <div style="margin-bottom: 15px; font-size: 18px; font-weight: bold; color: #333;">
-                        🚐 武器厢型车商品信息
+                    <div class="popup-header" style="position: relative; margin-bottom: 14px;">
+                        <h3 style="color: var(--gta-primary); font-size: 18px; margin: 0; font-weight: bold;">🚐 武器厢型车商品信息</h3>
+                        <span class="popup-close" style="position: absolute; top: 0; right: 0; color: var(--gta-text-secondary); font-size: 20px; cursor: pointer; transition: color 0.3s ease;">×</span>
                     </div>
+                    <img src="${gunVanImageUrl}" alt="武器厢型车图片" style="max-width: 100%; height: auto; border-radius: 6px; margin: 8px 0; display: block; cursor: zoom-in;"/>
                     <div style="margin-bottom: 10px; font-weight: bold; color: #555;">主武器:</div>
-                    ${weapons.map(weapon => 
-                            `<div style="margin: 5px 0; color: #666;">
-                                ${weapon.name} - <span style="color: #e74c3c;">${weapon.discountText}</span>
-                            </div>`
-                        ).join('')}
+                    ${weapons.map(weapon => `<div style=\"margin: 5px 0; color: #666;\">${weapon.name} - <span style=\"color: #e74c3c;\">${weapon.discountText}</span></div>`).join('')}
                         <div style="margin: 10px 0; font-weight: bold; color: #555;">投掷武器:</div>
-                        ${throwables.map(throwable => 
-                            `<div style="margin: 5px 0; color: #666;">
-                                ${throwable.name} - <span style="color: #e74c3c;">${throwable.discountText}</span>
-                            </div>`
-                        ).join('')}
-                        <div style="margin-top: 15px; color: #666;">
-                            防弹衣: <span style="color: #e74c3c;">9折</span>
+                    ${throwables.map(throwable => `<div style=\"margin: 5px 0; color: #666;\">${throwable.name} - <span style=\"color: #e74c3c;\">${throwable.discountText}</span></div>`).join('')}
+                    <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
+                        <button id="hide-gunvan-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease; display: inline-block;">隐藏</button>
+                        <button id="show-gunvan-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease; display: none;">显示</button>
+                        <button id="close-popup-btn" style="padding: 8px 16px; background: var(--gta-primary); color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease;">关闭</button>
                         </div>
-                    <button id="close-popup-btn" 
-                            style="margin-top: 15px; padding: 8px 16px; 
-                                   background: #e74c3c; color: white; 
-                                   border: none; border-radius: 4px; 
-                                   cursor: pointer;">
-                        关闭
-                    </button>
                 `;
 
                 // 添加关闭按钮事件监听
                 const closeBtn = popup.querySelector('#close-popup-btn');
-                closeBtn.addEventListener('click', () => {
-                    popup.remove();
+                const popupClose = popup.querySelector('.popup-close');
+                const hideBtn = popup.querySelector('#hide-gunvan-btn');
+                const showBtn = popup.querySelector('#show-gunvan-btn');
+                const removePopup = () => popup.remove();
+                closeBtn.addEventListener('click', removePopup);
+                if (popupClose) popupClose.addEventListener('click', removePopup);
+
+                // 图片点击放大（PC/移动端）
+                const popupImage = popup.querySelector('img');
+                if (popupImage) {
+                    popupImage.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const overlay = document.createElement('div');
+                        overlay.className = 'gun-van-image-overlay';
+                        overlay.style.cssText = `
+                            position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+                            display: flex; align-items: center; justify-content: center;
+                            z-index: 10002; cursor: zoom-out;
+                        `;
+                        const bigImg = document.createElement('img');
+                        bigImg.src = popupImage.src;
+                        bigImg.alt = popupImage.alt || '';
+                        bigImg.style.cssText = `max-width: 95vw; max-height: 95vh; border-radius: 6px; box-shadow: 0 4px 24px rgba(0,0,0,0.6);`;
+                        overlay.appendChild(bigImg);
+
+                        const removeOverlay = () => {
+                            document.removeEventListener('keydown', onKey);
+                            overlay.remove();
+                        };
+                        const onKey = (ev) => { if (ev.key === 'Escape') removeOverlay(); };
+                        overlay.addEventListener('click', removeOverlay);
+                        document.addEventListener('keydown', onKey);
+                        document.body.appendChild(overlay);
+                    });
+                }
+
+                // 隐藏/显示：控制 gun_van 标记透明度
+                function setGunVanOpacity(opacity) {
+                    try {
+                        const markers = window.gunVanMarkers || [];
+                        markers.forEach(m => {
+                            if (!m) return;
+                            if (typeof m.setOpacity === 'function') m.setOpacity(opacity);
+                        });
+                    } catch (e) {}
+                }
+                if (hideBtn) hideBtn.addEventListener('click', () => {
+                    setGunVanOpacity(0.3);
+                    if (hideBtn) hideBtn.style.display = 'none';
+                    if (showBtn) showBtn.style.display = 'inline-block';
+                });
+                if (showBtn) showBtn.addEventListener('click', () => {
+                    setGunVanOpacity(1);
+                    if (showBtn) showBtn.style.display = 'none';
+                    if (hideBtn) hideBtn.style.display = 'inline-block';
                 });
 
                 // 添加到页面
@@ -12336,7 +12464,7 @@
                 setTimeout(() => {
                     const closePopupHandler = (e) => {
                         if (!popup.contains(e.target)) {
-                            popup.remove();
+                            removePopup();
                             document.removeEventListener('click', closePopupHandler);
                         }
                     };
@@ -12433,6 +12561,7 @@
             probeTilesForStyleAndZoom(currentStyle, map.getZoom());
             loadItemData().then(() => {
                 console.log('物品数据加载完成');
+                        try { updateGunVanSidebarCount(); } catch(e) {}
             });
             
             // 初始化车行标记
@@ -12946,6 +13075,29 @@
                     span.textContent = opt.text;
                     label.appendChild(span);
 
+                    // 右侧计数器（仅 smuggler_plane 使用）
+                    if (type === 'smuggler_plane') {
+                        const counter = document.createElement('span');
+                        counter.className = 'smuggler-counter';
+                        counter.style.marginLeft = '6px';
+                        counter.style.color = 'var(--gta-text-secondary)';
+                        counter.textContent = '';
+                        label.appendChild(counter);
+                        // 初始渲染一次
+                        setTimeout(() => { try { updateSmugglerPlaneSidebarCount(); } catch(e) {} }, 0);
+                    }
+                    // 右侧计数器（gun_van）
+                    if (type === 'gun_van') {
+                        const counter = document.createElement('span');
+                        counter.className = 'gunvan-counter';
+                        counter.style.marginLeft = '6px';
+                        counter.style.color = 'var(--gta-text-secondary)';
+                        counter.textContent = '';
+                        label.appendChild(counter);
+                        // 初始渲染一次
+                        setTimeout(() => { try { updateGunVanSidebarCount(); } catch(e) {} }, 0);
+                    }
+
                     wrapper.appendChild(chk);
                     wrapper.appendChild(label);
 
@@ -12973,6 +13125,14 @@
                             if (typeof clearLeafletMarkers === 'function') clearLeafletMarkers();
                             if (typeof updateDealershipMarkers === 'function') updateDealershipMarkers();
                             if (typeof updateTilePanePosition === 'function') updateTilePanePosition();
+                        }
+
+                        // 勾选状态变化后尝试刷新计数器
+                        if (t === 'smuggler_plane') {
+                            try { updateSmugglerPlaneSidebarCount(); } catch(e) {}
+                        }
+                        if (t === 'gun_van') {
+                            try { updateGunVanSidebarCount(); } catch(e) {}
                         }
                     });
 
@@ -13020,6 +13180,9 @@
                         sidebarContainer.appendChild(header);
                         sidebarContainer.appendChild(content);
                     });
+
+                    // 渲染完成后，刷新一次 smuggler_plane 计数
+                    try { updateSmugglerPlaneSidebarCount(); } catch(e) {}
                 }
 
                 renderSidebar('');

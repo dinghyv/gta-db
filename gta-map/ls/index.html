@@ -1811,6 +1811,46 @@
             updateStreetDealersSidebarCount();
         }
 
+        // ==================== 增强版隐藏包裹模板（集成缓存） ====================
+        
+        // 创建侧边栏条目时，为 hidden_caches 增加一个计数器占位
+        function attachHiddenCachesCounterToLabel(sidebarCheckboxId) {
+            const label = document.querySelector(`#${sidebarCheckboxId} + label`);
+            if (!label) return;
+
+            let counter = label.querySelector('.hidden-caches-counter');
+            if (!counter) {
+                counter = document.createElement('span');
+                counter.className = 'hidden-caches-counter';
+                counter.style.marginLeft = '6px';
+                counter.style.color = 'var(--gta-text-secondary)';
+                label.appendChild(counter);
+            }
+
+            // 初次渲染计数
+            updateHiddenCachesSidebarCount();
+        }
+
+        // ==================== 增强版吞云吐雾馆产品模板（集成缓存） ====================
+        
+        // 创建侧边栏条目时，为 smoke_on_the_water_product 增加一个计数器占位
+        function attachSmokeProductCounterToLabel(sidebarCheckboxId) {
+            const label = document.querySelector(`#${sidebarCheckboxId} + label`);
+            if (!label) return;
+
+            let counter = label.querySelector('.smoke-product-counter');
+            if (!counter) {
+                counter = document.createElement('span');
+                counter.className = 'smoke-product-counter';
+                counter.style.marginLeft = '6px';
+                counter.style.color = 'var(--gta-text-secondary)';
+                label.appendChild(counter);
+            }
+
+            // 初次渲染计数
+            updateSmokeProductSidebarCount();
+        }
+
         // 统计隐藏/总数，并更新侧边栏计数器文本（集成缓存）
         function updateSmugglerPlaneSidebarCount() {
             try {
@@ -1855,16 +1895,20 @@
         function updateStreetDealersSidebarCount() {
             try {
                 const counterEl = document.querySelector('#sidebar-item-street_dealers + label .street-dealers-counter');
-                if (!counterEl) return;
+                if (!counterEl) {
+                    console.log('街头毒贩计数器元素未找到');
+                    return;
+                }
+
+                // 街头毒贩总数固定为3
+                const total = 3;
+                let hidden = 0;
 
                 // 获取街头毒贩标记
                 const markers = (window.streetDealersMarkers && window.streetDealersMarkers) || [];
-                let total = 0;
-                let hidden = 0;
 
                 if (Array.isArray(markers) && markers.length > 0) {
-                    // 使用实际渲染的标记数量（当天实际显示的数量）
-                    total = markers.length;
+                    // 使用实际渲染的标记数量计算隐藏数量
                     markers.forEach((marker) => {
                         if (marker && typeof marker.getElement === 'function') {
                             const el = marker.getElement();
@@ -1874,18 +1918,100 @@
                         }
                     });
                 } else {
-                    // 回退：仅有数据尚未渲染 Leaflet 标记时，使用实际数据长度
-                    total = Array.isArray(window.itemData?.street_dealers) ? window.itemData.street_dealers.length : 0;
-                    // 从缓存中获取隐藏数量
+                    // 回退：从缓存中获取隐藏数量
                     const cachedCounter = CounterCache.getCounter('street_dealers');
                     hidden = cachedCounter.hidden || 0;
                 }
 
+                console.log('街头毒贩计数器更新:', { 
+                    total, 
+                    hidden, 
+                    markers: markers.length, 
+                    data: window.itemData?.street_dealers?.length,
+                    itemDataExists: !!window.itemData,
+                    streetDealersExists: !!window.itemData?.street_dealers,
+                    streetDealersType: typeof window.itemData?.street_dealers,
+                    streetDealersIsArray: Array.isArray(window.itemData?.street_dealers)
+                });
+
                 // 更新缓存
                 CounterCache.updateCounter('street_dealers', hidden, total);
-                counterEl.textContent = total > 0 ? ` (${hidden}/${total})` : '';
+                counterEl.textContent = ` (${hidden}/${total})`;
             } catch (e) {
                 console.warn('更新街头毒贩计数器失败:', e);
+            }
+        }
+
+        // 统计隐藏/总数，并更新侧边栏计数器文本（集成缓存）
+        function updateSmokeProductSidebarCount() {
+            try {
+                const counterEl = document.querySelector('#sidebar-item-smoke_on_the_water_product + label .smoke-product-counter');
+                if (!counterEl) return;
+
+                // 获取吞云吐雾馆产品标记
+                const markers = (window.smokeProductMarkers && window.smokeProductMarkers) || [];
+                let total = 5; // 固定显示5个
+                let hidden = 0;
+
+                if (Array.isArray(markers) && markers.length > 0) {
+                    // 使用实际渲染的标记数量（最多5个）
+                    total = Math.min(markers.length, 5);
+                    markers.forEach((marker) => {
+                        if (marker && typeof marker.getElement === 'function') {
+                            const el = marker.getElement();
+                            if (el && el.style.opacity === '0.3') {
+                                hidden++;
+                            }
+                        }
+                    });
+                } else {
+                    // 回退：仅有数据尚未渲染 Leaflet 标记时，使用固定数量5
+                    total = 5;
+                    // 从缓存中获取隐藏数量
+                    const cachedCounter = CounterCache.getCounter('smoke_on_the_water_product');
+                    hidden = cachedCounter.hidden || 0;
+                }
+
+                // 更新缓存
+                CounterCache.updateCounter('smoke_on_the_water_product', hidden, total);
+                counterEl.textContent = total > 0 ? ` (${hidden}/${total})` : '';
+            } catch (e) {
+                console.warn('更新吞云吐雾馆产品计数器失败:', e);
+            }
+        }
+
+        // 统计隐藏/总数，并更新侧边栏计数器文本（集成缓存）
+        function updateHiddenCachesSidebarCount() {
+            try {
+                const counterEl = document.querySelector('#sidebar-item-hidden_caches + label .hidden-caches-counter');
+                if (!counterEl) return;
+
+                // 获取隐藏包裹标记
+                const markers = (window.hiddenCachesMarkers && window.hiddenCachesMarkers) || [];
+                let total = 10; // 固定为10个
+                let hidden = 0;
+
+                if (Array.isArray(markers) && markers.length > 0) {
+                    // 使用实际渲染的标记数量
+                    markers.forEach((marker) => {
+                        if (marker && typeof marker.getElement === 'function') {
+                            const el = marker.getElement();
+                            if (el && el.style.opacity === '0.3') {
+                                hidden++;
+                            }
+                        }
+                    });
+                } else {
+                    // 回退：仅有数据尚未渲染 Leaflet 标记时，从缓存中获取隐藏数量
+                    const cachedCounter = CounterCache.getCounter('hidden_caches');
+                    hidden = cachedCounter.hidden || 0;
+                }
+
+                // 更新缓存
+                CounterCache.updateCounter('hidden_caches', hidden, total);
+                counterEl.textContent = total > 0 ? ` (${hidden}/${total})` : '';
+            } catch (e) {
+                console.warn('更新隐藏包裹计数器失败:', e);
             }
         }
 
@@ -2206,6 +2332,184 @@
             document.body.appendChild(popup);
         }
 
+        // 隐藏包裹弹窗模板（含隐藏/显示联动与计数器、缓存集成）
+        function showHiddenCachesPopup(item, index) {
+            // 关闭已存在的弹窗
+            const existingPopup = document.querySelector('.hidden-caches-popup');
+            if (existingPopup) existingPopup.remove();
+
+            // 统计隐藏/总数
+            const markers = (window.hiddenCachesMarkers && window.hiddenCachesMarkers) || [];
+            const totalCount = 10; // 固定为10个
+
+            let hiddenCount = 0;
+            markers.forEach((marker) => {
+                if (marker && typeof marker.getElement === 'function') {
+                    const el = marker.getElement();
+                    if (el && el.style.opacity === '0.3') hiddenCount++;
+                }
+            });
+
+            const currentMarker = markers[index];
+            let isCurrentHidden = false;
+            if (currentMarker && typeof currentMarker.getElement === 'function') {
+                const el = currentMarker.getElement();
+                isCurrentHidden = el && el.style.opacity === '0.3';
+            }
+
+            const title = `📦 隐藏包裹 #${index + 1} (${hiddenCount}/${totalCount})`;
+
+            // 构建弹窗
+            const popup = document.createElement('div');
+            popup.className = 'hidden-caches-popup';
+            popup.style.cssText = `
+                position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+                background: var(--gta-bg-medium);
+                border: 1px solid var(--gta-border);
+                border-radius: 8px;
+                box-shadow: 0 2px 15px rgba(0,0,0,0.5);
+                padding: 15px;
+                z-index: 10000;
+                width: min(92vw, 520px);
+                max-height: 80vh;
+                color: var(--gta-text);
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                overflow-y: auto;
+            `;
+
+            popup.innerHTML = `
+                <div class="popup-header" style="position: relative; margin-bottom: 14px;">
+                    <h3 style="color: var(--gta-primary); font-size: 18px; margin: 0; font-weight: bold;">${title}</h3>
+                    <span class="popup-close" style="position: absolute; top: 0; right: 0; color: var(--gta-text-secondary); font-size: 20px; cursor: pointer; transition: color 0.3s ease;">×</span>
+                </div>
+                <img src="https://gtaweb.eu/_sources/maps_gtao/tips/ls_dc_hc.webp" alt="隐藏包裹图片" style="max-width: 100%; height: auto; border-radius: 6px; margin: 8px 0; display: block; cursor: zoom-in;"/>
+                <div style="margin: 10px 0; padding: 10px; background: rgba(25, 118, 210, 0.1); border-radius: 8px; color: var(--gta-text); font-size: 14px; line-height: 1.6;">
+                    在指定位置寻找隐藏的包裹，收集后可获得金钱和RP奖励。
+                </div>
+                <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
+                    <button id="hide-hidden-caches-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease; display: ${isCurrentHidden ? 'none' : 'inline-block'};">隐藏</button>
+                    <button id="show-hidden-caches-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease; display: ${isCurrentHidden ? 'inline-block' : 'none'};">显示</button>
+                    <button id="close-hidden-caches-btn" style="padding: 8px 16px; background: var(--gta-primary); color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease;">关闭</button>
+                </div>
+            `;
+
+            // 绑定元素
+            const closeBtn = popup.querySelector('#close-hidden-caches-btn');
+            const hideBtn = popup.querySelector('#hide-hidden-caches-btn');
+            const showBtn = popup.querySelector('#show-hidden-caches-btn');
+            const popupClose = popup.querySelector('.popup-close');
+            const titleElement = popup.querySelector('h3');
+
+            // 关闭弹窗
+            const removePopup = () => popup.remove();
+            closeBtn.addEventListener('click', removePopup);
+            popupClose.addEventListener('click', removePopup);
+            popup.addEventListener('click', (e) => e.stopPropagation());
+            setTimeout(() => {
+                const closePopupHandler = (e) => {
+                    if (!popup.contains(e.target)) {
+                        removePopup();
+                        document.removeEventListener('click', closePopupHandler);
+                    }
+                };
+                document.addEventListener('click', closePopupHandler);
+            }, 50);
+
+            // 图片点击放大（PC/移动端）
+            const popupImage = popup.querySelector('img');
+            if (popupImage) {
+                popupImage.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const overlay = document.createElement('div');
+                    overlay.className = 'hidden-caches-image-overlay';
+                    overlay.style.cssText = `
+                        position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+                        display: flex; align-items: center; justify-content: center;
+                        z-index: 10002; cursor: zoom-out;
+                    `;
+                    const bigImg = document.createElement('img');
+                    bigImg.src = popupImage.src;
+                    bigImg.alt = popupImage.alt || '';
+                    bigImg.style.cssText = `max-width: 95vw; max-height: 95vh; border-radius: 6px; box-shadow: 0 4px 24px rgba(0,0,0,0.6);`;
+                    overlay.appendChild(bigImg);
+
+                    const removeOverlay = () => {
+                        document.removeEventListener('keydown', onKey);
+                        overlay.remove();
+                    };
+                    const onKey = (ev) => { if (ev.key === 'Escape') removeOverlay(); };
+                    overlay.addEventListener('click', removeOverlay);
+                    document.addEventListener('keydown', onKey);
+                    document.body.appendChild(overlay);
+                });
+            }
+
+            // 工具：隐藏/显示当前标记
+            function setCurrentMarkerVisibility(opacity) {
+                if (currentMarker && typeof currentMarker.setOpacity === 'function') {
+                    currentMarker.setOpacity(opacity);
+                } else if (currentMarker && typeof currentMarker.setStyle === 'function') {
+                    currentMarker.setStyle({ opacity });
+                }
+                
+                // 更新缓存
+                VisibilityCache.updateItemVisibility('hidden_caches', index, opacity === 0.3);
+            }
+
+            // 隐藏按钮
+            if (hideBtn) {
+                hideBtn.addEventListener('click', () => {
+                    setCurrentMarkerVisibility(0.3);
+                    const newHiddenCount = hiddenCount + (isCurrentHidden ? 0 : 1);
+                    titleElement.textContent = `📦 隐藏包裹 #${index + 1} (${newHiddenCount}/${totalCount})`;
+                    hideBtn.style.display = 'none';
+                    showBtn.style.display = 'inline-block';
+                    isCurrentHidden = true;
+
+                    // 刷新侧边栏计数
+                    updateHiddenCachesSidebarCount();
+                });
+            }
+
+            // 显示按钮
+            if (showBtn) {
+                showBtn.addEventListener('click', () => {
+                    setCurrentMarkerVisibility(1);
+                    const newHiddenCount = hiddenCount - (isCurrentHidden ? 1 : 0);
+                    titleElement.textContent = `📦 隐藏包裹 #${index + 1} (${newHiddenCount}/${totalCount})`;
+                    showBtn.style.display = 'none';
+                    hideBtn.style.display = 'inline-block';
+                    isCurrentHidden = false;
+
+                    // 刷新侧边栏计数
+                    updateHiddenCachesSidebarCount();
+                });
+            }
+
+            document.body.appendChild(popup);
+        }
+
+        // 应用缓存的可见性状态到隐藏包裹标记
+        function applyHiddenCachesVisibilityCache() {
+            const markers = (window.hiddenCachesMarkers && window.hiddenCachesMarkers) || [];
+            if (markers.length > 0) {
+                const visibilityMap = VisibilityCache.loadVisibility('hidden_caches');
+                markers.forEach((marker, index) => {
+                    const isHidden = visibilityMap[index];
+                    if (isHidden && marker) {
+                        if (typeof marker.setOpacity === 'function') {
+                            marker.setOpacity(0.3);
+                        } else if (typeof marker.setStyle === 'function') {
+                            marker.setStyle({ opacity: 0.3 });
+                        }
+                    }
+                });
+                console.log('已应用隐藏包裹可见性缓存');
+                return true;
+            }
+            return false;
+        }
+
         // 应用缓存的可见性状态到街头毒贩标记
         function applyStreetDealersVisibilityCache() {
             const markers = (window.streetDealersMarkers && window.streetDealersMarkers) || [];
@@ -2222,6 +2526,197 @@
                     }
                 });
                 console.log('已应用街头毒贩可见性缓存');
+                return true;
+            }
+            return false;
+        }
+
+        // 吞云吐雾馆产品弹窗模板（含隐藏/显示联动与计数器、缓存集成）
+        function showSmokeProductPopup(item, index) {
+            // 序号从1开始
+            const sequenceNumber = index + 1;
+            const imageUrl = `https://gta-maps.antwen.com/collectibles_images/smoke_on_the_water_product/smoke_on_the_water_product_${sequenceNumber}.webp`;
+            
+            // 关闭已存在的弹窗
+            const existingPopup = document.querySelector('.smoke-product-popup');
+            if (existingPopup) existingPopup.remove();
+
+            // 统计隐藏/总数
+            const markers = (window.smokeProductMarkers && window.smokeProductMarkers) || [];
+            const totalCount = 5; // 固定显示5个
+
+            let hiddenCount = 0;
+            markers.forEach((marker) => {
+                if (marker && typeof marker.getElement === 'function') {
+                    const el = marker.getElement();
+                    if (el && el.style.opacity === '0.3') hiddenCount++;
+                }
+            });
+
+            const currentMarker = markers[index];
+            let isCurrentHidden = false;
+            if (currentMarker && typeof currentMarker.getElement === 'function') {
+                const el = currentMarker.getElement();
+                isCurrentHidden = el && el.style.opacity === '0.3';
+            }
+
+            const title = `💨 吞云吐雾馆产品 #${sequenceNumber} (${hiddenCount}/${totalCount})`;
+
+            // 构建弹窗
+            const popup = document.createElement('div');
+            popup.className = 'smoke-product-popup';
+            popup.style.cssText = `
+                position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+                background: var(--gta-bg-medium);
+                border: 1px solid var(--gta-border);
+                border-radius: 8px;
+                box-shadow: 0 2px 15px rgba(0,0,0,0.5);
+                padding: 15px;
+                z-index: 10000;
+                width: min(92vw, 520px);
+                max-height: 80vh;
+                color: var(--gta-text);
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                overflow-y: auto;
+            `;
+
+            popup.innerHTML = `
+                <div class="popup-header" style="position: relative; margin-bottom: 14px;">
+                    <h3 style="color: var(--gta-primary); font-size: 18px; margin: 0; font-weight: bold;">${title}</h3>
+                    <span class="popup-close" style="position: absolute; top: 0; right: 0; color: var(--gta-text-secondary); font-size: 20px; cursor: pointer; transition: color 0.3s ease;">×</span>
+                </div>
+                <img src="${imageUrl}" alt="吞云吐雾馆产品 #${sequenceNumber}" style="max-width: 100%; height: auto; border-radius: 6px; margin: 8px 0; display: block; cursor: zoom-in;"/>
+                <div style="margin: 10px 0; padding: 10px; background: rgba(25, 118, 210, 0.1); border-radius: 8px; color: var(--gta-text); font-size: 14px; line-height: 1.6;">
+                    可在上图位置找到！<br>
+                    <div style="margin-top: 10px; padding: 8px; background: rgba(255, 152, 0, 0.1); border-radius: 6px; border-left: 3px solid #FF9800;">
+                        <div style="font-weight: bold; color: #F57C00; margin-bottom: 5px;">🎯 收集奖励</div>
+                        <div style="color: var(--gta-text); font-size: 13px; line-height: 1.4;">
+                            收集所有吞云吐雾馆产品可获得：<br>
+                            • 特殊载具奖励<br>
+                            • 游戏币奖励<br>
+                            • 解锁隐藏成就
+                        </div>
+                    </div>
+                </div>
+                <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
+                    <button id="hide-smoke-product-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease; display: ${isCurrentHidden ? 'none' : 'inline-block'};">隐藏</button>
+                    <button id="show-smoke-product-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease; display: ${isCurrentHidden ? 'inline-block' : 'none'};">显示</button>
+                    <button id="close-smoke-product-btn" style="padding: 8px 16px; background: var(--gta-primary); color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease;">关闭</button>
+                </div>
+            `;
+
+            // 绑定元素
+            const closeBtn = popup.querySelector('#close-smoke-product-btn');
+            const hideBtn = popup.querySelector('#hide-smoke-product-btn');
+            const showBtn = popup.querySelector('#show-smoke-product-btn');
+            const popupClose = popup.querySelector('.popup-close');
+            const titleElement = popup.querySelector('h3');
+
+            // 关闭弹窗
+            const removePopup = () => popup.remove();
+            closeBtn.addEventListener('click', removePopup);
+            popupClose.addEventListener('click', removePopup);
+            popup.addEventListener('click', (e) => e.stopPropagation());
+            setTimeout(() => {
+                const closePopupHandler = (e) => {
+                    if (!popup.contains(e.target)) {
+                        removePopup();
+                        document.removeEventListener('click', closePopupHandler);
+                    }
+                };
+                document.addEventListener('click', closePopupHandler);
+            }, 50);
+
+            // 图片点击放大（PC/移动端）
+            const popupImage = popup.querySelector('img');
+            if (popupImage) {
+                popupImage.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const overlay = document.createElement('div');
+                    overlay.className = 'smoke-product-image-overlay';
+                    overlay.style.cssText = `
+                        position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+                        display: flex; align-items: center; justify-content: center;
+                        z-index: 10002; cursor: zoom-out;
+                    `;
+                    const bigImg = document.createElement('img');
+                    bigImg.src = popupImage.src;
+                    bigImg.alt = popupImage.alt || '';
+                    bigImg.style.cssText = `max-width: 95vw; max-height: 95vh; border-radius: 6px; box-shadow: 0 4px 24px rgba(0,0,0,0.6);`;
+                    overlay.appendChild(bigImg);
+
+                    const removeOverlay = () => {
+                        document.removeEventListener('keydown', onKey);
+                        overlay.remove();
+                    };
+                    const onKey = (ev) => { if (ev.key === 'Escape') removeOverlay(); };
+                    overlay.addEventListener('click', removeOverlay);
+                    document.addEventListener('keydown', onKey);
+                    document.body.appendChild(overlay);
+                });
+            }
+
+            // 工具：隐藏/显示当前标记
+            function setCurrentMarkerVisibility(opacity) {
+                if (currentMarker && typeof currentMarker.setOpacity === 'function') {
+                    currentMarker.setOpacity(opacity);
+                } else if (currentMarker && typeof currentMarker.setStyle === 'function') {
+                    currentMarker.setStyle({ opacity });
+                }
+                
+                // 更新缓存
+                VisibilityCache.updateItemVisibility('smoke_on_the_water_product', index, opacity === 0.3);
+            }
+
+            // 隐藏按钮
+            if (hideBtn) {
+                hideBtn.addEventListener('click', () => {
+                    setCurrentMarkerVisibility(0.3);
+                    const newHiddenCount = hiddenCount + (isCurrentHidden ? 0 : 1);
+                    titleElement.textContent = `💨 吞云吐雾馆产品 #${sequenceNumber} (${newHiddenCount}/${totalCount})`;
+                    hideBtn.style.display = 'none';
+                    showBtn.style.display = 'inline-block';
+                    isCurrentHidden = true;
+
+                    // 刷新侧边栏计数
+                    updateSmokeProductSidebarCount();
+                });
+            }
+
+            // 显示按钮
+            if (showBtn) {
+                showBtn.addEventListener('click', () => {
+                    setCurrentMarkerVisibility(1);
+                    const newHiddenCount = hiddenCount - (isCurrentHidden ? 1 : 0);
+                    titleElement.textContent = `💨 吞云吐雾馆产品 #${sequenceNumber} (${newHiddenCount}/${totalCount})`;
+                    showBtn.style.display = 'none';
+                    hideBtn.style.display = 'inline-block';
+                    isCurrentHidden = false;
+
+                    // 刷新侧边栏计数
+                    updateSmokeProductSidebarCount();
+                });
+            }
+
+            document.body.appendChild(popup);
+        }
+
+        // 应用缓存的可见性状态到吞云吐雾馆产品标记
+        function applySmokeProductVisibilityCache() {
+            const markers = (window.smokeProductMarkers && window.smokeProductMarkers) || [];
+            if (markers.length > 0) {
+                const visibilityMap = VisibilityCache.loadVisibility('smoke_on_the_water_product');
+                markers.forEach((marker, index) => {
+                    const isHidden = visibilityMap[index];
+                    if (isHidden && marker) {
+                        if (typeof marker.setOpacity === 'function') {
+                            marker.setOpacity(0.3);
+                        } else if (typeof marker.setStyle === 'function') {
+                            marker.setStyle({ opacity: 0.3 });
+                        }
+                    }
+                });
+                console.log('已应用吞云吐雾馆产品可见性缓存');
                 return true;
             }
             return false;
@@ -2274,11 +2769,15 @@
                 // 4) 渲染完成后再应用可见性缓存（需在标记存在后）
                 try { applySmugglerPlaneVisibilityCache(); } catch (e) {}
                 try { applyStreetDealersVisibilityCache(); } catch (e) {}
+                try { applyHiddenCachesVisibilityCache(); } catch (e) {}
+                try { applySmokeProductVisibilityCache(); } catch (e) {}
                 try { applyDeadDropVisibilityCache(); } catch (e) {}
 
                 // 5) 刷新计数器（如有）
                 try { updateSmugglerPlaneSidebarCount(); } catch (e) {}
                 try { updateStreetDealersSidebarCount(); } catch (e) {}
+                try { updateHiddenCachesSidebarCount(); } catch (e) {}
+                try { updateSmokeProductSidebarCount(); } catch (e) {}
                 try { updateDeadDropSidebarCount(); } catch (e) {}
                 try { updateGunVanSidebarCount(); } catch (e) {}
 
@@ -3829,6 +4328,9 @@
                     console.log('尝试加载的URL:', '../src/data/zones.json');
                 }
                 
+                // 将itemData赋值给window.itemData，供计数器函数使用
+                window.itemData = itemData;
+                
                 // 动态计算武器厢型车位置
                 await updateGunVanLocation();
                 
@@ -3851,6 +4353,19 @@
                 await updateSkydivesLocation();
                 
                 console.log('物品数据加载成功');
+                
+                // 数据加载完成后更新所有计数器
+                try { updateSmugglerPlaneSidebarCount(); } catch(e) {}
+                try { updateStreetDealersSidebarCount(); } catch(e) {}
+                try { updateHiddenCachesSidebarCount(); } catch(e) {}
+                try { updateSmokeProductSidebarCount(); } catch(e) {}
+                try { updateDeadDropSidebarCount(); } catch(e) {}
+                try { updateGunVanSidebarCount(); } catch(e) {}
+                
+                // 重新渲染侧边栏，确保计数器正确显示
+                setTimeout(() => {
+                    try { updateStreetDealersSidebarCount(); } catch(e) {}
+                }, 200);
             } catch (error) {
                 console.error('加载物品数据失败:', error);
             }
@@ -3865,12 +4380,32 @@
                 if (result.success && result.data && result.data.coordinate) {
                     // 使用API返回的街头毒贩坐标数据
                     itemData.street_dealers = result.data.coordinate;
-                    console.log('街头毒贩位置获取成功');
+                    // 同步更新window.itemData
+                    if (window.itemData) {
+                        window.itemData.street_dealers = result.data.coordinate;
+                    }
+                    console.log('街头毒贩位置获取成功，数据长度:', result.data.coordinate.length);
+                    // 更新计数器
+                    try { updateStreetDealersSidebarCount(); } catch(e) {}
                 } else {
                     console.warn('街头毒贩API返回数据格式异常，使用静态数据');
+                    // 确保有默认数据
+                    if (!itemData.street_dealers || !Array.isArray(itemData.street_dealers)) {
+                        itemData.street_dealers = [];
+                    }
+                    if (window.itemData && (!window.itemData.street_dealers || !Array.isArray(window.itemData.street_dealers))) {
+                        window.itemData.street_dealers = [];
+                    }
                 }
             } catch (error) {
                 console.warn('获取街头毒贩位置失败，使用静态数据:', error);
+                // 确保有默认数据
+                if (!itemData.street_dealers || !Array.isArray(itemData.street_dealers)) {
+                    itemData.street_dealers = [];
+                }
+                if (window.itemData && (!window.itemData.street_dealers || !Array.isArray(window.itemData.street_dealers))) {
+                    window.itemData.street_dealers = [];
+                }
             }
         }
 
@@ -3997,6 +4532,8 @@
                     // 使用API返回的隐藏包裹坐标数据
                     itemData.hidden_caches = result.data.coordinate;
                     console.log('隐藏包裹位置获取成功');
+                    // 更新计数器
+                    try { updateHiddenCachesSidebarCount(); } catch(e) {}
                 } else {
                     console.warn('隐藏包裹API返回数据格式异常，使用静态数据');
                 }
@@ -5017,6 +5554,16 @@
                     if (!window.streetDealersMarkers) window.streetDealersMarkers = [];
                     window.streetDealersMarkers[index] = marker;
                 }
+                // 记录 hidden_caches 标记以便弹窗隐藏/显示控制
+                else if (type === 'hidden_caches') {
+                    if (!window.hiddenCachesMarkers) window.hiddenCachesMarkers = [];
+                    window.hiddenCachesMarkers[index] = marker;
+                }
+                // 记录 smoke_on_the_water_product 标记以便弹窗隐藏/显示控制
+                else if (type === 'smoke_on_the_water_product') {
+                    if (!window.smokeProductMarkers) window.smokeProductMarkers = [];
+                    window.smokeProductMarkers[index] = marker;
+                }
             } catch (e) {}
             
             // 添加点击事件
@@ -5051,7 +5598,7 @@
                 }
                 // 特殊处理吞云吐雾馆产品，显示图片弹窗
                 else if (type === 'smoke_on_the_water_product') {
-                    showSmokeProductImage(index);
+                    showSmokeProductPopup(item, index);
                 }
                 // 特殊处理手办，显示图片弹窗
                 else if (type === 'action_figures') {
@@ -5127,7 +5674,7 @@
                 }
                 // 特殊处理隐藏包裹，显示图片弹窗
                 else if (type === 'hidden_caches') {
-                    showHiddenCachesImage(index);
+                    showHiddenCachesPopup(item, index);
                 }
                 // 特殊处理LS涂鸦，显示图片弹窗（传入对象以使用 sequenceNumber）
                 else if (type === 'ls_tags') {
@@ -5807,6 +6354,8 @@
             // 重新应用隐藏可见性缓存，确保被隐藏的标记在切换显示后仍保持状态
             try { applySmugglerPlaneVisibilityCache(); } catch (e) {}
             try { applyStreetDealersVisibilityCache(); } catch (e) {}
+            try { applyHiddenCachesVisibilityCache(); } catch (e) {}
+            try { applySmokeProductVisibilityCache(); } catch (e) {}
             try { applyDeadDropVisibilityCache(); } catch (e) {}
 
             // 特殊：左轮寻宝两个子类型分别渲染（DOM版保留兼容，若Leaflet已处理则跳过）
@@ -7155,7 +7704,7 @@
             
             // 如果是吞云吐雾馆产品，显示图片弹窗
             if (type === 'smoke_on_the_water_product') {
-                showSmokeProductImage(index);
+                showSmokeProductPopup(item, index);
             }
             
             // 如果是手办，显示图片弹窗
@@ -7797,121 +8346,6 @@
             }, 100);
         }
 
-        // 显示吞云吐雾馆产品图片弹窗
-        function showSmokeProductImage(index) {
-            // 序号从1开始
-            const sequenceNumber = index + 1;
-            const imageUrl = `https://gta-maps.antwen.com/collectibles_images/smoke_on_the_water_product/smoke_on_the_water_product_${sequenceNumber}.webp`;
-            
-            // 创建弹窗
-            const popup = document.createElement('div');
-            popup.className = 'smoke-product-popup';
-            popup.style.cssText = `
-                position: fixed;
-                top: 50%;
-                left: 50%;
-                transform: translate(-50%, -50%);
-                background: white;
-                border: 3px solid #FF9800;
-                border-radius: 12px;
-                padding: 20px;
-                z-index: 10000;
-                max-width: 80vw;
-                max-height: 80vh;
-                box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-                font-family: Arial, sans-serif;
-                text-align: center;
-            `;
-
-            // 弹窗内容
-            popup.innerHTML = `
-                <div style="margin-bottom: 15px; font-size: 20px; font-weight: bold; color: #F57C00;">
-                    💨 吞云吐雾馆产品 #${sequenceNumber}
-                </div>
-                <img src="${imageUrl}" 
-                     alt="吞云吐雾馆产品 #${sequenceNumber}" 
-                     style="max-width: 100%; max-height: 60vh; border-radius: 8px; margin-bottom: 15px;">
-                <div style="margin-bottom: 15px; color: #666; font-size: 14px;">
-                    可在上图位置找到！
-                </div>
-                <div style="margin: 15px 0; padding: 12px; background: #f8f9fa; border-radius: 6px; border-left: 4px solid #FF9800;">
-                    <div style="font-weight: bold; color: #F57C00; margin-bottom: 5px;">🎯 收集奖励</div>
-                    <div style="color: #666; font-size: 14px; line-height: 1.4;">
-                        收集所有吞云吐雾馆产品可获得：<br>
-                        • 特殊载具奖励<br>
-                        • 游戏币奖励<br>
-                        • 解锁隐藏成就
-                    </div>
-                </div>
-                <button id="hide-smoke-product-btn" 
-                        style="padding: 10px 20px; margin-right: 10px;
-                               background: #4CAF50; color: white; 
-                               border: none; border-radius: 6px; 
-                               cursor: pointer; font-size: 16px;
-                               transition: background-color 0.3s;">
-                    隐藏标记
-                </button>
-                <button id="close-smoke-product-btn" 
-                        style="padding: 10px 20px; 
-                               background: #f44336; color: white; 
-                               border: none; border-radius: 6px; 
-                               cursor: pointer; font-size: 16px;
-                               transition: background-color 0.3s;">
-                    关闭
-                </button>
-            `;
-
-            // 添加到页面
-            document.body.appendChild(popup);
-
-            // 添加隐藏按钮事件监听
-            const hideBtn = popup.querySelector('#hide-smoke-product-btn');
-            hideBtn.addEventListener('click', () => {
-                 // 找到对应的标记并设置透明度为25%
-                 document.querySelectorAll('.item-marker').forEach(marker => {
-                     const img = marker.querySelector('img');
-                     if (img && img.src && img.src.includes('smoke_on_the_water_product') && marker.dataset.index == index) {
-                         marker.style.opacity = '0.25';
-                         // 将隐藏按钮改为显示按钮
-                         hideBtn.textContent = '显示';
-                         hideBtn.style.background = '#2196F3';
-                         hideBtn.id = 'show-smoke-product-btn';
-                         
-                         // 移除旧的点击事件，添加新的显示事件
-                         const newShowBtn = hideBtn.cloneNode(true);
-                         hideBtn.replaceWith(newShowBtn);
-                         newShowBtn.addEventListener('click', () => {
-                             // 恢复透明度为100%
-                             const currentMarker = document.querySelector(`.item-marker[data-index="${index}"]`);
-                             if (currentMarker) {
-                                 currentMarker.style.opacity = '1';
-                             }
-                             popup.remove();
-                         });
-                     }
-                 });
-             });
-
-            // 添加关闭按钮事件监听
-            const closeBtn = popup.querySelector('#close-smoke-product-btn');
-            closeBtn.addEventListener('click', () => {
-                popup.remove();
-            });
-
-            // 点击弹窗外部关闭
-            popup.addEventListener('click', (e) => e.stopPropagation());
-            
-            // 使用setTimeout延迟添加document点击事件，避免立即触发
-            setTimeout(() => {
-                const closePopupHandler = (e) => {
-                    if (!popup.contains(e.target)) {
-                        popup.remove();
-                        document.removeEventListener('click', closePopupHandler);
-                    }
-                };
-                document.addEventListener('click', closePopupHandler);
-            }, 100);
-        }
 
         // 显示手办图片弹窗
         function showActionFiguresImage(index) {
@@ -8931,40 +9365,6 @@
             showSkydivesPopup(item, index);
         }
 
-        // 兼容：隐藏包裹图片弹窗（旧调用名），若无专用图片，使用通用弹窗
-        function showHiddenCachesImage(index) {
-            const item = (itemData.hidden_caches && itemData.hidden_caches[index]) || null;
-            if (!item) return;
-            const title = `隐藏包裹 #${index + 1}`;
-            const popup = document.createElement('div');
-            popup.className = 'hidden-caches-popup';
-            popup.style.cssText = `
-                position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-                background: #fff; border: 3px solid #009688; border-radius: 12px; padding: 18px;
-                z-index: 10000; max-width: 520px; max-height: 80vh; box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-                font-family: Arial, sans-serif; text-align: center; overflow-y: auto;`;
-            popup.innerHTML = `
-                <div style="margin-bottom: 12px; font-size: 20px; font-weight: bold; color: #00695C;">${title}</div>
-                <img src="../src/assets/cache.png" alt="隐藏包裹" style="max-width: 100%; height: auto; border-radius: 6px; margin: 8px 0;"/>
-                <div style="margin-top: 12px; display: flex; justify-content: center; gap: 10px;">
-                    <button id="hide-hidden-caches-btn" style="padding: 10px 18px; background: #4CAF50; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">隐藏</button>
-                    <button id="close-hidden-caches-btn" style="padding: 10px 18px; background: #f44336; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">关闭</button>
-                </div>`;
-            const hideBtn = popup.querySelector('#hide-hidden-caches-btn');
-            const closeBtn = popup.querySelector('#close-hidden-caches-btn');
-            hideBtn.addEventListener('click', () => {
-                const el = document.querySelector(`.item-marker[data-type="hidden_caches"][data-index="${index}"]`);
-                if (el) el.style.opacity = '0.25';
-                popup.remove();
-            });
-            closeBtn.addEventListener('click', () => popup.remove());
-            popup.addEventListener('click', (e) => e.stopPropagation());
-            setTimeout(() => {
-                const closePopupHandler = (e) => { if (!popup.contains(e.target)) { popup.remove(); document.removeEventListener('click', closePopupHandler); } };
-                document.addEventListener('click', closePopupHandler);
-            }, 50);
-            document.body.appendChild(popup);
-        }
 
         // 显示杰拉德包裹图片弹窗
         function showDeadDropImage(index) {
@@ -9535,7 +9935,7 @@
                     const productIndex = itemData.smoke_on_the_water_product.findIndex(product => 
                         product.x === nearbyProduct.x && product.y === nearbyProduct.y
                     );
-                    showSmokeProductImage(productIndex);
+                    showSmokeProductPopup(nearbyProduct, productIndex);
                 }
             }
         }
@@ -13211,10 +13611,15 @@
             hideLeafletPanesForRestore();
             loadItemData().then(() => {
                 console.log('物品数据加载完成');
-                // 通过“显示逻辑”恢复缓存（避免一次性加载全部坐标）
+                // 通过"显示逻辑"恢复缓存（避免一次性加载全部坐标）
                 setTimeout(() => {
                     try { restoreCachedDisplayState(); } finally { showLeafletPanesForRestore(); }
                 }, 0);
+                
+                // 数据加载完成后，延迟更新街头毒贩计数器
+                setTimeout(() => {
+                    try { updateStreetDealersSidebarCount(); } catch(e) {}
+                }, 500);
             }).catch(() => {
                 // 失败时也要确保恢复显示
                 showLeafletPanesForRestore();
@@ -13756,6 +14161,28 @@
                         // 初始渲染一次
                         setTimeout(() => { try { updateStreetDealersSidebarCount(); } catch(e) {} }, 0);
                     }
+                    // 隐藏包裹计数器
+                    else if (type === 'hidden_caches') {
+                        const counter = document.createElement('span');
+                        counter.className = 'hidden-caches-counter';
+                        counter.style.marginLeft = '6px';
+                        counter.style.color = 'var(--gta-text-secondary)';
+                        counter.textContent = '';
+                        label.appendChild(counter);
+                        // 初始渲染一次
+                        setTimeout(() => { try { updateHiddenCachesSidebarCount(); } catch(e) {} }, 0);
+                    }
+                    // 吞云吐雾馆产品计数器
+                    else if (type === 'smoke_on_the_water_product') {
+                        const counter = document.createElement('span');
+                        counter.className = 'smoke-product-counter';
+                        counter.style.marginLeft = '6px';
+                        counter.style.color = 'var(--gta-text-secondary)';
+                        counter.textContent = '';
+                        label.appendChild(counter);
+                        // 初始渲染一次
+                        setTimeout(() => { try { updateSmokeProductSidebarCount(); } catch(e) {} }, 0);
+                    }
                     // 右侧计数器（gun_van）已移除
                     // 右侧计数器（dead_drop）
                     if (type === 'dead_drop') {
@@ -13805,6 +14232,14 @@
                         // 街头毒贩计数器
                         if (t === 'street_dealers') {
                             try { updateStreetDealersSidebarCount(); } catch(e) {}
+                        }
+                        // 隐藏包裹计数器
+                        if (t === 'hidden_caches') {
+                            try { updateHiddenCachesSidebarCount(); } catch(e) {}
+                        }
+                        // 吞云吐雾馆产品计数器
+                        if (t === 'smoke_on_the_water_product') {
+                            try { updateSmokeProductSidebarCount(); } catch(e) {}
                         }
                         // gun_van 不再有侧边计数器
                         if (t === 'dead_drop') {
@@ -13860,7 +14295,14 @@
                     // 渲染完成后，刷新一次计数器
                     try { updateSmugglerPlaneSidebarCount(); } catch(e) {}
                     try { updateStreetDealersSidebarCount(); } catch(e) {}
+                    try { updateHiddenCachesSidebarCount(); } catch(e) {}
+                    try { updateSmokeProductSidebarCount(); } catch(e) {}
                     try { updateDeadDropSidebarCount(); } catch(e) {}
+                    
+                    // 延迟更新计数器，确保数据已加载
+                    setTimeout(() => {
+                        try { updateStreetDealersSidebarCount(); } catch(e) {}
+                    }, 100);
                 }
 
                 // 应用缓存的侧边栏状态

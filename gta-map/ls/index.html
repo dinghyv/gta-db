@@ -1811,6 +1811,26 @@
             updateStreetDealersSidebarCount();
         }
 
+        // ==================== 增强版幽灵曝光2025模板（集成缓存） ====================
+        
+        // 创建侧边栏条目时，为 ghosts3 增加一个计数器占位
+        function attachGhosts3CounterToLabel(sidebarCheckboxId) {
+            const label = document.querySelector(`#${sidebarCheckboxId} + label`);
+            if (!label) return;
+
+            let counter = label.querySelector('.ghosts3-counter');
+            if (!counter) {
+                counter = document.createElement('span');
+                counter.className = 'ghosts3-counter';
+                counter.style.marginLeft = '6px';
+                counter.style.color = 'var(--gta-text-secondary)';
+                label.appendChild(counter);
+            }
+
+            // 初次渲染计数
+            updateGhosts3SidebarCount();
+        }
+
         // ==================== 增强版雪人模板（集成缓存） ====================
         
         // 创建侧边栏条目时，为 snowmen 增加一个计数器占位
@@ -2391,6 +2411,46 @@
                 counterEl.textContent = ` (${hidden}/${total})`;
             } catch (e) {
                 console.warn('更新街头毒贩计数器失败:', e);
+            }
+        }
+
+        // 统计隐藏/总数，并更新侧边栏计数器文本（集成缓存）
+        function updateUfoSidebarCount() {
+            try {
+                const counterEl = document.querySelector('#sidebar-item-ufo + label .ufo-counter');
+                if (!counterEl) {
+                    console.log('UFO观光计数器元素未找到');
+                    return;
+                }
+
+                // 获取UFO观光标记
+                const markers = (window.ufoMarkers && window.ufoMarkers) || [];
+                let total = 0;
+                let hidden = 0;
+
+                if (Array.isArray(markers) && markers.length > 0) {
+                    total = markers.length;
+                    markers.forEach((marker) => {
+                        if (marker && typeof marker.getElement === 'function') {
+                            const el = marker.getElement();
+                            if (el && el.style.opacity === '0.3') {
+                                hidden++;
+                            }
+                        }
+                    });
+                } else {
+                    // 回退：仅有数据尚未渲染 Leaflet 标记时
+                    total = Array.isArray(window.itemData?.ufo) ? window.itemData.ufo.length : 0;
+                    // 从缓存中获取隐藏数量
+                    const cachedCounter = CounterCache.getCounter('ufo');
+                    hidden = cachedCounter.hidden || 0;
+                }
+
+                // 更新缓存
+                CounterCache.updateCounter('ufo', hidden, total);
+                counterEl.textContent = total > 0 ? ` (${hidden}/${total})` : '';
+            } catch (e) {
+                console.warn('更新UFO观光计数器失败:', e);
             }
         }
 
@@ -3034,6 +3094,46 @@
                 counterEl.textContent = total > 0 ? ` (${hidden}/${total})` : '';
             } catch (e) {
                 console.warn('更新雪人计数器失败:', e);
+            }
+        }
+
+        // 统计隐藏/总数，并更新侧边栏计数器文本（集成缓存）
+        function updateGhosts3SidebarCount() {
+            try {
+                const counterEl = document.querySelector('#sidebar-item-ghosts3 + label .ghosts3-counter');
+                if (!counterEl) return;
+
+                // 获取幽灵曝光2025标记
+                const markers = (window.ghosts3Markers && window.ghosts3Markers) || [];
+                let total = 0;
+                let hidden = 0;
+
+                if (Array.isArray(markers) && markers.length > 0) {
+                    total = markers.length;
+                    markers.forEach((marker) => {
+                        if (marker && typeof marker.getElement === 'function') {
+                            const el = marker.getElement();
+                            if (el) {
+                                const opacity = el.style.opacity;
+                                if (opacity === '0.3' || opacity === 0.3 || opacity === '0.30') {
+                                    hidden++;
+                                }
+                            }
+                        }
+                    });
+                } else {
+                    // 回退：仅有数据尚未渲染 Leaflet 标记时
+                    total = Array.isArray(window.itemData?.ghosts3) ? window.itemData.ghosts3.length : 0;
+                    // 从缓存中获取隐藏数量
+                    const cachedCounter = CounterCache.getCounter('ghosts3');
+                    hidden = cachedCounter.hidden || 0;
+                }
+
+                // 更新缓存
+                CounterCache.updateCounter('ghosts3', hidden, total);
+                counterEl.textContent = total > 0 ? ` (${hidden}/${total})` : '';
+            } catch (e) {
+                console.warn('更新幽灵曝光2025计数器失败:', e);
             }
         }
 
@@ -4112,6 +4212,33 @@
             return false;
         }
 
+        // 应用缓存的可见性状态到幽灵曝光2025标记
+        function applyGhosts3VisibilityCache() {
+            const markers = (window.ghosts3Markers && window.ghosts3Markers) || [];
+            if (markers.length > 0) {
+                const visibilityMap = VisibilityCache.loadVisibility('ghosts3');
+                markers.forEach((marker, index) => {
+                    const isHidden = visibilityMap[index];
+                    if (isHidden && marker) {
+                        if (typeof marker.setOpacity === 'function') {
+                            marker.setOpacity(0.3);
+                        } else if (typeof marker.setStyle === 'function') {
+                            marker.setStyle({ opacity: 0.3 });
+                        } else if (typeof marker.getElement === 'function') {
+                            // 对于divIcon，直接设置元素的透明度
+                            const el = marker.getElement();
+                            if (el) {
+                                el.style.opacity = 0.3;
+                            }
+                        }
+                    }
+                });
+                console.log('已应用幽灵曝光2025可见性缓存');
+                return true;
+            }
+            return false;
+        }
+
         // 应用缓存的可见性状态到雪人标记
         function applySnowmenVisibilityCache() {
             const markers = (window.snowmenMarkers && window.snowmenMarkers) || [];
@@ -4479,6 +4606,8 @@
                 // 4) 渲染完成后再应用可见性缓存（需在标记存在后）
                 try { applySmugglerPlaneVisibilityCache(); } catch (e) {}
                 try { applyStreetDealersVisibilityCache(); } catch (e) {}
+                try { applyUfoVisibilityCache(); } catch (e) {}
+                try { applyGhosts3VisibilityCache(); } catch (e) {}
                 try { applySnowmenVisibilityCache(); } catch (e) {}
                 try { applyMediaStickVisibilityCache(); } catch (e) {}
                 try { applyMoviePropsVisibilityCache(); } catch (e) {}
@@ -4505,6 +4634,8 @@
                 // 5) 刷新计数器（如有）
                 try { updateSmugglerPlaneSidebarCount(); } catch (e) {}
                 try { updateStreetDealersSidebarCount(); } catch (e) {}
+                try { updateUfoSidebarCount(); } catch (e) {}
+                try { updateGhosts3SidebarCount(); } catch (e) {}
                 try { updateSnowmenSidebarCount(); } catch (e) {}
                 try { updateStuntJumpsSidebarCount(); } catch (e) {}
                 try { updateYuanbaoSidebarCount(); } catch (e) {}
@@ -7617,6 +7748,16 @@
                     if (!window.sprayMarkers) window.sprayMarkers = [];
                     window.sprayMarkers[index] = marker;
                 }
+                // 记录 ghosts3 标记以便弹窗隐藏/显示控制
+                else if (type === 'ghosts3') {
+                    if (!window.ghosts3Markers) window.ghosts3Markers = [];
+                    window.ghosts3Markers[index] = marker;
+                }
+                // 记录 ufo 标记以便弹窗隐藏/显示控制
+                else if (type === 'ufo') {
+                    if (!window.ufoMarkers) window.ufoMarkers = [];
+                    window.ufoMarkers[index] = marker;
+                }
             } catch (e) {}
             
             // 添加点击事件
@@ -8439,6 +8580,8 @@
             // 重新应用隐藏可见性缓存，确保被隐藏的标记在切换显示后仍保持状态
             try { applySmugglerPlaneVisibilityCache(); } catch (e) {}
             try { applyStreetDealersVisibilityCache(); } catch (e) {}
+            try { applyUfoVisibilityCache(); } catch (e) {}
+            try { applyGhosts3VisibilityCache(); } catch (e) {}
             try { applySnowmenVisibilityCache(); } catch (e) {}
             try { applyMediaStickVisibilityCache(); } catch (e) {}
             try { applyMoviePropsVisibilityCache(); } catch (e) {}
@@ -14183,9 +14326,10 @@
             document.body.appendChild(popup);
         }
 
-        // UFO观光弹窗
+        // UFO观光弹窗模板（含隐藏/显示联动与计数器、缓存集成）
         function showUfoPopup(item, index) {
-            const title = `🛸 UFO观光 #${index + 1}`;
+            const sequenceNumber = index + 1;
+            const imageUrl = `https://gta-maps.antwen.com/collectibles_images/ufo/ufo_${sequenceNumber}.webp`;
             const content = `可于 晚上 1000至次日早上 400 （万圣节天气期间为 晚上 730至次日早上 630 ）期间找到。
 奖励:
 拍摄 UFO 并将其发送给欧米加，即可获得 15.000 GTA$ 和 1.000 RP 奖励。
@@ -14193,60 +14337,181 @@
 拍摄 潜行 UFO ，以赚取额外 50.000 GTA$ 与 1.000 RP 奖励。
 可被 UFO 捕获时，本网站的游戏时钟组件下会有  标识。被 UFO 捕获即可获得 UFO 主题平角裤与。若您在被捕获时未注册为老大（保镖事务所、摩托帮）或担任副手，您将有 50% 的概率进入桑库多堡垒军事基地的秘密地下实验室。实验室中有一个箱子。首次开启时可获得武器电击棒与灰色太空入侵者；此后再次开启时可获得 25.000 GTA$（若您曾在前 60 分钟内于此处获得过此奖励，则只能获得 2.000 GTA$）与 1.000 RP 奖励。要逃离实验室，您必须按正确顺序拉下 4 根控制杆。每根控制杆都有各自对应的独特图案。拉控制杆的顺序则以这些图案出现在实验室内的次数而决定。成功逃离实验室，您将获得 ??? T 恤、25.000 GTA$ 与 1.000 RP 奖励。若您未能在 10 分钟内逃离，或拉下错误的控制杆达到 3 次，实验室将释放毒气将您迷晕，您将无法获得成功逃离的奖励。
 总计收益（不包括实验室内的奖励）：540.000 GTA$、27.000 RP`;
-            const imageUrl = `https://gta-maps.antwen.com/collectibles_images/ufo/ufo_${index + 1}.webp`;
             
+            // 关闭已存在的弹窗
+            const existingPopup = document.querySelector('.ufo-popup');
+            if (existingPopup) existingPopup.remove();
+
+            // 统计隐藏/总数
+            const markers = (window.ufoMarkers && window.ufoMarkers) || [];
+            const totalCount = markers.length;
+
+            let hiddenCount = 0;
+            markers.forEach((marker) => {
+                if (marker && typeof marker.getElement === 'function') {
+                    const el = marker.getElement();
+                    if (el && el.style.opacity === '0.3') hiddenCount++;
+                }
+            });
+
+            const currentMarker = markers[index];
+            let isCurrentHidden = false;
+            if (currentMarker && typeof currentMarker.getElement === 'function') {
+                const el = currentMarker.getElement();
+                isCurrentHidden = el && el.style.opacity === '0.3';
+            }
+
+            const title = `🛸 UFO观光 #${sequenceNumber} (${hiddenCount}/${totalCount})`;
+
+            // 构建弹窗
             const popup = document.createElement('div');
             popup.className = 'ufo-popup';
             popup.style.cssText = `
                 position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-                background: #fff; border: 3px solid #9C27B0; border-radius: 12px; padding: 18px;
-                z-index: 10000; max-width: 520px; max-height: 80vh; box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-                font-family: Arial, sans-serif; text-align: left; overflow-y: auto;`;
+                background: var(--gta-bg-medium);
+                border: 1px solid var(--gta-border);
+                border-radius: 8px;
+                box-shadow: 0 2px 15px rgba(0,0,0,0.5);
+                padding: 15px;
+                z-index: 10000;
+                width: min(92vw, 520px);
+                max-height: 80vh;
+                color: var(--gta-text);
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                overflow-y: auto;
+            `;
 
             popup.innerHTML = `
-                <div style="margin-bottom: 14px; font-size: 20px; font-weight: bold; color: #7B1FA2; text-align:center;">${title}</div>
-                <img src="${imageUrl}" alt="UFO观光图片" style="max-width: 100%; height: auto; border-radius: 6px; margin: 8px 0; display:block;"/>
-                <div style="margin: 10px 0; padding: 10px; background: #F3E5F5; border-radius: 8px; color: #4A148C; font-size: 13px; line-height: 1.6;">
+                <div class="popup-header" style="position: relative; margin-bottom: 14px;">
+                    <h3 style="color: var(--gta-primary); font-size: 18px; margin: 0; font-weight: bold;">${title}</h3>
+                    <span class="popup-close" style="position: absolute; top: 0; right: 0; color: var(--gta-text-secondary); font-size: 20px; cursor: pointer; transition: color 0.3s ease;">×</span>
+                </div>
+                <img src="${imageUrl}" alt="UFO观光 #${sequenceNumber}" style="max-width: 100%; height: auto; border-radius: 6px; margin: 8px 0; display: block; cursor: zoom-in;"/>
+                <div style="margin: 10px 0; padding: 10px; background: rgba(156, 39, 176, 0.1); border-radius: 8px; color: var(--gta-text); font-size: 14px; line-height: 1.6;">
                     ${content}
                 </div>
-                <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px;">
-                    <button id="hide-ufo-btn" style="padding: 10px 18px; background: #4CAF50; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">隐藏</button>
-                    <button id="show-ufo-btn" style="padding: 10px 18px; background: #2196F3; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">显示</button>
-                    <button id="close-ufo-btn" style="padding: 10px 18px; background: #f44336; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">关闭</button>
+                <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
+                    <button id="hide-ufo-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease; display: ${isCurrentHidden ? 'none' : 'inline-block'};">隐藏</button>
+                    <button id="show-ufo-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease; display: ${isCurrentHidden ? 'inline-block' : 'none'};">显示</button>
+                    <button id="close-ufo-btn" style="padding: 8px 16px; background: var(--gta-primary); color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease;">关闭</button>
                 </div>
             `;
 
+            // 绑定元素
+            const closeBtn = popup.querySelector('#close-ufo-btn');
             const hideBtn = popup.querySelector('#hide-ufo-btn');
             const showBtn = popup.querySelector('#show-ufo-btn');
-            const closeBtn = popup.querySelector('#close-ufo-btn');
+            const popupClose = popup.querySelector('.popup-close');
+            const titleElement = popup.querySelector('h3');
 
-            function resolveTargetAndIndex() {
-                const el = document.querySelector(`.item-marker[data-type="ufo"][data-index="${index}"]`);
-                return { el, globalIndex: index };
-            }
-
-            hideBtn.addEventListener('click', () => {
-                const { el } = resolveTargetAndIndex();
-                if (!el) return;
-                el.style.opacity = '0.25';
-            });
-
-            showBtn.addEventListener('click', () => {
-                const { el } = resolveTargetAndIndex();
-                if (!el) return;
-                el.style.opacity = '1';
-            });
-
-            closeBtn.addEventListener('click', () => popup.remove());
+            // 关闭弹窗
+            const removePopup = () => popup.remove();
+            closeBtn.addEventListener('click', removePopup);
+            popupClose.addEventListener('click', removePopup);
             popup.addEventListener('click', (e) => e.stopPropagation());
             setTimeout(() => {
                 const closePopupHandler = (e) => {
-                    if (!popup.contains(e.target)) { popup.remove(); document.removeEventListener('click', closePopupHandler); }
+                    if (!popup.contains(e.target)) {
+                        removePopup();
+                        document.removeEventListener('click', closePopupHandler);
+                    }
                 };
                 document.addEventListener('click', closePopupHandler);
             }, 50);
 
+            // 图片点击放大
+            const popupImage = popup.querySelector('img');
+            if (popupImage) {
+                popupImage.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const overlay = document.createElement('div');
+                    overlay.className = 'ufo-image-overlay';
+                    overlay.style.cssText = `
+                        position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+                        display: flex; align-items: center; justify-content: center;
+                        z-index: 10002; cursor: zoom-out;
+                    `;
+                    const bigImg = document.createElement('img');
+                    bigImg.src = popupImage.src;
+                    bigImg.alt = popupImage.alt || '';
+                    bigImg.style.cssText = `max-width: 95vw; max-height: 95vh; border-radius: 6px; box-shadow: 0 4px 24px rgba(0,0,0,0.6);`;
+                    overlay.appendChild(bigImg);
+
+                    const removeOverlay = () => {
+                        document.removeEventListener('keydown', onKey);
+                        overlay.remove();
+                    };
+                    const onKey = (ev) => { if (ev.key === 'Escape') removeOverlay(); };
+                    overlay.addEventListener('click', removeOverlay);
+                    document.addEventListener('keydown', onKey);
+                    document.body.appendChild(overlay);
+                });
+            }
+
+            // 工具：隐藏/显示当前标记
+            function setCurrentMarkerVisibility(opacity) {
+                if (currentMarker && typeof currentMarker.setOpacity === 'function') {
+                    currentMarker.setOpacity(opacity);
+                } else if (currentMarker && typeof currentMarker.setStyle === 'function') {
+                    currentMarker.setStyle({ opacity });
+                }
+                
+                // 更新缓存
+                VisibilityCache.updateItemVisibility('ufo', index, opacity === 0.3);
+            }
+
+            // 隐藏按钮
+            if (hideBtn) {
+                hideBtn.addEventListener('click', () => {
+                    setCurrentMarkerVisibility(0.3);
+                    const newHiddenCount = hiddenCount + (isCurrentHidden ? 0 : 1);
+                    titleElement.textContent = `🛸 UFO观光 #${sequenceNumber} (${newHiddenCount}/${totalCount})`;
+                    hideBtn.style.display = 'none';
+                    showBtn.style.display = 'inline-block';
+                    isCurrentHidden = true;
+
+                    // 刷新侧边栏计数
+                    updateUfoSidebarCount();
+                });
+            }
+
+            // 显示按钮
+            if (showBtn) {
+                showBtn.addEventListener('click', () => {
+                    setCurrentMarkerVisibility(1);
+                    const newHiddenCount = hiddenCount - (isCurrentHidden ? 1 : 0);
+                    titleElement.textContent = `🛸 UFO观光 #${sequenceNumber} (${newHiddenCount}/${totalCount})`;
+                    showBtn.style.display = 'none';
+                    hideBtn.style.display = 'inline-block';
+                    isCurrentHidden = false;
+
+                    // 刷新侧边栏计数
+                    updateUfoSidebarCount();
+                });
+            }
+
             document.body.appendChild(popup);
+        }
+
+        // 应用缓存的可见性状态到UFO观光标记
+        function applyUfoVisibilityCache() {
+            const markers = (window.ufoMarkers && window.ufoMarkers) || [];
+            if (markers.length > 0) {
+                const visibilityMap = VisibilityCache.loadVisibility('ufo');
+                markers.forEach((marker, index) => {
+                    const isHidden = visibilityMap[index];
+                    if (isHidden && marker) {
+                        if (typeof marker.setOpacity === 'function') {
+                            marker.setOpacity(0.3);
+                        } else if (typeof marker.setStyle === 'function') {
+                            marker.setStyle({ opacity: 0.3 });
+                        }
+                    }
+                });
+                console.log('已应用UFO观光可见性缓存');
+                return true;
+            }
+            return false;
         }
 
         // 万圣节杀人狂弹窗
@@ -16362,31 +16627,68 @@
             }
         }
 
-        // 显示幽灵曝光弹窗
+        // 幽灵曝光2025弹窗模板（含隐藏/显示联动与计数器、缓存集成）
         function showGhosts3Popup(item, index) {
-            // 创建弹窗
+            // 序号从1开始
+            const sequenceNumber = index + 1;
+            const imageUrl = "https://www.baidu.com/img/PCtm_d9c8750bed0b3c7d089fa7d55720d6cf.png";
+            
+            // 关闭已存在的弹窗
+            const existingPopup = document.querySelector('.ghosts3-popup');
+            if (existingPopup) existingPopup.remove();
+
+            // 统计隐藏/总数
+            const markers = (window.ghosts3Markers && window.ghosts3Markers) || [];
+            const totalCount = markers.length;
+
+            let hiddenCount = 0;
+            markers.forEach((marker) => {
+                if (marker && typeof marker.getElement === 'function') {
+                    const el = marker.getElement();
+                    if (el) {
+                        const opacity = el.style.opacity;
+                        if (opacity === '0.3' || opacity === 0.3 || opacity === '0.30') {
+                            hiddenCount++;
+                        }
+                    }
+                }
+            });
+
+            const currentMarker = markers[index];
+            let isCurrentHidden = false;
+            if (currentMarker && typeof currentMarker.getElement === 'function') {
+                const el = currentMarker.getElement();
+                if (el) {
+                    const opacity = el.style.opacity;
+                    isCurrentHidden = opacity === '0.3' || opacity === 0.3 || opacity === '0.30';
+                }
+            }
+
+            const title = `👻 幽灵曝光2025 #${sequenceNumber} (${hiddenCount}/${totalCount})`;
+
+            // 构建弹窗
             const popup = document.createElement('div');
             popup.className = 'ghosts3-popup';
             popup.style.cssText = `
-                position: fixed;
-                top: 50%;
-                left: 50%;
-                transform: translate(-50%, -50%);
-                background: white;
-                border: 3px solid #9c27b0;
-                border-radius: 12px;
-                padding: 20px;
+                position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+                background: var(--gta-bg-medium);
+                border: 1px solid var(--gta-border);
+                border-radius: 8px;
+                box-shadow: 0 2px 15px rgba(0,0,0,0.5);
+                padding: 15px;
                 z-index: 10000;
-                max-width: 420px;
+                width: min(92vw, 520px);
                 max-height: 80vh;
-                box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-                font-family: Arial, sans-serif;
-                text-align: center;
+                color: var(--gta-text);
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                overflow-y: auto;
             `;
 
-            // 弹窗内容
             popup.innerHTML = `
-                <div style="margin-bottom: 16px; font-size: 22px; font-weight: bold; color: #9c27b0;">👻 幽灵曝光2025 #${index + 1}</div>
+                <div class="popup-header" style="position: relative; margin-bottom: 14px;">
+                    <h3 style="color: var(--gta-primary); font-size: 18px; margin: 0; font-weight: bold;">${title}</h3>
+                    <span class="popup-close" style="position: absolute; top: 0; right: 0; color: var(--gta-text-secondary); font-size: 20px; cursor: pointer; transition: color 0.3s ease;">×</span>
+                </div>
                 <div style="margin: 12px 0; padding: 12px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #9c27b0;">
                     <div style="font-weight: bold; color: #9c27b0; margin-bottom: 6px; font-size: 14px;">⏰ 出现时间</div>
                     <div style="color: #333; font-size: 16px;">${item.time || '未知时间'}</div>
@@ -16396,23 +16698,116 @@
                     • 拍摄照片或观察异常现象（占位说明）
                 </div>
                 <div style="margin: 12px 0; padding: 8px; background: #fff; border-radius: 6px;">
-                    <img src="https://www.baidu.com/img/PCtm_d9c8750bed0b3c7d089fa7d55720d6cf.png" alt="占位图片" style="max-width: 100%; height: auto; border-radius: 4px;">
+                    <img src="${imageUrl}" alt="幽灵曝光2025 #${sequenceNumber}" style="max-width: 100%; height: auto; border-radius: 4px; cursor: zoom-in;"/>
                 </div>
-                <button id="close-ghosts3-popup-btn" style="padding: 10px 20px; background: #9c27b0; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: bold;">关闭</button>
+                <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
+                    <button id="hide-ghosts3-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease; display: ${isCurrentHidden ? 'none' : 'inline-block'};">隐藏</button>
+                    <button id="show-ghosts3-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease; display: ${isCurrentHidden ? 'inline-block' : 'none'};">显示</button>
+                    <button id="close-ghosts3-btn" style="padding: 8px 16px; background: var(--gta-primary); color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease;">关闭</button>
+                </div>
             `;
 
-            // 关闭按钮
-            popup.querySelector('#close-ghosts3-popup-btn').addEventListener('click', () => popup.remove());
+            // 绑定元素
+            const closeBtn = popup.querySelector('#close-ghosts3-btn');
+            const hideBtn = popup.querySelector('#hide-ghosts3-btn');
+            const showBtn = popup.querySelector('#show-ghosts3-btn');
+            const popupClose = popup.querySelector('.popup-close');
+            const titleElement = popup.querySelector('h3');
+
+            // 关闭弹窗
+            const removePopup = () => popup.remove();
+            closeBtn.addEventListener('click', removePopup);
+            popupClose.addEventListener('click', removePopup);
             popup.addEventListener('click', (e) => e.stopPropagation());
             setTimeout(() => {
                 const closePopupHandler = (e) => {
                     if (!popup.contains(e.target)) {
-                        popup.remove();
+                        removePopup();
                         document.removeEventListener('click', closePopupHandler);
                     }
                 };
                 document.addEventListener('click', closePopupHandler);
-            }, 100);
+            }, 50);
+
+            // 图片点击放大
+            const popupImage = popup.querySelector('img');
+            if (popupImage) {
+                popupImage.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const overlay = document.createElement('div');
+                    overlay.className = 'ghosts3-image-overlay';
+                    overlay.style.cssText = `
+                        position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+                        display: flex; align-items: center; justify-content: center;
+                        z-index: 10002; cursor: zoom-out;
+                    `;
+                    const bigImg = document.createElement('img');
+                    bigImg.src = popupImage.src;
+                    bigImg.alt = popupImage.alt || '';
+                    bigImg.style.cssText = `max-width: 95vw; max-height: 95vh; border-radius: 6px; box-shadow: 0 4px 24px rgba(0,0,0,0.6);`;
+                    overlay.appendChild(bigImg);
+
+                    const removeOverlay = () => {
+                        document.removeEventListener('keydown', onKey);
+                        overlay.remove();
+                    };
+                    const onKey = (ev) => { if (ev.key === 'Escape') removeOverlay(); };
+                    overlay.addEventListener('click', removeOverlay);
+                    document.addEventListener('keydown', onKey);
+                    document.body.appendChild(overlay);
+                });
+            }
+
+            // 工具：隐藏/显示当前标记
+            function setCurrentMarkerVisibility(opacity) {
+                if (currentMarker) {
+                    // 对于divIcon，需要特殊处理
+                    if (typeof currentMarker.getElement === 'function') {
+                        const el = currentMarker.getElement();
+                        if (el) {
+                            // 直接设置divIcon元素的透明度
+                            el.style.opacity = opacity;
+                        }
+                    } else if (typeof currentMarker.setOpacity === 'function') {
+                        currentMarker.setOpacity(opacity);
+                    } else if (typeof currentMarker.setStyle === 'function') {
+                        currentMarker.setStyle({ opacity });
+                    }
+                }
+                
+                // 更新缓存
+                VisibilityCache.updateItemVisibility('ghosts3', index, opacity === 0.3);
+            }
+
+            // 隐藏按钮
+            if (hideBtn) {
+                hideBtn.addEventListener('click', () => {
+                    setCurrentMarkerVisibility(0.3);
+                    const newHiddenCount = hiddenCount + (isCurrentHidden ? 0 : 1);
+                    titleElement.textContent = `👻 幽灵曝光2025 #${sequenceNumber} (${newHiddenCount}/${totalCount})`;
+                    hideBtn.style.display = 'none';
+                    showBtn.style.display = 'inline-block';
+                    isCurrentHidden = true;
+
+                    // 刷新侧边栏计数
+                    updateGhosts3SidebarCount();
+                });
+            }
+
+            // 显示按钮
+            if (showBtn) {
+                showBtn.addEventListener('click', () => {
+                    setCurrentMarkerVisibility(1);
+                    const newHiddenCount = hiddenCount - (isCurrentHidden ? 1 : 0);
+                    titleElement.textContent = `👻 幽灵曝光2025 #${sequenceNumber} (${newHiddenCount}/${totalCount})`;
+                    showBtn.style.display = 'none';
+                    hideBtn.style.display = 'inline-block';
+                    isCurrentHidden = false;
+
+                    // 刷新侧边栏计数
+                    updateGhosts3SidebarCount();
+                });
+            }
 
             document.body.appendChild(popup);
         }
@@ -17211,7 +17606,7 @@
                     span.textContent = opt.text;
                     label.appendChild(span);
 
-                    // 右侧计数器（smuggler_plane 和 street_dealers 使用）
+                    // 右侧计数器（smuggler_plane、street_dealers 和 ghosts3 使用）
                     if (type === 'smuggler_plane') {
                         const counter = document.createElement('span');
                         counter.className = 'smuggler-counter';
@@ -17232,6 +17627,28 @@
                         label.appendChild(counter);
                         // 初始渲染一次
                         try { updateStreetDealersSidebarCount(); } catch(e) {}
+                    }
+                    // UFO观光计数器
+                    else if (type === 'ufo') {
+                        const counter = document.createElement('span');
+                        counter.className = 'ufo-counter';
+                        counter.style.marginLeft = '6px';
+                        counter.style.color = 'var(--gta-text-secondary)';
+                        counter.textContent = '';
+                        label.appendChild(counter);
+                        // 初始渲染一次
+                        try { updateUfoSidebarCount(); } catch(e) {}
+                    }
+                    // 幽灵曝光2025计数器
+                    else if (type === 'ghosts3') {
+                        const counter = document.createElement('span');
+                        counter.className = 'ghosts3-counter';
+                        counter.style.marginLeft = '6px';
+                        counter.style.color = 'var(--gta-text-secondary)';
+                        counter.textContent = '';
+                        label.appendChild(counter);
+                        // 初始渲染一次
+                        try { updateGhosts3SidebarCount(); } catch(e) {}
                     }
                     // 雪人计数器
                     else if (type === 'snowmen') {
@@ -17547,6 +17964,14 @@
                         if (t === 'street_dealers') {
                             try { updateStreetDealersSidebarCount(); } catch(e) {}
                         }
+                        // UFO观光计数器
+                        if (t === 'ufo') {
+                            try { updateUfoSidebarCount(); } catch(e) {}
+                        }
+                        // 幽灵曝光2025计数器
+                        if (t === 'ghosts3') {
+                            try { updateGhosts3SidebarCount(); } catch(e) {}
+                        }
                         // 雪人计数器
                         if (t === 'snowmen') {
                             try { updateSnowmenSidebarCount(); } catch(e) {}
@@ -17697,6 +18122,8 @@
                     // 渲染完成后，刷新一次计数器
                     try { updateSmugglerPlaneSidebarCount(); } catch(e) {}
                     try { updateStreetDealersSidebarCount(); } catch(e) {}
+                    try { updateUfoSidebarCount(); } catch(e) {}
+                    try { updateGhosts3SidebarCount(); } catch(e) {}
                     try { updateSnowmenSidebarCount(); } catch(e) {}
                     try { updateMoviePropsSidebarCount(); } catch(e) {}
                     try { updateSpraySidebarCount(); } catch(e) {}

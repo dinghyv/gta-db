@@ -1811,6 +1811,46 @@
             updateStreetDealersSidebarCount();
         }
 
+        // ==================== 增强版藏匿屋模板（集成缓存） ====================
+        
+        // 创建侧边栏条目时，为 stash_houses 增加一个计数器占位
+        function attachStashHousesCounterToLabel(sidebarCheckboxId) {
+            const label = document.querySelector(`#${sidebarCheckboxId} + label`);
+            if (!label) return;
+
+            let counter = label.querySelector('.stash-houses-counter');
+            if (!counter) {
+                counter = document.createElement('span');
+                counter.className = 'stash-houses-counter';
+                counter.style.marginLeft = '6px';
+                counter.style.color = 'var(--gta-text-secondary)';
+                label.appendChild(counter);
+            }
+
+            // 初次渲染计数
+            updateStashHousesSidebarCount();
+        }
+
+        // ==================== 增强版LS涂鸦模板（集成缓存） ====================
+        
+        // 创建侧边栏条目时，为 ls_tags 增加一个计数器占位
+        function attachLSTagsCounterToLabel(sidebarCheckboxId) {
+            const label = document.querySelector(`#${sidebarCheckboxId} + label`);
+            if (!label) return;
+
+            let counter = label.querySelector('.ls-tags-counter');
+            if (!counter) {
+                counter = document.createElement('span');
+                counter.className = 'ls-tags-counter';
+                counter.style.marginLeft = '6px';
+                counter.style.color = 'var(--gta-text-secondary)';
+                label.appendChild(counter);
+            }
+
+            // 初次渲染计数
+            updateLSTagsSidebarCount();
+        }
+
         // ==================== 增强版沉船模板（集成缓存） ====================
         
         // 创建侧边栏条目时，为 shipwrecked 增加一个计数器占位
@@ -2067,6 +2107,65 @@
                 counterEl.textContent = total > 0 ? ` (${hidden}/${total})` : '';
             } catch (e) {
                 console.warn('更新沉船计数器失败:', e);
+            }
+        }
+
+        // 统计隐藏/总数，并更新侧边栏计数器文本（集成缓存）
+        function updateLSTagsSidebarCount() {
+            try {
+                const counterEl = document.querySelector('#sidebar-item-ls_tags + label .ls-tags-counter');
+                if (!counterEl) return;
+
+                // 获取LS涂鸦标记
+                const markers = (window.lsTagsMarkers && window.lsTagsMarkers) || [];
+                let total = 5; // 固定5个
+                let hidden = 0;
+
+                if (Array.isArray(markers) && markers.length > 0) {
+                    // 使用实际渲染的标记数量
+                    markers.forEach((marker) => {
+                        if (marker && typeof marker.getElement === 'function') {
+                            const el = marker.getElement();
+                            if (el && el.style.opacity === '0.3') {
+                                hidden++;
+                            }
+                        }
+                    });
+                } else {
+                    // 回退：仅有数据尚未渲染 Leaflet 标记时，从缓存中获取隐藏数量
+                    const cachedCounter = CounterCache.getCounter('ls_tags');
+                    hidden = cachedCounter.hidden || 0;
+                }
+
+                // 更新缓存
+                CounterCache.updateCounter('ls_tags', hidden, total);
+                counterEl.textContent = total > 0 ? ` (${hidden}/${total})` : '';
+            } catch (e) {
+                console.warn('更新LS涂鸦计数器失败:', e);
+            }
+        }
+
+        // 统计隐藏/总数，并更新侧边栏计数器文本（藏匿屋特殊：固定为1个）
+        function updateStashHousesSidebarCount() {
+            try {
+                const counterEl = document.querySelector('#sidebar-item-stash_houses + label .stash-houses-counter');
+                if (!counterEl) return;
+
+                // 藏匿屋特殊：固定为1个，虽然会显示多个图标
+                const total = 1;
+                let hidden = 0;
+
+                // 检查是否有缓存的隐藏状态
+                const visibilityMap = VisibilityCache.loadVisibility('stash_houses');
+                if (visibilityMap[0] === true) {
+                    hidden = 1;
+                }
+
+                // 更新缓存
+                CounterCache.updateCounter('stash_houses', hidden, total);
+                counterEl.textContent = total > 0 ? ` (${hidden}/${total})` : '';
+            } catch (e) {
+                console.warn('更新藏匿屋计数器失败:', e);
             }
         }
 
@@ -2381,6 +2480,167 @@
 
                     // 刷新侧边栏计数
                     updateStreetDealersSidebarCount();
+                });
+            }
+
+            document.body.appendChild(popup);
+        }
+
+        // LS涂鸦弹窗模板（含隐藏/显示联动与计数器、缓存集成）
+        function showLSTagsPopup(item, index) {
+            // 使用API返回的编号数字
+            const sequenceNumber = item.sequenceNumber;
+            const imageUrl = `https://gta-maps.antwen.com/collectibles_images/ls_tags/ls_tags_${sequenceNumber}.webp`;
+            
+            // 关闭已存在的弹窗
+            const existingPopup = document.querySelector('.ls-tags-popup');
+            if (existingPopup) existingPopup.remove();
+
+            // 统计隐藏/总数
+            const markers = (window.lsTagsMarkers && window.lsTagsMarkers) || [];
+            const totalCount = 5; // 固定5个
+
+            let hiddenCount = 0;
+            markers.forEach((marker) => {
+                if (marker && typeof marker.getElement === 'function') {
+                    const el = marker.getElement();
+                    if (el && el.style.opacity === '0.3') hiddenCount++;
+                }
+            });
+
+            const currentMarker = markers[index];
+            let isCurrentHidden = false;
+            if (currentMarker && typeof currentMarker.getElement === 'function') {
+                const el = currentMarker.getElement();
+                isCurrentHidden = el && el.style.opacity === '0.3';
+            }
+
+            const title = `🎨 LS涂鸦 #${sequenceNumber} (${hiddenCount}/${totalCount})`;
+
+            // 构建弹窗
+            const popup = document.createElement('div');
+            popup.className = 'ls-tags-popup';
+            popup.style.cssText = `
+                position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+                background: var(--gta-bg-medium);
+                border: 1px solid var(--gta-border);
+                border-radius: 8px;
+                box-shadow: 0 2px 15px rgba(0,0,0,0.5);
+                padding: 15px;
+                z-index: 10000;
+                width: min(92vw, 520px);
+                max-height: 80vh;
+                color: var(--gta-text);
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                overflow-y: auto;
+            `;
+
+            popup.innerHTML = `
+                <div class="popup-header" style="position: relative; margin-bottom: 14px;">
+                    <h3 style="color: var(--gta-primary); font-size: 18px; margin: 0; font-weight: bold;">${title}</h3>
+                    <span class="popup-close" style="position: absolute; top: 0; right: 0; color: var(--gta-text-secondary); font-size: 20px; cursor: pointer; transition: color 0.3s ease;">×</span>
+                </div>
+                <img src="${imageUrl}" alt="LS涂鸦 #${sequenceNumber}" style="max-width: 100%; height: auto; border-radius: 6px; margin: 8px 0; display: block; cursor: zoom-in;"/>
+                <div style="margin: 10px 0; padding: 10px; background: rgba(255, 87, 34, 0.1); border-radius: 8px; color: var(--gta-text); font-size: 14px; line-height: 1.6;">
+                    可在上图位置找到！找到并收集所有LS涂鸦，解锁独特奖励！
+                </div>
+                <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
+                    <button id="hide-ls-tags-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease; display: ${isCurrentHidden ? 'none' : 'inline-block'};">隐藏</button>
+                    <button id="show-ls-tags-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease; display: ${isCurrentHidden ? 'inline-block' : 'none'};">显示</button>
+                    <button id="close-ls-tags-btn" style="padding: 8px 16px; background: var(--gta-primary); color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease;">关闭</button>
+                </div>
+            `;
+
+            // 绑定元素
+            const closeBtn = popup.querySelector('#close-ls-tags-btn');
+            const hideBtn = popup.querySelector('#hide-ls-tags-btn');
+            const showBtn = popup.querySelector('#show-ls-tags-btn');
+            const popupClose = popup.querySelector('.popup-close');
+            const titleElement = popup.querySelector('h3');
+
+            // 关闭弹窗
+            const removePopup = () => popup.remove();
+            closeBtn.addEventListener('click', removePopup);
+            popupClose.addEventListener('click', removePopup);
+            popup.addEventListener('click', (e) => e.stopPropagation());
+            setTimeout(() => {
+                const closePopupHandler = (e) => {
+                    if (!popup.contains(e.target)) {
+                        removePopup();
+                        document.removeEventListener('click', closePopupHandler);
+                    }
+                };
+                document.addEventListener('click', closePopupHandler);
+            }, 50);
+
+            // 图片点击放大（PC/移动端）
+            const popupImage = popup.querySelector('img');
+            if (popupImage) {
+                popupImage.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const overlay = document.createElement('div');
+                    overlay.className = 'ls-tags-image-overlay';
+                    overlay.style.cssText = `
+                        position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+                        display: flex; align-items: center; justify-content: center;
+                        z-index: 10002; cursor: zoom-out;
+                    `;
+                    const bigImg = document.createElement('img');
+                    bigImg.src = popupImage.src;
+                    bigImg.alt = popupImage.alt || '';
+                    bigImg.style.cssText = `max-width: 95vw; max-height: 95vh; border-radius: 6px; box-shadow: 0 4px 24px rgba(0,0,0,0.6);`;
+                    overlay.appendChild(bigImg);
+
+                    const removeOverlay = () => {
+                        document.removeEventListener('keydown', onKey);
+                        overlay.remove();
+                    };
+                    const onKey = (ev) => { if (ev.key === 'Escape') removeOverlay(); };
+                    overlay.addEventListener('click', removeOverlay);
+                    document.addEventListener('keydown', onKey);
+                    document.body.appendChild(overlay);
+                });
+            }
+
+            // 工具：隐藏/显示当前标记
+            function setCurrentMarkerVisibility(opacity) {
+                if (currentMarker && typeof currentMarker.setOpacity === 'function') {
+                    currentMarker.setOpacity(opacity);
+                } else if (currentMarker && typeof currentMarker.setStyle === 'function') {
+                    currentMarker.setStyle({ opacity });
+                }
+                
+                // 更新缓存
+                VisibilityCache.updateItemVisibility('ls_tags', index, opacity === 0.3);
+            }
+
+            // 隐藏按钮
+            if (hideBtn) {
+                hideBtn.addEventListener('click', () => {
+                    setCurrentMarkerVisibility(0.3);
+                    const newHiddenCount = hiddenCount + (isCurrentHidden ? 0 : 1);
+                    titleElement.textContent = `🎨 LS涂鸦 #${sequenceNumber} (${newHiddenCount}/${totalCount})`;
+                    hideBtn.style.display = 'none';
+                    showBtn.style.display = 'inline-block';
+                    isCurrentHidden = true;
+
+                    // 刷新侧边栏计数
+                    updateLSTagsSidebarCount();
+                });
+            }
+
+            // 显示按钮
+            if (showBtn) {
+                showBtn.addEventListener('click', () => {
+                    setCurrentMarkerVisibility(1);
+                    const newHiddenCount = hiddenCount - (isCurrentHidden ? 1 : 0);
+                    titleElement.textContent = `🎨 LS涂鸦 #${sequenceNumber} (${newHiddenCount}/${totalCount})`;
+                    showBtn.style.display = 'none';
+                    hideBtn.style.display = 'inline-block';
+                    isCurrentHidden = false;
+
+                    // 刷新侧边栏计数
+                    updateLSTagsSidebarCount();
                 });
             }
 
@@ -2762,6 +3022,55 @@
             return false;
         }
 
+        // 应用缓存的可见性状态到藏匿屋标记
+        function applyStashHousesVisibilityCache() {
+            const visibilityMap = VisibilityCache.loadVisibility('stash_houses');
+            const isHidden = visibilityMap[0] === true;
+            
+            if (isHidden) {
+                // 隐藏所有藏匿屋相关的标记
+                document.querySelectorAll('.item-marker').forEach(marker => {
+                    const img = marker.querySelector('img');
+                    if (img && img.src && img.src.includes('stash')) {
+                        marker.style.opacity = '0.3';
+                    }
+                });
+
+                // 同时处理通用的 Leaflet 标记（通过图标URL识别 stash_houses）
+                if (Array.isArray(leafletMarkers) && leafletMarkers.length > 0) {
+                    leafletMarkers.forEach((layer) => {
+                        try {
+                            const iconUrl = layer && layer.options && layer.options.icon && layer.options.icon.options && layer.options.icon.options.iconUrl;
+                            if (iconUrl && iconUrl.includes('stash')) {
+                                if (typeof layer.setOpacity === 'function') {
+                                    layer.setOpacity(0.3);
+                                } else if (typeof layer.setStyle === 'function') {
+                                    layer.setStyle({ opacity: 0.3 });
+                                }
+                            }
+                        } catch (e) {
+                            // 忽略错误
+                        }
+                    });
+                }
+
+                // 同时处理Leaflet标记（如果存在）
+                if (window.stashHousesMarkers && Array.isArray(window.stashHousesMarkers)) {
+                    window.stashHousesMarkers.forEach((layer) => {
+                        if (layer && typeof layer.setOpacity === 'function') {
+                            layer.setOpacity(0.3);
+                        } else if (layer && typeof layer.setStyle === 'function') {
+                            layer.setStyle({ opacity: 0.3 });
+                        }
+                    });
+                }
+                
+                console.log('已应用藏匿屋可见性缓存');
+                return true;
+            }
+            return false;
+        }
+
         // 应用缓存的可见性状态到街头毒贩标记
         function applyStreetDealersVisibilityCache() {
             const markers = (window.streetDealersMarkers && window.streetDealersMarkers) || [];
@@ -2974,6 +3283,27 @@
             return false;
         }
 
+        // 应用缓存的可见性状态到LS涂鸦标记
+        function applyLSTagsVisibilityCache() {
+            const markers = (window.lsTagsMarkers && window.lsTagsMarkers) || [];
+            if (markers.length > 0) {
+                const visibilityMap = VisibilityCache.loadVisibility('ls_tags');
+                markers.forEach((marker, index) => {
+                    const isHidden = visibilityMap[index];
+                    if (isHidden && marker) {
+                        if (typeof marker.setOpacity === 'function') {
+                            marker.setOpacity(0.3);
+                        } else if (typeof marker.setStyle === 'function') {
+                            marker.setStyle({ opacity: 0.3 });
+                        }
+                    }
+                });
+                console.log('已应用LS涂鸦可见性缓存');
+                return true;
+            }
+            return false;
+        }
+
         // 应用缓存的可见性状态到走私贩飞机标记
         function applySmugglerPlaneVisibilityCache() {
             const groups = (window.smugglerGroupMarkers && window.smugglerGroupMarkers['smuggler_plane']) || [];
@@ -3021,6 +3351,8 @@
                 // 4) 渲染完成后再应用可见性缓存（需在标记存在后）
                 try { applySmugglerPlaneVisibilityCache(); } catch (e) {}
                 try { applyStreetDealersVisibilityCache(); } catch (e) {}
+                try { applyStashHousesVisibilityCache(); } catch (e) {}
+                try { applyLSTagsVisibilityCache(); } catch (e) {}
                 try { applyShipwreckedVisibilityCache(); } catch (e) {}
                 try { applyHiddenCachesVisibilityCache(); } catch (e) {}
                 try { applySmokeProductVisibilityCache(); } catch (e) {}
@@ -3029,6 +3361,8 @@
                 // 5) 刷新计数器（如有）
                 try { updateSmugglerPlaneSidebarCount(); } catch (e) {}
                 try { updateStreetDealersSidebarCount(); } catch (e) {}
+                try { updateStashHousesSidebarCount(); } catch (e) {}
+                try { updateLSTagsSidebarCount(); } catch (e) {}
                 try { updateShipwreckedSidebarCount(); } catch (e) {}
                 try { updateHiddenCachesSidebarCount(); } catch (e) {}
                 try { updateSmokeProductSidebarCount(); } catch (e) {}
@@ -3108,6 +3442,7 @@
                 console.warn('更新杰拉德包裹计数器失败:', e);
             }
         }
+
 
         // 杰拉德包裹增强版弹窗（集成缓存，特殊处理：隐藏全部标记）
         function showDeadDropPopup(item, index) {
@@ -3284,6 +3619,189 @@
 
                     // 刷新侧边栏计数
                     updateDeadDropSidebarCount();
+                });
+            }
+
+            document.body.appendChild(popup);
+        }
+
+        // 藏匿屋增强版弹窗（集成缓存，特殊处理：隐藏全部标记）
+        function showStashHousesPopup(item, index) {
+            const content = `藏匿屋随机生成在 25 个可能位置之一，其位置会直接标记在游戏内地图上。
+
+袭击藏匿屋即可获得 1.000 RP 与 30.000 GTA$ 奖励，或为您正在运营的产业之一补充原材料。`;
+            const imageUrl = 'https://gta-maps.antwen.com/collectibles_images/stash_house/stash_house.webp';
+
+            // 关闭已存在的弹窗
+            const existingPopup = document.querySelector('.stash-houses-popup');
+            if (existingPopup) existingPopup.remove();
+
+            // 藏匿屋特殊：只有一个标记，所以总数固定为1
+            const totalCount = 1;
+            let hiddenCount = 0;
+
+            // 检查当前隐藏状态
+            const visibilityMap = VisibilityCache.loadVisibility('stash_houses');
+            const isCurrentHidden = visibilityMap[0] === true;
+            if (isCurrentHidden) {
+                hiddenCount = 1;
+            }
+
+            const title = `🏠 藏匿屋 #${index + 1} (${hiddenCount}/${totalCount})`;
+
+            // 构建弹窗
+            const popup = document.createElement('div');
+            popup.className = 'stash-houses-popup';
+            popup.style.cssText = `
+                position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+                background: var(--gta-bg-medium);
+                border: 1px solid var(--gta-border);
+                border-radius: 8px;
+                box-shadow: 0 2px 15px rgba(0,0,0,0.5);
+                padding: 15px;
+                z-index: 10000;
+                width: min(92vw, 520px);
+                max-height: 80vh;
+                color: var(--gta-text);
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                overflow-y: auto;
+            `;
+
+            popup.innerHTML = `
+                <div class="popup-header" style="position: relative; margin-bottom: 14px;">
+                    <h3 style="color: var(--gta-primary); font-size: 18px; margin: 0; font-weight: bold;">${title}</h3>
+                    <span class="popup-close" style="position: absolute; top: 0; right: 0; color: var(--gta-text-secondary); font-size: 20px; cursor: pointer; transition: color 0.3s ease;">×</span>
+                </div>
+                <img src="${imageUrl}" alt="藏匿屋图片" style="max-width: 100%; height: auto; border-radius: 6px; margin: 8px 0; display: block; cursor: zoom-in;"/>
+                <div style="margin: 10px 0; padding: 10px; background: rgba(25, 118, 210, 0.1); border-radius: 8px; color: var(--gta-text); font-size: 14px; line-height: 1.6;">
+                    ${content}
+                </div>
+                <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
+                    <button id="hide-stash-houses-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease; display: ${isCurrentHidden ? 'none' : 'inline-block'};">隐藏</button>
+                    <button id="show-stash-houses-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease; display: ${isCurrentHidden ? 'inline-block' : 'none'};">显示</button>
+                    <button id="close-stash-houses-btn" style="padding: 8px 16px; background: var(--gta-primary); color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease;">关闭</button>
+                </div>
+            `;
+
+            // 绑定元素
+            const closeBtn = popup.querySelector('#close-stash-houses-btn');
+            const hideBtn = popup.querySelector('#hide-stash-houses-btn');
+            const showBtn = popup.querySelector('#show-stash-houses-btn');
+            const popupClose = popup.querySelector('.popup-close');
+            const titleElement = popup.querySelector('h3');
+
+            // 关闭弹窗
+            const removePopup = () => popup.remove();
+            closeBtn.addEventListener('click', removePopup);
+            popupClose.addEventListener('click', removePopup);
+            popup.addEventListener('click', (e) => e.stopPropagation());
+            setTimeout(() => {
+                const closePopupHandler = (e) => {
+                    if (!popup.contains(e.target)) {
+                        removePopup();
+                        document.removeEventListener('click', closePopupHandler);
+                    }
+                };
+                document.addEventListener('click', closePopupHandler);
+            }, 50);
+
+            // 图片点击放大（PC/移动端）
+            const popupImage = popup.querySelector('img');
+            if (popupImage) {
+                popupImage.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const overlay = document.createElement('div');
+                    overlay.className = 'stash-houses-image-overlay';
+                    overlay.style.cssText = `
+                        position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+                        display: flex; align-items: center; justify-content: center;
+                        z-index: 10002; cursor: zoom-out;
+                    `;
+                    const bigImg = document.createElement('img');
+                    bigImg.src = popupImage.src;
+                    bigImg.alt = popupImage.alt || '';
+                    bigImg.style.cssText = `max-width: 95vw; max-height: 95vh; border-radius: 6px; box-shadow: 0 4px 24px rgba(0,0,0,0.6);`;
+                    overlay.appendChild(bigImg);
+
+                    const removeOverlay = () => {
+                        document.removeEventListener('keydown', onKey);
+                        overlay.remove();
+                    };
+                    const onKey = (ev) => { if (ev.key === 'Escape') removeOverlay(); };
+                    overlay.addEventListener('click', removeOverlay);
+                    document.addEventListener('keydown', onKey);
+                    document.body.appendChild(overlay);
+                });
+            }
+
+            // 工具：隐藏/显示藏匿屋标记（特殊：隐藏全部标记）
+            function setStashHousesVisibility(opacity) {
+                // 隐藏所有藏匿屋相关的标记
+                document.querySelectorAll('.item-marker').forEach(marker => {
+                    const img = marker.querySelector('img');
+                    if (img && img.src && img.src.includes('stash')) {
+                        marker.style.opacity = String(opacity);
+                    }
+                });
+
+                // 同时处理通用的 Leaflet 标记（通过图标URL识别 stash_houses）
+                if (Array.isArray(leafletMarkers) && leafletMarkers.length > 0) {
+                    leafletMarkers.forEach((layer) => {
+                        try {
+                            const iconUrl = layer && layer.options && layer.options.icon && layer.options.icon.options && layer.options.icon.options.iconUrl;
+                            if (iconUrl && iconUrl.includes('stash')) {
+                                if (typeof layer.setOpacity === 'function') {
+                                    layer.setOpacity(opacity);
+                                } else if (typeof layer.setStyle === 'function') {
+                                    layer.setStyle({ opacity });
+                                } else if (layer.getElement && layer.getElement()) {
+                                    layer.getElement().style.opacity = String(opacity);
+                                }
+                            }
+                        } catch (e) { /* no-op */ }
+                    });
+                }
+
+                // 同时处理Leaflet标记（如果存在）
+                if (window.stashHousesMarkers && Array.isArray(window.stashHousesMarkers)) {
+                    window.stashHousesMarkers.forEach((layer) => {
+                        if (layer && typeof layer.setOpacity === 'function') {
+                            layer.setOpacity(opacity);
+                        } else if (layer && typeof layer.setStyle === 'function') {
+                            layer.setStyle({ opacity });
+                        }
+                    });
+                }
+                
+                // 更新缓存
+                VisibilityCache.updateItemVisibility('stash_houses', 0, opacity === 0.3);
+            }
+
+            // 隐藏按钮
+            if (hideBtn) {
+                hideBtn.addEventListener('click', () => {
+                    setStashHousesVisibility(0.3);
+                    const newHiddenCount = 1;
+                    titleElement.textContent = `🏠 藏匿屋 #${index + 1} (${newHiddenCount}/${totalCount})`;
+                    hideBtn.style.display = 'none';
+                    showBtn.style.display = 'inline-block';
+
+                    // 刷新侧边栏计数
+                    updateStashHousesSidebarCount();
+                });
+            }
+
+            // 显示按钮
+            if (showBtn) {
+                showBtn.addEventListener('click', () => {
+                    setStashHousesVisibility(1);
+                    const newHiddenCount = 0;
+                    titleElement.textContent = `🏠 藏匿屋 #${index + 1} (${newHiddenCount}/${totalCount})`;
+                    showBtn.style.display = 'none';
+                    hideBtn.style.display = 'inline-block';
+
+                    // 刷新侧边栏计数
+                    updateStashHousesSidebarCount();
                 });
             }
 
@@ -4611,6 +5129,8 @@
                 // 数据加载完成后更新所有计数器
                 try { updateSmugglerPlaneSidebarCount(); } catch(e) {}
                 try { updateStreetDealersSidebarCount(); } catch(e) {}
+                try { updateStashHousesSidebarCount(); } catch(e) {}
+                try { updateLSTagsSidebarCount(); } catch(e) {}
                 try { updateShipwreckedSidebarCount(); } catch(e) {}
                 try { updateHiddenCachesSidebarCount(); } catch(e) {}
                 try { updateSmokeProductSidebarCount(); } catch(e) {}
@@ -5811,6 +6331,11 @@
                     if (!window.streetDealersMarkers) window.streetDealersMarkers = [];
                     window.streetDealersMarkers[index] = marker;
                 }
+                // 记录 ls_tags 标记以便弹窗隐藏/显示控制
+                else if (type === 'ls_tags') {
+                    if (!window.lsTagsMarkers) window.lsTagsMarkers = [];
+                    window.lsTagsMarkers[index] = marker;
+                }
                 // 记录 shipwrecked 标记以便弹窗隐藏/显示控制
                 else if (type === 'shipwrecked') {
                     if (!window.shipwreckedMarkers) window.shipwreckedMarkers = [];
@@ -5940,7 +6465,7 @@
                 }
                 // 特殊处理LS涂鸦，显示图片弹窗（传入对象以使用 sequenceNumber）
                 else if (type === 'ls_tags') {
-                    showLSTagsImage(item);
+                    showLSTagsPopup(item, index);
                 }
                 // 特殊处理车行标记，使用专门的车辆展示函数
                 else if (['casino', 'car_meet', 'premium_deluxe_motorsport', 'luxury_autos'].includes(type)) {
@@ -5991,7 +6516,7 @@
                 }
                 // 新增：特殊处理藏匿屋，显示弹窗
                 else if (type === 'stash_houses') {
-                    showStashHousePopup(item, index);
+                    showStashHousesPopup(item, index);
                 }
                 // 新增：特殊处理玛德拉索雇凶，显示弹窗
                 else if (type === 'madrazo_hits') {
@@ -6619,6 +7144,8 @@
             // 重新应用隐藏可见性缓存，确保被隐藏的标记在切换显示后仍保持状态
             try { applySmugglerPlaneVisibilityCache(); } catch (e) {}
             try { applyStreetDealersVisibilityCache(); } catch (e) {}
+            try { applyStashHousesVisibilityCache(); } catch (e) {}
+            try { applyLSTagsVisibilityCache(); } catch (e) {}
             try { applyShipwreckedVisibilityCache(); } catch (e) {}
             try { applyHiddenCachesVisibilityCache(); } catch (e) {}
             try { applySmokeProductVisibilityCache(); } catch (e) {}
@@ -9912,130 +10439,15 @@
                 });
 
                 if (nearbyTag) {
+                    const index = itemData.ls_tags.findIndex(tag => 
+                        tag.x === nearbyTag.x && tag.y === nearbyTag.y
+                    );
                     console.log('点击了LS涂鸦附近:', nearbyTag.name || `LS涂鸦 #${nearbyTag.sequenceNumber}`);
-                    showLSTagsImage(nearbyTag);
+                    showLSTagsPopup(nearbyTag, index);
                 }
             }
         }
         
-        // 显示LS涂鸦弹窗
-        function showLSTagsImage(tag) {
-            // 使用API返回的编号数字
-            const sequenceNumber = tag.sequenceNumber;
-            const imageUrl = `https://gta-maps.antwen.com/collectibles_images/ls_tags/ls_tags_${sequenceNumber}.webp`;
-            
-            // 创建弹窗
-            const popup = document.createElement('div');
-            popup.className = 'ls-tags-popup';
-            popup.style.cssText = `
-                position: fixed;
-                top: 50%;
-                left: 50%;
-                transform: translate(-50%, -50%);
-                background: white;
-                border: 3px solid #FF5722;
-                border-radius: 12px;
-                padding: 20px;
-                z-index: 10000;
-                max-width: 80vw;
-                max-height: 80vh;
-                box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-                font-family: Arial, sans-serif;
-                text-align: center;
-            `;
-
-            // 弹窗内容
-            popup.innerHTML = `
-                <div style="margin-bottom: 15px; font-size: 20px; font-weight: bold; color: #E64A19;">
-                    🎨 LS涂鸦 #${sequenceNumber}
-                </div>
-                <img src="${imageUrl}"
-                     alt="LS涂鸦 #${sequenceNumber}"
-                     style="max-width: 100%; max-height: 60vh; border-radius: 8px; margin-bottom: 15px;">
-                <div style="margin-bottom: 15px; color: #666; font-size: 14px;">
-                    可在上图位置找到！
-                </div>
-                <div style="margin: 15px 0; padding: 12px; background: #f8f9fa; border-radius: 6px; border-left: 4px solid #FF5722;">
-                    <div style="font-weight: bold; color: #E64A19; margin-bottom: 5px;">🎯 收集说明</div>
-                    <div style="color: #666; font-size: 14px; line-height: 1.4;">
-                        找到并收集所有LS涂鸦，解锁独特奖励！
-                    </div>
-                </div>
-                <button id="hide-ls-tags-btn"
-                        style="padding: 10px 20px; margin-right: 10px;
-                               background: #FF5722; color: white; 
-                               border: none; border-radius: 6px; 
-                               cursor: pointer; font-size: 16px;
-                               transition: background-color 0.3s;">
-                    隐藏标记
-                </button>
-                <button id="close-ls-tags-btn"
-                        style="padding: 10px 20px; 
-                               background: #f44336; color: white; 
-                               border: none; border-radius: 6px; 
-                               cursor: pointer; font-size: 16px;
-                               transition: background-color 0.3s;">
-                    关闭
-                </button>
-            `;
-
-            // 添加到页面
-            document.body.appendChild(popup);
-
-            // 添加隐藏按钮事件监听
-            const hideBtn = popup.querySelector('#hide-ls-tags-btn');
-            hideBtn.addEventListener('click', () => {
-                 // 找到对应的标记并设置透明度为25%
-                 document.querySelectorAll('.item-marker').forEach(marker => {
-                     const img = marker.querySelector('img');
-                     const markerIndex = parseInt(marker.dataset.index);
-                     const itemTag = itemData.ls_tags[markerIndex];
-                     if (img && img.src && img.src.includes('ls_tags') && itemTag && itemTag.sequenceNumber === tag.sequenceNumber) {
-                         marker.style.opacity = '0.25';
-                         // 将隐藏按钮改为显示按钮
-                         hideBtn.textContent = '显示';
-                         hideBtn.style.background = '#2196F3';
-                         hideBtn.id = 'show-ls-tags-btn';
-                            
-                         // 移除旧的点击事件，添加新的显示事件
-                         const newShowBtn = hideBtn.cloneNode(true);
-                         hideBtn.replaceWith(newShowBtn);
-                         newShowBtn.addEventListener('click', () => {
-                             // 恢复透明度为100%
-                             document.querySelectorAll('.item-marker').forEach(m => {
-                                 const mImg = m.querySelector('img');
-                                 const mIndex = parseInt(m.dataset.index);
-                                 const mTag = itemData.ls_tags[mIndex];
-                                 if (mImg && mImg.src && mImg.src.includes('ls_tags') && mTag && mTag.sequenceNumber === tag.sequenceNumber) {
-                                     m.style.opacity = '1';
-                                 }
-                             });
-                             popup.remove();
-                         });
-                     }
-                 });
-             });
-
-            // 添加关闭按钮事件监听
-            const closeBtn = popup.querySelector('#close-ls-tags-btn');
-            closeBtn.addEventListener('click', () => {
-                popup.remove();
-            });
-
-            // 点击弹窗外部关闭
-            popup.addEventListener('click', (e) => e.stopPropagation());
-            
-            // 使用setTimeout延迟添加document点击事件，避免立即触发
-            setTimeout(() => {
-                const closePopupHandler = (e) => {
-                    if (!popup.contains(e.target)) {
-                        popup.remove();
-                        document.removeEventListener('click', closePopupHandler);
-                    }
-                };
-                document.addEventListener('click', closePopupHandler);
-            }, 100);
-        }
         
         // 检测纸牌点击
         function checkPlayingCardsClick(clickX, clickY) {
@@ -10711,77 +11123,12 @@
                         stash.x === nearbyStash.x && stash.y === nearbyStash.y
                     );
                     console.log('点击了藏匿屋附近:', nearbyStash.name);
-                    showStashHousePopup(nearbyStash, index);
+                    showStashHousesPopup(nearbyStash, index);
                     return;
                 }
             }
         }
 
-        // 藏匿屋弹窗
-        function showStashHousePopup(item, index) {
-            const title = `🏠 藏匿屋 #${index + 1}`;
-            const imageUrl = 'https://gta-maps.antwen.com/collectibles_images/stash_house/stash_house.webp';
-            const content = `藏匿屋随机生成在 25 个可能位置之一，其位置会直接标记在游戏内地图上。<br><br>袭击藏匿屋即可获得 1.000 RP 与 30.000 GTA$ 奖励，或为您正在运营的产业之一补充原材料。`;
-            
-            const popup = document.createElement('div');
-            popup.className = 'stash-house-popup';
-            popup.style.cssText = `
-                position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-                background: #fff; border: 3px solid #FF9800; border-radius: 12px; padding: 18px;
-                z-index: 10000; max-width: 520px; max-height: 80vh; box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-                font-family: Arial, sans-serif; text-align: left; overflow-y: auto;`;
-
-            popup.innerHTML = `
-                <div style="margin-bottom: 12px; font-size: 20px; font-weight: bold; color: #FF9800; text-align:center;">${title}</div>
-                <img src="${imageUrl}" alt="藏匿屋图片" style="max-width: 100%; height: auto; border-radius: 6px; margin: 8px 0;"/>
-                <div style="margin: 10px 0; padding: 10px; background: #fff3e0; border-radius: 8px; color: #4e342e; font-size: 13px; line-height: 1.6;">
-                    ${content}
-                </div>
-                <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px;">
-                    <button id="hide-stash-btn" style="padding: 10px 18px; background: #4CAF50; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">隐藏</button>
-                    <button id="show-stash-btn" style="padding: 10px 18px; background: #2196F3; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">显示</button>
-                    <button id="close-stash-btn" style="padding: 10px 18px; background: #FF9800; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">关闭</button>
-                </div>
-            `;
-
-            // 隐藏/显示/关闭按钮
-            const hideBtn = popup.querySelector('#hide-stash-btn');
-            const showBtn = popup.querySelector('#show-stash-btn');
-            const closeBtn = popup.querySelector('#close-stash-btn');
-
-            // 解析目标标记和索引
-            function resolveTargetAndIndex() {
-                const el = document.querySelector(`.item-marker[data-type="stash_houses"][data-index="${index}"]`);
-                return { el, globalIndex: index };
-            }
-
-            // 隐藏按钮：设置标记透明度为25%
-            hideBtn.addEventListener('click', () => {
-                const { el } = resolveTargetAndIndex();
-                if (!el) return;
-                el.style.opacity = '0.25';
-            });
-
-            // 显示按钮：恢复标记透明度为100%
-            showBtn.addEventListener('click', () => {
-                const { el } = resolveTargetAndIndex();
-                if (!el) return;
-                el.style.opacity = '1';
-            });
-
-            // 关闭按钮
-            closeBtn.addEventListener('click', () => popup.remove());
-            
-            popup.addEventListener('click', (e) => e.stopPropagation());
-            setTimeout(() => {
-                const closePopupHandler = (e) => {
-                    if (!popup.contains(e.target)) { popup.remove(); document.removeEventListener('click', closePopupHandler); }
-                };
-                document.addEventListener('click', closePopupHandler);
-            }, 50);
-
-            document.body.appendChild(popup);
-        }
 
         // 检测玛德拉索雇凶点击（坐标检测）
         function checkMadrazoHitsClick(clickX, clickY) {
@@ -14303,6 +14650,28 @@
                         // 初始渲染一次
                         setTimeout(() => { try { updateStreetDealersSidebarCount(); } catch(e) {} }, 0);
                     }
+                    // 藏匿屋计数器
+                    else if (type === 'stash_houses') {
+                        const counter = document.createElement('span');
+                        counter.className = 'stash-houses-counter';
+                        counter.style.marginLeft = '6px';
+                        counter.style.color = 'var(--gta-text-secondary)';
+                        counter.textContent = '';
+                        label.appendChild(counter);
+                        // 初始渲染一次
+                        setTimeout(() => { try { updateStashHousesSidebarCount(); } catch(e) {} }, 0);
+                    }
+                    // LS涂鸦计数器
+                    else if (type === 'ls_tags') {
+                        const counter = document.createElement('span');
+                        counter.className = 'ls-tags-counter';
+                        counter.style.marginLeft = '6px';
+                        counter.style.color = 'var(--gta-text-secondary)';
+                        counter.textContent = '';
+                        label.appendChild(counter);
+                        // 初始渲染一次
+                        setTimeout(() => { try { updateLSTagsSidebarCount(); } catch(e) {} }, 0);
+                    }
                     // 沉船计数器
                     else if (type === 'shipwrecked') {
                         const counter = document.createElement('span');
@@ -14386,6 +14755,14 @@
                         if (t === 'street_dealers') {
                             try { updateStreetDealersSidebarCount(); } catch(e) {}
                         }
+                        // 藏匿屋计数器
+                        if (t === 'stash_houses') {
+                            try { updateStashHousesSidebarCount(); } catch(e) {}
+                        }
+                        // LS涂鸦计数器
+                        if (t === 'ls_tags') {
+                            try { updateLSTagsSidebarCount(); } catch(e) {}
+                        }
                         // 沉船计数器
                         if (t === 'shipwrecked') {
                             try { updateShipwreckedSidebarCount(); } catch(e) {}
@@ -14452,6 +14829,8 @@
                     // 渲染完成后，刷新一次计数器
                     try { updateSmugglerPlaneSidebarCount(); } catch(e) {}
                     try { updateStreetDealersSidebarCount(); } catch(e) {}
+                    try { updateStashHousesSidebarCount(); } catch(e) {}
+                    try { updateLSTagsSidebarCount(); } catch(e) {}
                     try { updateShipwreckedSidebarCount(); } catch(e) {}
                     try { updateHiddenCachesSidebarCount(); } catch(e) {}
                     try { updateSmokeProductSidebarCount(); } catch(e) {}

@@ -1,1 +1,23 @@
-<svg viewBox="0 0 12.5 12.5" xmlns="http://www.w3.org/2000/svg" class="absolute"><circle cx="6.25" cy="6.25" r="5.75" fill="#bf0001" fill-opacity="1" stroke="#ffffff" stroke-width="1" stroke-opacity="1"></circle><!----></svg>
+<svg id="yuanbaoSvg" width="200" height="120" viewBox="0 0 200 130" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <linearGradient id="bodyGradient" x1="0.5" y1="0" x2="0.5" y2="1">
+                        <stop offset="0%" stop-color="#FBBF24"/>
+                        <stop offset="100%" stop-color="#F59E0B"/>
+                    </linearGradient>
+                    <linearGradient id="topGradient" x1="0.5" y1="0" x2="0.5" y2="1">
+                        <stop offset="0%" stop-color="#FEF3C7"/>
+                        <stop offset="100%" stop-color="#FDE047"/>
+                    </linearGradient>
+                </defs>
+        
+                <g stroke="#422006" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+                    <!-- 元宝主体 (新路径，更传统的船形) -->
+                    <path d="M10,70 C20,120 180,120 190,70 C160,60 40,60 10,70 Z" fill="url(#bodyGradient)"/>
+                    
+                    <!-- 元宝顶部 (调整了位置) -->
+                    <path d="M65 62 C 65 32, 135 32, 135 62 Z" fill="url(#topGradient)"/>
+                </g>
+                
+                <!-- 顶部高光 (调整了颜色和透明度) -->
+                <ellipse cx="90" cy="45" rx="18" ry="7" fill="rgba(255, 255, 255, 0.8)" stroke="none"/>
+            </svg>

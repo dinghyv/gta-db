@@ -4367,6 +4367,7 @@
                 // 4) 渲染完成后再应用可见性缓存（需在标记存在后）
                 try { applySmugglerPlaneVisibilityCache(); } catch (e) {}
                 try { applyStreetDealersVisibilityCache(); } catch (e) {}
+                try { applyMediaStickVisibilityCache(); } catch (e) {}
                 try { applyMoviePropsVisibilityCache(); } catch (e) {}
                 try { applyStuntJumpsVisibilityCache(); } catch (e) {}
                 try { applyYuanbaoVisibilityCache(); } catch (e) {}
@@ -6728,8 +6729,14 @@
                 }).addTo(map);
                 
                 marker.on('click', function(e) {
-                    showItemInfo(item, type, index);
+                    showMediaStickPopup(item, index);
                 });
+                
+                // 记录媒体记忆棒标记（用于隐藏/显示）
+                try {
+                    if (!window.mediaStickMarkers) window.mediaStickMarkers = [];
+                    window.mediaStickMarkers[index] = marker;
+                } catch (e) {}
                 
                 return marker;
             }
@@ -7389,6 +7396,11 @@
                     if (!window.streetDealersMarkers) window.streetDealersMarkers = [];
                     window.streetDealersMarkers[index] = marker;
                 }
+                // 记录 media_sticks 标记以便弹窗隐藏/显示控制
+                else if (type === 'media_sticks') {
+                    if (!window.mediaStickMarkers) window.mediaStickMarkers = [];
+                    window.mediaStickMarkers[index] = marker;
+                }
                 // 记录 movie_props 标记以便弹窗隐藏/显示控制
                 else if (type === 'movie_props') {
                     if (!window.moviePropsMarkers) window.moviePropsMarkers = [];
@@ -7678,7 +7690,7 @@
                 }
                 // 新增：特殊处理媒体记忆棒，显示弹窗
                 else if (type === 'media_sticks') {
-                    showMediaSticksPopup(item, index);
+                    showMediaStickPopup(item, index);
                 }
                 // 新增：特殊处理望远镜，使用通用弹窗
                 else if (type === 'v_telescopes') {
@@ -8301,6 +8313,7 @@
             // 重新应用隐藏可见性缓存，确保被隐藏的标记在切换显示后仍保持状态
             try { applySmugglerPlaneVisibilityCache(); } catch (e) {}
             try { applyStreetDealersVisibilityCache(); } catch (e) {}
+            try { applyMediaStickVisibilityCache(); } catch (e) {}
             try { applyMoviePropsVisibilityCache(); } catch (e) {}
             try { applySprayVisibilityCache(); } catch (e) {}
             try { applyPplVisibilityCache(); } catch (e) {}
@@ -12747,42 +12760,44 @@
             }
         }
 
-        // 媒体记忆棒弹窗
+         // 媒体记忆棒弹窗模板（参考纸牌实现，含隐藏/显示功能）
         function showMediaStickPopup(item, index) {
-            const label = item.label || item.name;
+            const rawLabel = item && (item.label || item.name) || '';
+            const label = String(rawLabel);
+            const labelLower = label.toLowerCase();
             
-            // 根据标签匹配不同的弹窗内容
+            // 根据标签匹配不同的弹窗内容（统一小写匹配，兼容多种别名）
             let title, content, imageUrl;
             
-            if (label.includes('circoloco_green_ep')) {
+            if (labelLower.includes('circoloco_green_ep')) {
                 title = '🎵 CircoLoco Records - Green EP';
                 content = `游戏中共有 4 个包含音乐的 CircoLoco Records 媒体记忆棒。收集一个媒体记忆棒可获得 1.000 RP，同时在媒体播放器上解锁相应曲目。完成全部收集还可解锁额外的曲目：CLR Launch Party (Seth Troxler)，并解锁CircoLoco T 恤。<br><br>Green EP - 在游戏厅的吧台上 - 您的游戏厅的位置可能与本标记不同。`;
                 imageUrl = 'https://gta-maps.antwen.com/collectibles_images/media_sticks/circoloco_green_ep.webp';
-            } else if (label.includes('circoloco_violet_ep')) {
+            } else if (labelLower.includes('circoloco_violet_ep')) {
                 title = '🎵 CircoLoco Records - Violet EP';
                 content = `游戏中共有 4 个包含音乐的 CircoLoco Records 媒体记忆棒。收集一个媒体记忆棒可获得 1.000 RP，同时在媒体播放器上解锁相应曲目。完成全部收集还可解锁额外的曲目：CLR Launch Party (Seth Troxler)，并解锁CircoLoco T 恤。<br><br>Violet EP - 在夜总会的桌子上 - 您的夜总会的位置可能与本地图的标记不同。`;
                 imageUrl = 'https://gta-maps.antwen.com/collectibles_images/media_sticks/circoloco_violet_ep.webp';
-            } else if (label.includes('circoloco_blue_ep')) {
+            } else if (labelLower.includes('circoloco_blue_ep')) {
                 title = '🎵 CircoLoco Records - Blue EP';
                 content = `游戏中共有 4 个包含音乐的 CircoLoco Records 媒体记忆棒。收集一个媒体记忆棒可获得 1.000 RP，同时在媒体播放器上解锁相应曲目。完成全部收集还可解锁额外的曲目：CLR Launch Party (Seth Troxler)，并解锁CircoLoco T 恤。<br><br>Blue EP - 在名钻假日赌场的露台，其中的一张桌子上。`;
                 imageUrl = 'https://gta-maps.antwen.com/collectibles_images/media_sticks/circoloco_blue_ep.webp';
-            } else if (label.includes('circoloco_black_ep')) {
+            } else if (labelLower.includes('circoloco_black_ep')) {
                 title = '🎵 CircoLoco Records - Black EP';
                 content = `游戏中共有 4 个包含音乐的 CircoLoco Records 媒体记忆棒。收集一个媒体记忆棒可获得 1.000 RP，同时在媒体播放器上解锁相应曲目。完成全部收集还可解锁额外的曲目：CLR Launch Party (Seth Troxler)，并解锁CircoLoco T 恤。<br><br>Black EP - 在洛圣都车友会内，在改装工坊旁边的一个工具台上。`;
                 imageUrl = 'https://gta-maps.antwen.com/collectibles_images/media_sticks/circoloco_black_ep.webp';
-            } else if (label.includes('dam_funk')) {
+            } else if (labelLower.includes('dam_funk') || labelLower.includes('damfunk')) {
                 title = '🎵 DâM-FunK – Even the Score';
                 content = `它将提供 1.000 RP 奖励，并在媒体播放器上解锁新的曲目<br><br>呼叫 6115550110 后会在 5 个可能位置之一出现。游戏内地图上会标出大致位置。本地图显示的是确切位置。`;
                 imageUrl = 'https://gta-maps.antwen.com/collectibles_images/media_sticks/dam_funk.webp';
-            } else if (label.includes('dr_dre')) {
+            } else if (labelLower.includes('dr_dre') || labelLower.includes('dre')) {
                 title = '🎵 Dr. Dre - 在事务所里';
                 content = `它将奖励您 马拉松连帽上衣 与 1.000 RP，并在媒体播放器上解锁新的曲目<br><br>Dr. Dre - 在事务所里 - 您的事务所的位置可能与本地图的标记不同。该媒体记忆棒将在以主持人身份完成全部德瑞博士的故事后可用。`;
                 imageUrl = 'https://gta-maps.antwen.com/collectibles_images/media_sticks/dr_dre.webp';
-            } else if (label.includes('moodymann')) {
+            } else if (labelLower.includes('moodymann')) {
                 title = '🎵 Moodymann - Kenny\'s Backyard Boogie';
                 content = `它将提供 1.000 RP 奖励，并在媒体播放器上解锁新的曲目<br><br>Moodymann - Kenny's Backyard Boogie -在穆迪曼的车的后备箱上 - 这辆车在 洛圣都车友会 随机生成。`;
                 imageUrl = 'https://gta-maps.antwen.com/collectibles_images/media_sticks/moodymann.webp';
-            } else if (label.includes('nez')) {
+            } else if (labelLower.includes('nez_ft_schoolboyq') || labelLower.includes('nez')) {
                 title = '🎵 NEZ - You Wanna?';
                 content = `它将提供 1.000 RP 奖励，并在媒体播放器上解锁新的曲目<br><br>NEZ - You Wanna?`;
                 imageUrl = 'https://gta-maps.antwen.com/collectibles_images/media_sticks/nez.webp';
@@ -12793,64 +12808,157 @@
                 imageUrl = 'https://gta-maps.antwen.com/collectibles_images/media_sticks/default.webp';
             }
             
+            // 关闭已存在的弹窗
+            const existingPopup = document.querySelector('.media-stick-popup');
+            if (existingPopup) existingPopup.remove();
+
+            // 获取当前标记状态
+            const markers = (window.mediaStickMarkers && window.mediaStickMarkers) || [];
+            const currentMarker = markers[index];
+            let isCurrentHidden = false;
+            if (currentMarker && typeof currentMarker.getElement === 'function') {
+                const el = currentMarker.getElement();
+                isCurrentHidden = el && el.style.opacity === '0.3';
+            }
+
+            // 构建弹窗
             const popup = document.createElement('div');
             popup.className = 'media-stick-popup';
             popup.style.cssText = `
                 position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-                background: #fff; border: 3px solid #9C27B0; border-radius: 12px; padding: 18px;
-                z-index: 10000; max-width: 520px; max-height: 80vh; box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-                font-family: Arial, sans-serif; text-align: left; overflow-y: auto;`;
+                background: var(--gta-bg-medium);
+                border: 1px solid var(--gta-border);
+                border-radius: 8px;
+                box-shadow: 0 2px 15px rgba(0,0,0,0.5);
+                padding: 15px;
+                z-index: 10000;
+                width: min(92vw, 520px);
+                max-height: 80vh;
+                color: var(--gta-text);
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                overflow-y: auto;
+            `;
 
             popup.innerHTML = `
-                <div style="margin-bottom: 12px; font-size: 20px; font-weight: bold; color: #9C27B0; text-align:center;">${title}</div>
-                <img src="${imageUrl}" alt="媒体记忆棒图片" style="max-width: 100%; height: auto; border-radius: 6px; margin: 8px 0;"/>
-                <div style="margin: 10px 0; padding: 10px; background: #f3e5f5; border-radius: 8px; color: #4e342e; font-size: 13px; line-height: 1.6;">
+                <div class="popup-header" style="position: relative; margin-bottom: 14px;">
+                    <h3 style="color: var(--gta-primary); font-size: 18px; margin: 0; font-weight: bold;">${title}</h3>
+                    <span class="popup-close" style="position: absolute; top: 0; right: 0; color: var(--gta-text-secondary); font-size: 20px; cursor: pointer; transition: color 0.3s ease;">×</span>
+                </div>
+                <img src="${imageUrl}" alt="媒体记忆棒图片" style="max-width: 100%; height: auto; border-radius: 6px; margin: 8px 0; display: block; cursor: zoom-in;"/>
+                <div style="margin: 10px 0; padding: 10px; background: rgba(25, 118, 210, 0.1); border-radius: 8px; color: var(--gta-text); font-size: 14px; line-height: 1.6;">
                     ${content}
                 </div>
-                <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px;">
-                    <button id="hide-media-btn" style="padding: 10px 18px; background: #4CAF50; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">隐藏</button>
-                    <button id="show-media-btn" style="padding: 10px 18px; background: #2196F3; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">显示</button>
-                    <button id="close-media-btn" style="padding: 10px 18px; background: #9C27B0; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">关闭</button>
+                <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
+                    <button id="hide-media-stick-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease; display: ${isCurrentHidden ? 'none' : 'inline-block'};">隐藏</button>
+                    <button id="show-media-stick-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease; display: ${isCurrentHidden ? 'inline-block' : 'none'};">显示</button>
+                    <button id="close-media-stick-btn" style="padding: 8px 16px; background: var(--gta-primary); color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease;">关闭</button>
                 </div>
             `;
 
-            // 隐藏/显示/关闭按钮
-            const hideBtn = popup.querySelector('#hide-media-btn');
-            const showBtn = popup.querySelector('#show-media-btn');
-            const closeBtn = popup.querySelector('#close-media-btn');
+            // 绑定元素
+            const closeBtn = popup.querySelector('#close-media-stick-btn');
+            const hideBtn = popup.querySelector('#hide-media-stick-btn');
+            const showBtn = popup.querySelector('#show-media-stick-btn');
+            const popupClose = popup.querySelector('.popup-close');
 
-            // 解析目标标记和索引
-            function resolveTargetAndIndex() {
-                const el = document.querySelector(`.item-marker[data-type="media_sticks"][data-index="${index}"]`);
-                return { el, globalIndex: index };
-            }
-
-            // 隐藏按钮：设置标记透明度为25%
-            hideBtn.addEventListener('click', () => {
-                const { el } = resolveTargetAndIndex();
-                if (!el) return;
-                el.style.opacity = '0.25';
-            });
-
-            // 显示按钮：恢复标记透明度为100%
-            showBtn.addEventListener('click', () => {
-                const { el } = resolveTargetAndIndex();
-                if (!el) return;
-                el.style.opacity = '1';
-            });
-
-            // 关闭按钮
-            closeBtn.addEventListener('click', () => popup.remove());
-            
+            // 关闭弹窗
+            const removePopup = () => popup.remove();
+            closeBtn.addEventListener('click', removePopup);
+            popupClose.addEventListener('click', removePopup);
             popup.addEventListener('click', (e) => e.stopPropagation());
             setTimeout(() => {
                 const closePopupHandler = (e) => {
-                    if (!popup.contains(e.target)) { popup.remove(); document.removeEventListener('click', closePopupHandler); }
+                    if (!popup.contains(e.target)) {
+                        removePopup();
+                        document.removeEventListener('click', closePopupHandler);
+                    }
                 };
                 document.addEventListener('click', closePopupHandler);
             }, 50);
 
+            // 图片点击放大功能
+            const popupImage = popup.querySelector('img');
+            if (popupImage) {
+                popupImage.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const overlay = document.createElement('div');
+                    overlay.className = 'media-stick-image-overlay';
+                    overlay.style.cssText = `
+                        position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+                        display: flex; align-items: center; justify-content: center;
+                        z-index: 10002; cursor: zoom-out;
+                    `;
+                    const bigImg = document.createElement('img');
+                    bigImg.src = popupImage.src;
+                    bigImg.alt = popupImage.alt || '';
+                    bigImg.style.cssText = `max-width: 95vw; max-height: 95vh; border-radius: 6px; box-shadow: 0 4px 24px rgba(0,0,0,0.6);`;
+                    overlay.appendChild(bigImg);
+
+                    const removeOverlay = () => {
+                        document.removeEventListener('keydown', onKey);
+                        overlay.remove();
+                    };
+                    const onKey = (ev) => { if (ev.key === 'Escape') removeOverlay(); };
+                    overlay.addEventListener('click', removeOverlay);
+                    document.addEventListener('keydown', onKey);
+                    document.body.appendChild(overlay);
+                });
+            }
+
+            // 工具：隐藏/显示当前标记
+            function setCurrentMarkerVisibility(opacity) {
+                if (currentMarker && typeof currentMarker.setOpacity === 'function') {
+                    currentMarker.setOpacity(opacity);
+                } else if (currentMarker && typeof currentMarker.setStyle === 'function') {
+                    currentMarker.setStyle({ opacity });
+                }
+                
+                // 更新缓存
+                VisibilityCache.updateItemVisibility('media_sticks', index, opacity === 0.3);
+            }
+
+            // 隐藏按钮
+            if (hideBtn) {
+                hideBtn.addEventListener('click', () => {
+                    setCurrentMarkerVisibility(0.3);
+                    hideBtn.style.display = 'none';
+                    showBtn.style.display = 'inline-block';
+                    isCurrentHidden = true;
+                });
+            }
+
+            // 显示按钮
+            if (showBtn) {
+                showBtn.addEventListener('click', () => {
+                    setCurrentMarkerVisibility(1);
+                    showBtn.style.display = 'none';
+                    hideBtn.style.display = 'inline-block';
+                    isCurrentHidden = false;
+                });
+            }
+
             document.body.appendChild(popup);
+        }
+
+        // 应用缓存的可见性状态到媒体记忆棒标记
+        function applyMediaStickVisibilityCache() {
+            const markers = (window.mediaStickMarkers && window.mediaStickMarkers) || [];
+            if (markers.length > 0) {
+                const visibilityMap = VisibilityCache.loadVisibility('media_sticks');
+                markers.forEach((marker, index) => {
+                    const isHidden = visibilityMap[index];
+                    if (isHidden && marker) {
+                        if (typeof marker.setOpacity === 'function') {
+                            marker.setOpacity(0.3);
+                        } else if (typeof marker.setStyle === 'function') {
+                            marker.setStyle({ opacity: 0.3 });
+                        }
+                    }
+                });
+                console.log('已应用媒体记忆棒可见性缓存');
+                return true;
+            }
+            return false;
         }
 
         // 检测藏匿屋点击（坐标检测）

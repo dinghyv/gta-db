@@ -2736,6 +2736,40 @@
             }
         }
 
+        // 统计隐藏/总数，并更新侧边栏计数器文本（南瓜灯，集成缓存）
+        function updateJackOLanternsSidebarCount() {
+            try {
+                const counterEl = document.querySelector('#sidebar-item-jack_o_lanterns + label .jack-counter');
+                if (!counterEl) return;
+
+                const markers = (window.jackOLanternMarkers && window.jackOLanternMarkers) || [];
+                let total = 0;
+                let hidden = 0;
+
+                // 总数以物品总数为准
+                total = Array.isArray(window.itemData?.jack_o_lanterns) ? window.itemData.jack_o_lanterns.length : 0;
+
+                if (Array.isArray(markers) && markers.length > 0) {
+                    markers.forEach((marker) => {
+                        if (marker && typeof marker.getElement === 'function') {
+                            const el = marker.getElement();
+                            if (el && el.style.opacity === '0.3') hidden++;
+                        }
+                    });
+                } else {
+                    // 从缓存中获取隐藏数量
+                    const cachedCounter = CounterCache.getCounter('jack_o_lanterns');
+                    hidden = cachedCounter.hidden || 0;
+                }
+
+                // 更新缓存
+                CounterCache.updateCounter('jack_o_lanterns', hidden, total);
+                counterEl.textContent = total > 0 ? ` (${hidden}/${total})` : '';
+            } catch (e) {
+                console.warn('更新南瓜灯计数器失败:', e);
+            }
+        }
+
         // 统计隐藏/总数，并更新侧边栏计数器文本（集成缓存）
         function updateSpraySidebarCount() {
             try {
@@ -6178,6 +6212,7 @@
                 try { updateSignalJammersSidebarCount(); } catch(e) {}
                 try { updateActionFiguresSidebarCount(); } catch(e) {}
                 try { updatePlayingCardsSidebarCount(); } catch(e) {}
+                try { updateJackOLanternsSidebarCount(); } catch(e) {}
                 try { updateSpraySidebarCount(); } catch(e) {}
                 try { updateOrganicFarmSidebarCount(); } catch(e) {}
                 try { updateSkydivesSidebarCount(); } catch(e) {}
@@ -7466,6 +7501,11 @@
                     if (!window.signalJammersMarkers) window.signalJammersMarkers = [];
                     window.signalJammersMarkers[index] = marker;
                 }
+                // 记录 jack_o_lanterns 标记以便弹窗隐藏/显示控制
+                else if (type === 'jack_o_lanterns') {
+                    if (!window.jackOLanternMarkers) window.jackOLanternMarkers = [];
+                    window.jackOLanternMarkers[index] = marker;
+                }
                 // 记录 yuanbao 标记以便弹窗隐藏/显示控制
                 else if (type === 'yuanbao') {
                     if (!window.yuanbaoMarkers) window.yuanbaoMarkers = [];
@@ -8325,6 +8365,7 @@
             try { applyPlayingCardsVisibilityCache(); } catch (e) {}
             try { applyOrganicFarmVisibilityCache(); } catch (e) {}
             try { applySkydivesVisibilityCache(); } catch (e) {}
+            try { applyJackOLanternsVisibilityCache(); } catch (e) {}
             try { applyRCTimeTrialVisibilityCache(); } catch (e) {}
             try { applyBikeTimeTrialVisibilityCache(); } catch (e) {}
             try { applyMadrazoHitsVisibilityCache(); } catch (e) {}
@@ -10263,102 +10304,188 @@
             return false;
         }
 
-        // 显示南瓜灯图片弹窗
+        // 显示南瓜灯图片弹窗（改为纸牌样式，保留原内容）
         function showJackOLanternImage(index) {
-            // 序号从1开始
             const sequenceNumber = index + 1;
             const imageUrl = `https://gta-maps.antwen.com/collectibles_images/lantern/lantern_${sequenceNumber.toString().padStart(2, '0')}.webp`;
-            
-            // 创建弹窗
+
+            // 关闭已存在的弹窗
+            const existingPopup = document.querySelector('.jack-o-lantern-popup');
+            if (existingPopup) existingPopup.remove();
+
+            // 统计隐藏/总数（总数为物品总数）
+            const markers = (window.jackOLanternMarkers && window.jackOLanternMarkers) || [];
+            // 优先使用数据总数
+            const totalCount = Array.isArray(window.itemData?.jack_o_lanterns)
+                ? window.itemData.jack_o_lanterns.length
+                : (Array.isArray(markers) ? markers.length : 0);
+
+            let hiddenCount = 0;
+            if (Array.isArray(markers) && markers.length > 0) {
+                markers.forEach((marker) => {
+                    if (marker && typeof marker.getElement === 'function') {
+                        const el = marker.getElement();
+                        if (el && el.style.opacity === '0.3') hiddenCount++;
+                    }
+                });
+            } else {
+                // 从缓存读取隐藏计数作为回退
+                const cachedCounter = CounterCache.getCounter('jack_o_lanterns');
+                hiddenCount = cachedCounter.hidden || 0;
+            }
+
+            const currentMarker = markers[index];
+            let isCurrentHidden = false;
+            if (currentMarker && typeof currentMarker.getElement === 'function') {
+                const el = currentMarker.getElement();
+                isCurrentHidden = el && el.style.opacity === '0.3';
+            } else {
+                // 从可见性缓存读取当前标记状态
+                const visibilityMap = VisibilityCache.loadVisibility('jack_o_lanterns');
+                isCurrentHidden = visibilityMap[index] === true;
+            }
+
+            const title = `🎃 南瓜灯 #${sequenceNumber} (${hiddenCount}/${totalCount})`;
+
+            // 构建弹窗（采用纸牌样式）
             const popup = document.createElement('div');
             popup.className = 'jack-o-lantern-popup';
             popup.style.cssText = `
-                position: fixed;
-                top: 50%;
-                left: 50%;
-                transform: translate(-50%, -50%);
-                background: white;
-                border: 3px solid #f26f17;
-                border-radius: 12px;
-                padding: 20px;
+                position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+                background: var(--gta-bg-medium);
+                border: 1px solid var(--gta-border);
+                border-radius: 8px;
+                box-shadow: 0 2px 15px rgba(0,0,0,0.5);
+                padding: 15px;
                 z-index: 10000;
-                max-width: 80vw;
+                width: min(92vw, 520px);
                 max-height: 80vh;
-                box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-                font-family: Arial, sans-serif;
-                text-align: center;
+                color: var(--gta-text);
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                overflow-y: auto;
             `;
 
-            // 弹窗内容
             popup.innerHTML = `
-                <div style="margin-bottom: 15px; font-size: 20px; font-weight: bold; color: #f26f17;">
-                    🎃 南瓜灯 #${sequenceNumber}
+                <div class="popup-header" style="position: relative; margin-bottom: 14px;">
+                    <h3 style="color: var(--gta-primary); font-size: 18px; margin: 0; font-weight: bold;">${title}</h3>
+                    <span class="popup-close" style="position: absolute; top: 0; right: 0; color: var(--gta-text-secondary); font-size: 20px; cursor: pointer; transition: color 0.3s ease;">×</span>
                 </div>
-                <img src="${imageUrl}" 
-                     alt="南瓜灯 #${sequenceNumber}" 
-                     style="max-width: 100%; max-height: 60vh; border-radius: 8px; margin-bottom: 15px;">
-                <div style="margin-bottom: 15px; color: #666; font-size: 14px;">
+                <img src="${imageUrl}" alt="南瓜灯 #${sequenceNumber}" style="max-width: 100%; height: auto; border-radius: 6px; margin: 8px 0; display: block; cursor: zoom-in;"/>
+                <div style="margin: 10px 0; padding: 10px; background: rgba(242, 111, 23, 0.12); border-radius: 8px; color: var(--gta-text); font-size: 14px; line-height: 1.6;">
                     可在上图位置找到！
                 </div>
-                <div style="margin: 15px 0; padding: 12px; background: #f8f9fa; border-radius: 6px; border-left: 4px solid #f26f17;">
+                <div style="margin: 10px 0; padding: 10px; background: rgba(242, 111, 23, 0.12); border-radius: 8px; color: var(--gta-text); font-size: 14px; line-height: 1.6;">
                     <div style="font-weight: bold; color: #f26f17; margin-bottom: 5px;">🎯 收集奖励</div>
-                    <div style="color: #666; font-size: 14px; line-height: 1.4;">
-                        收集全部南瓜灯可获得特殊万圣节奖励！
-                    </div>
+                    收集全部南瓜灯可获得特殊万圣节奖励！
                 </div>
-                <button id="hide-jack-o-lantern-btn" 
-                        style="padding: 10px 20px; 
-                               background: #f26f17; color: white; 
-                               border: none; border-radius: 6px; 
-                               cursor: pointer; font-size: 16px;">
-                    隐藏标记
-                </button>
+                <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
+                    <button id="hide-jack-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease; display: ${isCurrentHidden ? 'none' : 'inline-block'};">隐藏</button>
+                    <button id="show-jack-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease; display: ${isCurrentHidden ? 'inline-block' : 'none'};">显示</button>
+                    <button id="close-jack-btn" style="padding: 8px 16px; background: var(--gta-primary); color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease;">关闭</button>
+                </div>
             `;
 
-            // 添加到页面
-            document.body.appendChild(popup);
+            // 绑定元素
+            const closeBtn = popup.querySelector('#close-jack-btn');
+            const hideBtn = popup.querySelector('#hide-jack-btn');
+            const showBtn = popup.querySelector('#show-jack-btn');
+            const popupClose = popup.querySelector('.popup-close');
+            const titleElement = popup.querySelector('h3');
 
-            // 隐藏按钮点击事件
-            const hideBtn = document.getElementById('hide-jack-o-lantern-btn');
-            hideBtn.addEventListener('click', () => {
-                 // 找到对应的标记并设置透明度为25%
-                 document.querySelectorAll('.item-marker').forEach(marker => {
-                     const img = marker.querySelector('img');
-                     if (img && img.src && img.src.includes('data:image/svg+xml') && marker.dataset.index == index) {
-                         marker.style.opacity = '0.25';
-                         // 将隐藏按钮改为显示按钮
-                         hideBtn.textContent = '显示';
-                         hideBtn.style.background = '#4CAF50';
-                         hideBtn.id = 'show-jack-o-lantern-btn';
-                         
-                         // 移除旧的点击事件，添加新的显示事件
-                         const newShowBtn = hideBtn.cloneNode(true);
-                         hideBtn.replaceWith(newShowBtn);
-                         newShowBtn.addEventListener('click', () => {
-                             // 恢复透明度为100%
-                             const currentMarker = document.querySelector(`.item-marker[data-index="${index}"]`);
-                             if (currentMarker) {
-                                 currentMarker.style.opacity = '1';
-                             }
-                             popup.remove();
-                         });
-                     }
-                 });
-             });
-
-            // 点击弹窗外部关闭
+            const removePopup = () => popup.remove();
+            closeBtn.addEventListener('click', removePopup);
+            popupClose.addEventListener('click', removePopup);
             popup.addEventListener('click', (e) => e.stopPropagation());
-            
-            // 使用setTimeout延迟添加document点击事件，避免立即触发
             setTimeout(() => {
                 const closePopupHandler = (e) => {
                     if (!popup.contains(e.target)) {
-                        popup.remove();
+                        removePopup();
                         document.removeEventListener('click', closePopupHandler);
                     }
                 };
                 document.addEventListener('click', closePopupHandler);
-            }, 100);
+            }, 50);
+
+            // 图片点击放大
+            const popupImage = popup.querySelector('img');
+            if (popupImage) {
+                popupImage.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const overlay = document.createElement('div');
+                    overlay.className = 'jack-image-overlay';
+                    overlay.style.cssText = `
+                        position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+                        display: flex; align-items: center; justify-content: center;
+                        z-index: 10002; cursor: zoom-out;
+                    `;
+                    const bigImg = document.createElement('img');
+                    bigImg.src = popupImage.src;
+                    bigImg.alt = popupImage.alt || '';
+                    bigImg.style.cssText = `max-width: 95vw; max-height: 95vh; border-radius: 6px; box-shadow: 0 4px 24px rgba(0,0,0,0.6);`;
+                    overlay.appendChild(bigImg);
+                    const removeOverlay = () => {
+                        document.removeEventListener('keydown', onKey);
+                        overlay.remove();
+                    };
+                    const onKey = (ev) => { if (ev.key === 'Escape') removeOverlay(); };
+                    overlay.addEventListener('click', removeOverlay);
+                    document.addEventListener('keydown', onKey);
+                    document.body.appendChild(overlay);
+                });
+            }
+
+            // 工具：隐藏/显示当前标记
+            function setCurrentMarkerVisibility(opacity) {
+                if (currentMarker && typeof currentMarker.setOpacity === 'function') {
+                    currentMarker.setOpacity(opacity);
+                } else if (currentMarker && typeof currentMarker.setStyle === 'function') {
+                    currentMarker.setStyle({ opacity });
+                }
+                VisibilityCache.updateItemVisibility('jack_o_lanterns', index, opacity === 0.3);
+            }
+
+            if (hideBtn) {
+                hideBtn.addEventListener('click', () => {
+                    setCurrentMarkerVisibility(0.3);
+                    const newHiddenCount = hiddenCount + (isCurrentHidden ? 0 : 1);
+                    titleElement.textContent = `🎃 南瓜灯 #${sequenceNumber} (${newHiddenCount}/${totalCount})`;
+                    hideBtn.style.display = 'none';
+                    showBtn.style.display = 'inline-block';
+                });
+            }
+
+            if (showBtn) {
+                showBtn.addEventListener('click', () => {
+                    setCurrentMarkerVisibility(1);
+                    const newHiddenCount = hiddenCount - (isCurrentHidden ? 1 : 0);
+                    titleElement.textContent = `🎃 南瓜灯 #${sequenceNumber} (${newHiddenCount}/${totalCount})`;
+                    showBtn.style.display = 'none';
+                    hideBtn.style.display = 'inline-block';
+                });
+            }
+
+            document.body.appendChild(popup);
+        }
+
+        // 应用缓存的可见性状态到南瓜灯标记
+        function applyJackOLanternsVisibilityCache() {
+            const markers = (window.jackOLanternMarkers && window.jackOLanternMarkers) || [];
+            if (markers.length > 0) {
+                const visibilityMap = VisibilityCache.loadVisibility('jack_o_lanterns');
+                markers.forEach((marker, index) => {
+                    const isHidden = visibilityMap[index];
+                    if (isHidden && marker) {
+                        if (typeof marker.setOpacity === 'function') {
+                            marker.setOpacity(0.3);
+                        } else if (typeof marker.setStyle === 'function') {
+                            marker.setStyle({ opacity: 0.3 });
+                        }
+                    }
+                });
+                console.log('已应用南瓜灯可见性缓存');
+                return true;
+            }
+            return false;
         }
 
         // 纸牌弹窗模板（含隐藏/显示联动与计数器、缓存集成）
@@ -16966,6 +17093,17 @@
                         // 初始渲染一次
                         try { updateStreetDealersSidebarCount(); } catch(e) {}
                     }
+                    // 南瓜灯计数器
+                    else if (type === 'jack_o_lanterns') {
+                        const counter = document.createElement('span');
+                        counter.className = 'jack-counter';
+                        counter.style.marginLeft = '6px';
+                        counter.style.color = 'var(--gta-text-secondary)';
+                        counter.textContent = '';
+                        label.appendChild(counter);
+                        // 初始渲染一次
+                        try { updateJackOLanternsSidebarCount(); } catch(e) {}
+                    }
                     // 电影道具计数器
                     else if (type === 'movie_props') {
                         const counter = document.createElement('span');
@@ -17293,6 +17431,10 @@
                         // 纸牌计数器
                         if (t === 'playing_cards') {
                             try { updatePlayingCardsSidebarCount(); } catch(e) {}
+                        }
+                        // 南瓜灯计数器
+                        if (t === 'jack_o_lanterns') {
+                            try { updateJackOLanternsSidebarCount(); } catch(e) {}
                         }
                         // 喷灌位置计数器
                         if (t === 'spray') {

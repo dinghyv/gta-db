@@ -1811,6 +1811,103 @@
             updateStreetDealersSidebarCount();
         }
 
+        // ==================== 增强版手办模板（集成缓存） ====================
+        
+        // 创建侧边栏条目时，为 action_figures 增加一个计数器占位
+        function attachActionFiguresCounterToLabel(sidebarCheckboxId) {
+            const label = document.querySelector(`#${sidebarCheckboxId} + label`);
+            if (!label) return;
+
+            let counter = label.querySelector('.action-figures-counter');
+            if (!counter) {
+                counter = document.createElement('span');
+                counter.className = 'action-figures-counter';
+                counter.style.marginLeft = '6px';
+                counter.style.color = 'var(--gta-text-secondary)';
+                label.appendChild(counter);
+            }
+
+            // 初次渲染计数
+            updateActionFiguresSidebarCount();
+        }
+
+        // ==================== 增强版纸牌模板（集成缓存） ====================
+        
+        // 创建侧边栏条目时，为 playing_cards 增加一个计数器占位
+        function attachPlayingCardsCounterToLabel(sidebarCheckboxId) {
+            const label = document.querySelector(`#${sidebarCheckboxId} + label`);
+            if (!label) return;
+
+            let counter = label.querySelector('.playing-cards-counter');
+            if (!counter) {
+                counter = document.createElement('span');
+                counter.className = 'playing-cards-counter';
+                counter.style.marginLeft = '6px';
+                counter.style.color = 'var(--gta-text-secondary)';
+                label.appendChild(counter);
+            }
+
+            // 初次渲染计数
+            updatePlayingCardsSidebarCount();
+        }
+
+        // ==================== 增强版有机坊产品模板（集成缓存） ====================
+        
+        // 创建侧边栏条目时，为 ld_organics_products 增加一个计数器占位
+        function attachOrganicFarmCounterToLabel(sidebarCheckboxId) {
+            const label = document.querySelector(`#${sidebarCheckboxId} + label`);
+            if (!label) return;
+
+            let counter = label.querySelector('.organic-farm-counter');
+            if (!counter) {
+                counter = document.createElement('span');
+                counter.className = 'organic-farm-counter';
+                counter.style.marginLeft = '6px';
+                counter.style.color = 'var(--gta-text-secondary)';
+                label.appendChild(counter);
+            }
+
+            // 初次渲染计数
+            updateOrganicFarmSidebarCount();
+        }
+
+        // 统计隐藏/总数，并更新侧边栏计数器文本（集成缓存）
+        function updateOrganicFarmSidebarCount() {
+            try {
+                const counterEl = document.querySelector('#sidebar-item-ld_organics_products + label .organic-farm-counter');
+                if (!counterEl) return;
+
+                // 获取有机坊产品标记
+                const markers = (window.organicFarmMarkers && window.organicFarmMarkers) || [];
+                let total = 0;
+                let hidden = 0;
+
+                if (Array.isArray(markers) && markers.length > 0) {
+                    total = markers.length;
+                    markers.forEach((marker) => {
+                        if (marker && typeof marker.getElement === 'function') {
+                            const el = marker.getElement();
+                            if (el && el.style.opacity === '0.3') {
+                                hidden++;
+                            }
+                        }
+                    });
+                } else {
+                    // 回退：仅有数据尚未渲染 Leaflet 标记时
+                    total = Array.isArray(window.itemData?.ld_organics_products) ? window.itemData.ld_organics_products.length : 0;
+                    // 从缓存中获取隐藏数量
+                    const cachedCounter = CounterCache.getCounter('ld_organics_products');
+                    hidden = cachedCounter.hidden || 0;
+                }
+
+                // 更新缓存
+                CounterCache.updateCounter('ld_organics_products', hidden, total);
+                counterEl.textContent = total > 0 ? ` (${hidden}/${total})` : '';
+            } catch (e) {
+                console.warn('更新有机坊产品计数器失败:', e);
+            }
+        }
+
         // ==================== 增强版跳伞模板（集成缓存） ====================
         
         // 创建侧边栏条目时，为 skydives 增加一个计数器占位
@@ -2118,6 +2215,47 @@
         }
 
         // 统计隐藏/总数，并更新侧边栏计数器文本（集成缓存）
+        function updateSignalJammersSidebarCount() {
+            try {
+                const counterEl = document.querySelector('#sidebar-item-signal_jammers + label .signal-jammers-counter');
+                if (!counterEl) {
+                    console.log('信号干扰器计数器元素未找到');
+                    return;
+                }
+
+                // 获取信号干扰器标记
+                const markers = (window.signalJammersMarkers && window.signalJammersMarkers) || [];
+                let total = 0;
+                let hidden = 0;
+
+                if (Array.isArray(markers) && markers.length > 0) {
+                    // 使用实际渲染的标记数量（当天实际显示的数量）
+                    total = markers.length;
+                    markers.forEach((marker) => {
+                        if (marker && typeof marker.getElement === 'function') {
+                            const el = marker.getElement();
+                            if (el && el.style.opacity === '0.3') {
+                                hidden++;
+                            }
+                        }
+                    });
+                } else {
+                    // 回退：仅有数据尚未渲染 Leaflet 标记时，使用实际数据长度
+                    total = Array.isArray(window.itemData?.signal_jammers) ? window.itemData.signal_jammers.length : 0;
+                    // 从缓存中获取隐藏数量
+                    const cachedCounter = CounterCache.getCounter('signal_jammers');
+                    hidden = cachedCounter.hidden || 0;
+                }
+
+                // 更新缓存
+                CounterCache.updateCounter('signal_jammers', hidden, total);
+                counterEl.textContent = total > 0 ? ` (${hidden}/${total})` : '';
+            } catch (e) {
+                console.warn('更新信号干扰器计数器失败:', e);
+            }
+        }
+
+        // 统计隐藏/总数，并更新侧边栏计数器文本（集成缓存）
         function updateRCTimeTrialSidebarCount() {
             try {
                 const counterEl = document.querySelector('#sidebar-item-rc_time_trial + label .rc-time-trial-counter');
@@ -2361,6 +2499,80 @@
                 counterEl.textContent = total > 0 ? ` (${hidden}/${total})` : '';
             } catch (e) {
                 console.warn('更新藏匿屋计数器失败:', e);
+            }
+        }
+
+        // 统计隐藏/总数，并更新侧边栏计数器文本（集成缓存）
+        function updateActionFiguresSidebarCount() {
+            try {
+                const counterEl = document.querySelector('#sidebar-item-action_figures + label .action-figures-counter');
+                if (!counterEl) return;
+
+                // 获取手办标记
+                const markers = (window.actionFiguresMarkers && window.actionFiguresMarkers) || [];
+                let total = 0;
+                let hidden = 0;
+
+                if (Array.isArray(markers) && markers.length > 0) {
+                    total = markers.length;
+                    markers.forEach((marker) => {
+                        if (marker && typeof marker.getElement === 'function') {
+                            const el = marker.getElement();
+                            if (el && el.style.opacity === '0.3') {
+                                hidden++;
+                            }
+                        }
+                    });
+                } else {
+                    // 回退：仅有数据尚未渲染 Leaflet 标记时
+                    total = Array.isArray(window.itemData?.action_figures) ? window.itemData.action_figures.length : 0;
+                    // 从缓存中获取隐藏数量
+                    const cachedCounter = CounterCache.getCounter('action_figures');
+                    hidden = cachedCounter.hidden || 0;
+                }
+
+                // 更新缓存
+                CounterCache.updateCounter('action_figures', hidden, total);
+                counterEl.textContent = total > 0 ? ` (${hidden}/${total})` : '';
+            } catch (e) {
+                console.warn('更新手办计数器失败:', e);
+            }
+        }
+
+        // 统计隐藏/总数，并更新侧边栏计数器文本（集成缓存）
+        function updatePlayingCardsSidebarCount() {
+            try {
+                const counterEl = document.querySelector('#sidebar-item-playing_cards + label .playing-cards-counter');
+                if (!counterEl) return;
+
+                // 获取纸牌标记
+                const markers = (window.playingCardsMarkers && window.playingCardsMarkers) || [];
+                let total = 0;
+                let hidden = 0;
+
+                if (Array.isArray(markers) && markers.length > 0) {
+                    total = markers.length;
+                    markers.forEach((marker) => {
+                        if (marker && typeof marker.getElement === 'function') {
+                            const el = marker.getElement();
+                            if (el && el.style.opacity === '0.3') {
+                                hidden++;
+                            }
+                        }
+                    });
+                } else {
+                    // 回退：仅有数据尚未渲染 Leaflet 标记时
+                    total = Array.isArray(window.itemData?.playing_cards) ? window.itemData.playing_cards.length : 0;
+                    // 从缓存中获取隐藏数量
+                    const cachedCounter = CounterCache.getCounter('playing_cards');
+                    hidden = cachedCounter.hidden || 0;
+                }
+
+                // 更新缓存
+                CounterCache.updateCounter('playing_cards', hidden, total);
+                counterEl.textContent = total > 0 ? ` (${hidden}/${total})` : '';
+            } catch (e) {
+                console.warn('更新纸牌计数器失败:', e);
             }
         }
 
@@ -3355,6 +3567,27 @@
             return false;
         }
 
+        // 应用缓存的可见性状态到有机坊产品标记
+        function applyOrganicFarmVisibilityCache() {
+            const markers = (window.organicFarmMarkers && window.organicFarmMarkers) || [];
+            if (markers.length > 0) {
+                const visibilityMap = VisibilityCache.loadVisibility('ld_organics_products');
+                markers.forEach((marker, index) => {
+                    const isHidden = visibilityMap[index];
+                    if (isHidden && marker) {
+                        if (typeof marker.setOpacity === 'function') {
+                            marker.setOpacity(0.3);
+                        } else if (typeof marker.setStyle === 'function') {
+                            marker.setStyle({ opacity: 0.3 });
+                        }
+                    }
+                });
+                console.log('已应用有机坊产品可见性缓存');
+                return true;
+            }
+            return false;
+        }
+
         // 应用缓存的可见性状态到街头毒贩标记
         function applyStreetDealersVisibilityCache() {
             const markers = (window.streetDealersMarkers && window.streetDealersMarkers) || [];
@@ -3588,6 +3821,27 @@
             return false;
         }
 
+        // 应用缓存的可见性状态到纸牌标记
+        function applyPlayingCardsVisibilityCache() {
+            const markers = (window.playingCardsMarkers && window.playingCardsMarkers) || [];
+            if (markers.length > 0) {
+                const visibilityMap = VisibilityCache.loadVisibility('playing_cards');
+                markers.forEach((marker, index) => {
+                    const isHidden = visibilityMap[index];
+                    if (isHidden && marker) {
+                        if (typeof marker.setOpacity === 'function') {
+                            marker.setOpacity(0.3);
+                        } else if (typeof marker.setStyle === 'function') {
+                            marker.setStyle({ opacity: 0.3 });
+                        }
+                    }
+                });
+                console.log('已应用纸牌可见性缓存');
+                return true;
+            }
+            return false;
+        }
+
         // 应用缓存的可见性状态到走私贩飞机标记
         function applySmugglerPlaneVisibilityCache() {
             const groups = (window.smugglerGroupMarkers && window.smugglerGroupMarkers['smuggler_plane']) || [];
@@ -3635,6 +3889,10 @@
                 // 4) 渲染完成后再应用可见性缓存（需在标记存在后）
                 try { applySmugglerPlaneVisibilityCache(); } catch (e) {}
                 try { applyStreetDealersVisibilityCache(); } catch (e) {}
+                try { applySignalJammersVisibilityCache(); } catch (e) {}
+                try { applyActionFiguresVisibilityCache(); } catch (e) {}
+                try { applyPlayingCardsVisibilityCache(); } catch (e) {}
+                try { applyOrganicFarmVisibilityCache(); } catch (e) {}
                 try { applySkydivesVisibilityCache(); } catch (e) {}
                 try { applyRCTimeTrialVisibilityCache(); } catch (e) {}
                 try { applyBikeTimeTrialVisibilityCache(); } catch (e) {}
@@ -3649,6 +3907,10 @@
                 // 5) 刷新计数器（如有）
                 try { updateSmugglerPlaneSidebarCount(); } catch (e) {}
                 try { updateStreetDealersSidebarCount(); } catch (e) {}
+                try { updateSignalJammersSidebarCount(); } catch (e) {}
+                try { updateActionFiguresSidebarCount(); } catch (e) {}
+                try { updatePlayingCardsSidebarCount(); } catch (e) {}
+                try { updateOrganicFarmSidebarCount(); } catch (e) {}
                 try { updateSkydivesSidebarCount(); } catch (e) {}
                 try { updateMadrazoHitsSidebarCount(); } catch (e) {}
                 try { updateStashHousesSidebarCount(); } catch (e) {}
@@ -5419,6 +5681,10 @@
                 // 数据加载完成后更新所有计数器
                 try { updateSmugglerPlaneSidebarCount(); } catch(e) {}
                 try { updateStreetDealersSidebarCount(); } catch(e) {}
+                try { updateSignalJammersSidebarCount(); } catch(e) {}
+                try { updateActionFiguresSidebarCount(); } catch(e) {}
+                try { updatePlayingCardsSidebarCount(); } catch(e) {}
+                try { updateOrganicFarmSidebarCount(); } catch(e) {}
                 try { updateSkydivesSidebarCount(); } catch(e) {}
                 try { updateRCTimeTrialSidebarCount(); } catch(e) {}
                 try { updateBikeTimeTrialSidebarCount(); } catch(e) {}
@@ -6625,6 +6891,21 @@
                     if (!window.streetDealersMarkers) window.streetDealersMarkers = [];
                     window.streetDealersMarkers[index] = marker;
                 }
+                // 记录 ld_organics_products 标记以便弹窗隐藏/显示控制
+                else if (type === 'ld_organics_products') {
+                    if (!window.organicFarmMarkers) window.organicFarmMarkers = [];
+                    window.organicFarmMarkers[index] = marker;
+                }
+                // 记录 action_figures 标记以便弹窗隐藏/显示控制
+                else if (type === 'action_figures') {
+                    if (!window.actionFiguresMarkers) window.actionFiguresMarkers = [];
+                    window.actionFiguresMarkers[index] = marker;
+                }
+                // 记录 playing_cards 标记以便弹窗隐藏/显示控制
+                else if (type === 'playing_cards') {
+                    if (!window.playingCardsMarkers) window.playingCardsMarkers = [];
+                    window.playingCardsMarkers[index] = marker;
+                }
                 // 记录 skydives 标记以便弹窗隐藏/显示控制
                 else if (type === 'skydives') {
                     if (!window.skydivesMarkers) window.skydivesMarkers = [];
@@ -6664,6 +6945,11 @@
                 else if (type === 'bike_time_trial') {
                     if (!window.bikeTimeTrialMarkers) window.bikeTimeTrialMarkers = [];
                     window.bikeTimeTrialMarkers[index] = marker;
+                }
+                // 记录 signal_jammers 标记以便弹窗隐藏/显示控制
+                else if (type === 'signal_jammers') {
+                    if (!window.signalJammersMarkers) window.signalJammersMarkers = [];
+                    window.signalJammersMarkers[index] = marker;
                 }
             } catch (e) {}
             
@@ -6927,6 +7213,18 @@
             }
             if (window.bikeTimeTrialMarkers) {
                 window.bikeTimeTrialMarkers = [];
+            }
+            if (window.actionFiguresMarkers) {
+                window.actionFiguresMarkers = [];
+            }
+            if (window.playingCardsMarkers) {
+                window.playingCardsMarkers = [];
+            }
+            if (window.signalJammersMarkers) {
+                window.signalJammersMarkers = [];
+            }
+            if (window.organicFarmMarkers) {
+                window.organicFarmMarkers = [];
             }
         }
         
@@ -7464,6 +7762,10 @@
             // 重新应用隐藏可见性缓存，确保被隐藏的标记在切换显示后仍保持状态
             try { applySmugglerPlaneVisibilityCache(); } catch (e) {}
             try { applyStreetDealersVisibilityCache(); } catch (e) {}
+            try { applySignalJammersVisibilityCache(); } catch (e) {}
+            try { applyActionFiguresVisibilityCache(); } catch (e) {}
+            try { applyPlayingCardsVisibilityCache(); } catch (e) {}
+            try { applyOrganicFarmVisibilityCache(); } catch (e) {}
             try { applySkydivesVisibilityCache(); } catch (e) {}
             try { applyRCTimeTrialVisibilityCache(); } catch (e) {}
             try { applyBikeTimeTrialVisibilityCache(); } catch (e) {}
@@ -9213,121 +9515,194 @@
             showBikeTimeTrialPopup(item, index);
         }
 
-        // 显示信号干扰器图片弹窗
+        // 信号干扰器弹窗模板（含隐藏/显示联动与计数器、缓存集成）
         function showSignalJammerImage(index) {
             // 序号从1开始
-             const sequenceNumber = index + 1;
-             // 1-9使用单个数字，10+使用两位数
-             const paddedNumber = sequenceNumber < 10 ? sequenceNumber.toString() : sequenceNumber.toString().padStart(2, '0');
-             const imageUrl = `https://gta-maps.antwen.com/collectibles_images/signal_jammers/signal_jammers_${paddedNumber}.webp`;
+            const sequenceNumber = index + 1;
+            // 1-9使用单个数字，10+使用两位数
+            const paddedNumber = sequenceNumber < 10 ? sequenceNumber.toString() : sequenceNumber.toString().padStart(2, '0');
+            const imageUrl = `https://gta-maps.antwen.com/collectibles_images/signal_jammers/signal_jammers_${paddedNumber}.webp`;
             
-            // 创建弹窗
+            // 关闭已存在的弹窗
+            const existingPopup = document.querySelector('.signal-jammer-popup');
+            if (existingPopup) existingPopup.remove();
+
+            // 统计隐藏/总数
+            const markers = (window.signalJammersMarkers && window.signalJammersMarkers) || [];
+            const totalCount = markers.length;
+
+            let hiddenCount = 0;
+            markers.forEach((marker) => {
+                if (marker && typeof marker.getElement === 'function') {
+                    const el = marker.getElement();
+                    if (el && el.style.opacity === '0.3') hiddenCount++;
+                }
+            });
+
+            const currentMarker = markers[index];
+            let isCurrentHidden = false;
+            if (currentMarker && typeof currentMarker.getElement === 'function') {
+                const el = currentMarker.getElement();
+                isCurrentHidden = el && el.style.opacity === '0.3';
+            }
+
+            const title = `📡 信号干扰器 #${sequenceNumber} (${hiddenCount}/${totalCount})`;
+
+            // 构建弹窗
             const popup = document.createElement('div');
             popup.className = 'signal-jammer-popup';
             popup.style.cssText = `
-                position: fixed;
-                top: 50%;
-                left: 50%;
-                transform: translate(-50%, -50%);
-                background: white;
-                border: 3px solid #2196F3;
-                border-radius: 12px;
-                padding: 20px;
+                position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+                background: var(--gta-bg-medium);
+                border: 1px solid var(--gta-border);
+                border-radius: 8px;
+                box-shadow: 0 2px 15px rgba(0,0,0,0.5);
+                padding: 15px;
                 z-index: 10000;
-                max-width: 80vw;
+                width: min(92vw, 520px);
                 max-height: 80vh;
-                box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-                font-family: Arial, sans-serif;
-                text-align: center;
+                color: var(--gta-text);
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                overflow-y: auto;
             `;
 
-            // 弹窗内容
             popup.innerHTML = `
-                <div style="margin-bottom: 15px; font-size: 20px; font-weight: bold; color: #1976D2;">
-                    📡 信号干扰器 #${sequenceNumber}
+                <div class="popup-header" style="position: relative; margin-bottom: 14px;">
+                    <h3 style="color: var(--gta-primary); font-size: 18px; margin: 0; font-weight: bold;">${title}</h3>
+                    <span class="popup-close" style="position: absolute; top: 0; right: 0; color: var(--gta-text-secondary); font-size: 20px; cursor: pointer; transition: color 0.3s ease;">×</span>
                 </div>
-                <img src="${imageUrl}" 
-                     alt="信号干扰器 #${sequenceNumber}" 
-                     style="max-width: 100%; max-height: 60vh; border-radius: 8px; margin-bottom: 15px;">
-                <div style="margin-bottom: 15px; color: #666; font-size: 14px;">
+                <img src="${imageUrl}" alt="信号干扰器图片" style="max-width: 100%; height: auto; border-radius: 6px; margin: 8px 0; display: block; cursor: zoom-in;"/>
+                <div style="margin: 10px 0; padding: 10px; background: rgba(25, 118, 210, 0.1); border-radius: 8px; color: var(--gta-text); font-size: 14px; line-height: 1.6;">
                     可在上图位置找到！
                 </div>
-                <div style="margin: 15px 0; padding: 12px; background: #f8f9fa; border-radius: 6px; border-left: 4px solid #2196F3;">
-                    <div style="font-weight: bold; color: #1976D2; margin-bottom: 5px;">🎯 收集奖励</div>
-                    <div style="color: #666; font-size: 14px; line-height: 1.4;">
+                <div style="margin: 10px 0; padding: 10px; background: rgba(25, 118, 210, 0.1); border-radius: 8px; color: var(--gta-text); font-size: 14px; line-height: 1.6;">
+                    <div style="font-weight: bold; color: var(--gta-primary); margin-bottom: 5px;">🎯 收集奖励</div>
+                    <div style="color: var(--gta-text); font-size: 14px; line-height: 1.4;">
                         消灭全部的50个干扰器可解锁赌场豪劫隐藏黑客：阿维·施瓦兹曼
                     </div>
                 </div>
-                <button id="close-signal-popup-btn" 
-                         style="padding: 10px 20px; 
-                                background: #2196F3; color: white; 
-                                border: none; border-radius: 6px; 
-                                cursor: pointer; font-size: 16px;
-                                transition: background-color 0.3s;
-                                margin-right: 10px;">
-                     关闭
-                 </button>
-                 <button id="hide-signal-jammer-btn" 
-                         style="padding: 10px 20px; 
-                                background: #666; color: white; 
-                                border: none; border-radius: 6px; 
-                                cursor: pointer; font-size: 16px;
-                                transition: background-color 0.3s;">
-                     隐藏
-                 </button>
+                <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
+                    <button id="hide-signal-jammer-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease; display: ${isCurrentHidden ? 'none' : 'inline-block'};">隐藏</button>
+                    <button id="show-signal-jammer-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease; display: ${isCurrentHidden ? 'inline-block' : 'none'};">显示</button>
+                    <button id="close-signal-jammer-btn" style="padding: 8px 16px; background: var(--gta-primary); color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease;">关闭</button>
+                </div>
             `;
 
-            // 添加关闭按钮事件监听
-             const closeBtn = popup.querySelector('#close-signal-popup-btn');
-             closeBtn.addEventListener('click', () => {
-                 popup.remove();
-             });
+            // 绑定元素
+            const closeBtn = popup.querySelector('#close-signal-jammer-btn');
+            const hideBtn = popup.querySelector('#hide-signal-jammer-btn');
+            const showBtn = popup.querySelector('#show-signal-jammer-btn');
+            const popupClose = popup.querySelector('.popup-close');
+            const titleElement = popup.querySelector('h3');
 
-             // 添加隐藏按钮事件监听
-             const hideBtn = popup.querySelector('#hide-signal-jammer-btn');
-             hideBtn.addEventListener('click', () => {
-                 // 找到对应的信号干扰器标记并设置透明度为25%
-                 const jammerMarkers = document.querySelectorAll('.item-marker');
-                 jammerMarkers.forEach(marker => {
-                     const img = marker.querySelector('img');
-                     if (img && img.src && img.src.includes('signal_jammer') && marker.dataset.index == index) {
-                         marker.style.opacity = '0.25';
-                         // 将隐藏按钮改为显示按钮
-                         hideBtn.textContent = '显示';
-                         hideBtn.style.background = '#4CAF50';
-                         hideBtn.id = 'show-signal-jammer-btn';
-                         
-                         // 移除旧的点击事件，添加新的显示事件
-                         const newShowBtn = hideBtn.cloneNode(true);
-                         hideBtn.replaceWith(newShowBtn);
-                         newShowBtn.addEventListener('click', () => {
-                             // 恢复透明度为100%
-                             const currentMarker = document.querySelector(`.item-marker[data-index="${index}"]`);
-                             if (currentMarker) {
-                                 currentMarker.style.opacity = '1';
-                             }
-                             popup.remove();
-                         });
-                     }
-                 });
-             });
-
-            // 添加到页面
-            document.body.appendChild(popup);
-
-            // 点击弹窗外部关闭
+            // 关闭弹窗
+            const removePopup = () => popup.remove();
+            closeBtn.addEventListener('click', removePopup);
+            popupClose.addEventListener('click', removePopup);
             popup.addEventListener('click', (e) => e.stopPropagation());
-            
-            // 使用setTimeout延迟添加document点击事件，避免立即触发
             setTimeout(() => {
                 const closePopupHandler = (e) => {
                     if (!popup.contains(e.target)) {
-                        popup.remove();
+                        removePopup();
                         document.removeEventListener('click', closePopupHandler);
                     }
                 };
                 document.addEventListener('click', closePopupHandler);
-            }, 100);
+            }, 50);
+
+            // 图片点击放大（PC/移动端）
+            const popupImage = popup.querySelector('img');
+            if (popupImage) {
+                popupImage.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const overlay = document.createElement('div');
+                    overlay.className = 'signal-jammer-image-overlay';
+                    overlay.style.cssText = `
+                        position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+                        display: flex; align-items: center; justify-content: center;
+                        z-index: 10002; cursor: zoom-out;
+                    `;
+                    const bigImg = document.createElement('img');
+                    bigImg.src = popupImage.src;
+                    bigImg.alt = popupImage.alt || '';
+                    bigImg.style.cssText = `max-width: 95vw; max-height: 95vh; border-radius: 6px; box-shadow: 0 4px 24px rgba(0,0,0,0.6);`;
+                    overlay.appendChild(bigImg);
+
+                    const removeOverlay = () => {
+                        document.removeEventListener('keydown', onKey);
+                        overlay.remove();
+                    };
+                    const onKey = (ev) => { if (ev.key === 'Escape') removeOverlay(); };
+                    overlay.addEventListener('click', removeOverlay);
+                    document.addEventListener('keydown', onKey);
+                    document.body.appendChild(overlay);
+                });
+            }
+
+            // 工具：隐藏/显示当前标记
+            function setCurrentMarkerVisibility(opacity) {
+                if (currentMarker && typeof currentMarker.setOpacity === 'function') {
+                    currentMarker.setOpacity(opacity);
+                } else if (currentMarker && typeof currentMarker.setStyle === 'function') {
+                    currentMarker.setStyle({ opacity });
+                }
+                
+                // 更新缓存
+                VisibilityCache.updateItemVisibility('signal_jammers', index, opacity === 0.3);
+            }
+
+            // 隐藏按钮
+            if (hideBtn) {
+                hideBtn.addEventListener('click', () => {
+                    setCurrentMarkerVisibility(0.3);
+                    const newHiddenCount = hiddenCount + (isCurrentHidden ? 0 : 1);
+                    titleElement.textContent = `📡 信号干扰器 #${sequenceNumber} (${newHiddenCount}/${totalCount})`;
+                    hideBtn.style.display = 'none';
+                    showBtn.style.display = 'inline-block';
+                    isCurrentHidden = true;
+
+                    // 刷新侧边栏计数
+                    updateSignalJammersSidebarCount();
+                });
+            }
+
+            // 显示按钮
+            if (showBtn) {
+                showBtn.addEventListener('click', () => {
+                    setCurrentMarkerVisibility(1);
+                    const newHiddenCount = hiddenCount - (isCurrentHidden ? 1 : 0);
+                    titleElement.textContent = `📡 信号干扰器 #${sequenceNumber} (${newHiddenCount}/${totalCount})`;
+                    showBtn.style.display = 'none';
+                    hideBtn.style.display = 'inline-block';
+                    isCurrentHidden = false;
+
+                    // 刷新侧边栏计数
+                    updateSignalJammersSidebarCount();
+                });
+            }
+
+            document.body.appendChild(popup);
+        }
+
+        // 应用缓存的可见性状态到信号干扰器标记
+        function applySignalJammersVisibilityCache() {
+            const markers = (window.signalJammersMarkers && window.signalJammersMarkers) || [];
+            if (markers.length > 0) {
+                const visibilityMap = VisibilityCache.loadVisibility('signal_jammers');
+                markers.forEach((marker, index) => {
+                    const isHidden = visibilityMap[index];
+                    if (isHidden && marker) {
+                        if (typeof marker.setOpacity === 'function') {
+                            marker.setOpacity(0.3);
+                        } else if (typeof marker.setStyle === 'function') {
+                            marker.setStyle({ opacity: 0.3 });
+                        }
+                    }
+                });
+                console.log('已应用信号干扰器可见性缓存');
+                return true;
+            }
+            return false;
         }
 
         // 显示南瓜灯图片弹窗
@@ -9428,234 +9803,376 @@
             }, 100);
         }
 
-        // 显示纸牌图片弹窗
+        // 纸牌弹窗模板（含隐藏/显示联动与计数器、缓存集成）
         function showPlayingCardsImage(index) {
             // 序号从1开始
             const sequenceNumber = index + 1;
             const imageUrl = `https://gta-maps.antwen.com/collectibles_images/playing_cards/playing_cards_${sequenceNumber}.webp`;
             
-            // 创建弹窗
+            // 关闭已存在的弹窗
+            const existingPopup = document.querySelector('.playing-cards-popup');
+            if (existingPopup) existingPopup.remove();
+
+            // 统计隐藏/总数
+            const markers = (window.playingCardsMarkers && window.playingCardsMarkers) || [];
+            const totalCount = markers.length;
+
+            let hiddenCount = 0;
+            markers.forEach((marker) => {
+                if (marker && typeof marker.getElement === 'function') {
+                    const el = marker.getElement();
+                    if (el && el.style.opacity === '0.3') hiddenCount++;
+                }
+            });
+
+            const currentMarker = markers[index];
+            let isCurrentHidden = false;
+            if (currentMarker && typeof currentMarker.getElement === 'function') {
+                const el = currentMarker.getElement();
+                isCurrentHidden = el && el.style.opacity === '0.3';
+            }
+
+            const title = `🃏 纸牌 #${sequenceNumber} (${hiddenCount}/${totalCount})`;
+
+            // 构建弹窗
             const popup = document.createElement('div');
             popup.className = 'playing-cards-popup';
             popup.style.cssText = `
-                position: fixed;
-                top: 50%;
-                left: 50%;
-                transform: translate(-50%, -50%);
-                background: white;
-                border: 3px solid #9C27B0;
-                border-radius: 12px;
-                padding: 20px;
+                position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+                background: var(--gta-bg-medium);
+                border: 1px solid var(--gta-border);
+                border-radius: 8px;
+                box-shadow: 0 2px 15px rgba(0,0,0,0.5);
+                padding: 15px;
                 z-index: 10000;
-                max-width: 80vw;
+                width: min(92vw, 520px);
                 max-height: 80vh;
-                box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-                font-family: Arial, sans-serif;
-                text-align: center;
+                color: var(--gta-text);
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                overflow-y: auto;
             `;
 
-            // 弹窗内容
             popup.innerHTML = `
-                <div style="margin-bottom: 15px; font-size: 20px; font-weight: bold; color: #7B1FA2;">
-                    🃏 纸牌 #${sequenceNumber}
+                <div class="popup-header" style="position: relative; margin-bottom: 14px;">
+                    <h3 style="color: var(--gta-primary); font-size: 18px; margin: 0; font-weight: bold;">${title}</h3>
+                    <span class="popup-close" style="position: absolute; top: 0; right: 0; color: var(--gta-text-secondary); font-size: 20px; cursor: pointer; transition: color 0.3s ease;">×</span>
                 </div>
-                <img src="${imageUrl}" 
-                     alt="纸牌 #${sequenceNumber}" 
-                     style="max-width: 100%; max-height: 60vh; border-radius: 8px; margin-bottom: 15px;">
-                <div style="margin-bottom: 15px; color: #666; font-size: 14px;">
+                <img src="${imageUrl}" alt="纸牌 #${sequenceNumber}" style="max-width: 100%; height: auto; border-radius: 6px; margin: 8px 0; display: block; cursor: zoom-in;"/>
+                <div style="margin: 10px 0; padding: 10px; background: rgba(156, 39, 176, 0.1); border-radius: 8px; color: var(--gta-text); font-size: 14px; line-height: 1.6;">
                     可在上图位置找到！
                 </div>
-                <div style="margin: 15px 0; padding: 12px; background: #f8f9fa; border-radius: 6px; border-left: 4px solid #9C27B0;">
+                <div style="margin: 10px 0; padding: 10px; background: rgba(156, 39, 176, 0.1); border-radius: 8px; color: var(--gta-text); font-size: 14px; line-height: 1.6;">
                     <div style="font-weight: bold; color: #7B1FA2; margin-bottom: 5px;">🎯 收集奖励</div>
-                    <div style="color: #666; font-size: 14px; line-height: 1.4;">
                         收集所有54张纸牌可获得：特殊服装奖励赌场豪赌客套装
                     </div>
+                <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
+                    <button id="hide-playing-cards-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease; display: ${isCurrentHidden ? 'none' : 'inline-block'};">隐藏</button>
+                    <button id="show-playing-cards-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease; display: ${isCurrentHidden ? 'inline-block' : 'none'};">显示</button>
+                    <button id="close-playing-cards-btn" style="padding: 8px 16px; background: var(--gta-primary); color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease;">关闭</button>
                 </div>
-                <button id="hide-playing-cards-btn" 
-                        style="padding: 10px 20px; margin-right: 10px;
-                               background: #4CAF50; color: white; 
-                               border: none; border-radius: 6px; 
-                               cursor: pointer; font-size: 16px;
-                               transition: background-color 0.3s;">
-                    隐藏标记
-                </button>
-                <button id="close-playing-cards-btn" 
-                        style="padding: 10px 20px; 
-                               background: #f44336; color: white; 
-                               border: none; border-radius: 6px; 
-                               cursor: pointer; font-size: 16px;
-                               transition: background-color 0.3s;">
-                    关闭
-                </button>
             `;
 
-            // 添加到页面
-            document.body.appendChild(popup);
-
-            // 添加隐藏按钮事件监听
-            const hideBtn = popup.querySelector('#hide-playing-cards-btn');
-            hideBtn.addEventListener('click', () => {
-                 // 找到对应的标记并设置透明度为25%
-                 document.querySelectorAll('.item-marker').forEach(marker => {
-                     const img = marker.querySelector('img');
-                     if (img && img.src && img.src.includes('playing_cards') && marker.dataset.index == index) {
-                         marker.style.opacity = '0.25';
-                         // 将隐藏按钮改为显示按钮
-                         hideBtn.textContent = '显示';
-                         hideBtn.style.background = '#2196F3';
-                         hideBtn.id = 'show-playing-cards-btn';
-                         
-                         // 移除旧的点击事件，添加新的显示事件
-                         const newShowBtn = hideBtn.cloneNode(true);
-                         hideBtn.replaceWith(newShowBtn);
-                         newShowBtn.addEventListener('click', () => {
-                             // 恢复透明度为100%
-                             const currentMarker = document.querySelector(`.item-marker[data-index="${index}"]`);
-                             if (currentMarker) {
-                                 currentMarker.style.opacity = '1';
-                             }
-                             popup.remove();
-                         });
-                     }
-                 });
-             });
-
-            // 添加关闭按钮事件监听
+            // 绑定元素
             const closeBtn = popup.querySelector('#close-playing-cards-btn');
-            closeBtn.addEventListener('click', () => {
-                popup.remove();
-            });
+            const hideBtn = popup.querySelector('#hide-playing-cards-btn');
+            const showBtn = popup.querySelector('#show-playing-cards-btn');
+            const popupClose = popup.querySelector('.popup-close');
+            const titleElement = popup.querySelector('h3');
 
-            // 点击弹窗外部关闭
+            // 关闭弹窗
+            const removePopup = () => popup.remove();
+            closeBtn.addEventListener('click', removePopup);
+            popupClose.addEventListener('click', removePopup);
             popup.addEventListener('click', (e) => e.stopPropagation());
-            
-            // 使用setTimeout延迟添加document点击事件，避免立即触发
             setTimeout(() => {
                 const closePopupHandler = (e) => {
                     if (!popup.contains(e.target)) {
-                        popup.remove();
+                        removePopup();
                         document.removeEventListener('click', closePopupHandler);
                     }
                 };
                 document.addEventListener('click', closePopupHandler);
-            }, 100);
+            }, 50);
+
+            // 图片点击放大
+            const popupImage = popup.querySelector('img');
+            if (popupImage) {
+                popupImage.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const overlay = document.createElement('div');
+                    overlay.className = 'playing-cards-image-overlay';
+                    overlay.style.cssText = `
+                        position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+                        display: flex; align-items: center; justify-content: center;
+                        z-index: 10002; cursor: zoom-out;
+                    `;
+                    const bigImg = document.createElement('img');
+                    bigImg.src = popupImage.src;
+                    bigImg.alt = popupImage.alt || '';
+                    bigImg.style.cssText = `max-width: 95vw; max-height: 95vh; border-radius: 6px; box-shadow: 0 4px 24px rgba(0,0,0,0.6);`;
+                    overlay.appendChild(bigImg);
+
+                    const removeOverlay = () => {
+                        document.removeEventListener('keydown', onKey);
+                        overlay.remove();
+                    };
+                    const onKey = (ev) => { if (ev.key === 'Escape') removeOverlay(); };
+                    overlay.addEventListener('click', removeOverlay);
+                    document.addEventListener('keydown', onKey);
+                    document.body.appendChild(overlay);
+                });
+            }
+
+            // 工具：隐藏/显示当前标记
+            function setCurrentMarkerVisibility(opacity) {
+                if (currentMarker && typeof currentMarker.setOpacity === 'function') {
+                    currentMarker.setOpacity(opacity);
+                } else if (currentMarker && typeof currentMarker.setStyle === 'function') {
+                    currentMarker.setStyle({ opacity });
+                }
+                
+                // 更新缓存
+                VisibilityCache.updateItemVisibility('playing_cards', index, opacity === 0.3);
+            }
+
+            // 隐藏按钮
+            if (hideBtn) {
+            hideBtn.addEventListener('click', () => {
+                    setCurrentMarkerVisibility(0.3);
+                    const newHiddenCount = hiddenCount + (isCurrentHidden ? 0 : 1);
+                    titleElement.textContent = `🃏 纸牌 #${sequenceNumber} (${newHiddenCount}/${totalCount})`;
+                    hideBtn.style.display = 'none';
+                    showBtn.style.display = 'inline-block';
+                    isCurrentHidden = true;
+
+                    // 刷新侧边栏计数
+                    updatePlayingCardsSidebarCount();
+                });
+            }
+
+            // 显示按钮
+            if (showBtn) {
+                showBtn.addEventListener('click', () => {
+                    setCurrentMarkerVisibility(1);
+                    const newHiddenCount = hiddenCount - (isCurrentHidden ? 1 : 0);
+                    titleElement.textContent = `🃏 纸牌 #${sequenceNumber} (${newHiddenCount}/${totalCount})`;
+                    showBtn.style.display = 'none';
+                    hideBtn.style.display = 'inline-block';
+                    isCurrentHidden = false;
+
+                    // 刷新侧边栏计数
+                    updatePlayingCardsSidebarCount();
+                });
+            }
+
+            document.body.appendChild(popup);
         }
 
+        // 应用缓存的可见性状态到纸牌标记
+        function applyPlayingCardsVisibilityCache() {
+            const markers = (window.playingCardsMarkers && window.playingCardsMarkers) || [];
+            if (markers.length > 0) {
+                const visibilityMap = VisibilityCache.loadVisibility('playing_cards');
+                markers.forEach((marker, index) => {
+                    const isHidden = visibilityMap[index];
+                    if (isHidden && marker) {
+                        if (typeof marker.setOpacity === 'function') {
+                            marker.setOpacity(0.3);
+                        } else if (typeof marker.setStyle === 'function') {
+                            marker.setStyle({ opacity: 0.3 });
+                        }
+                    }
+                });
+                console.log('已应用纸牌可见性缓存');
+                return true;
+            }
+            return false;
+        }
 
-        // 显示手办图片弹窗
+        // 手办弹窗模板（含隐藏/显示联动与计数器、缓存集成）
         function showActionFiguresImage(index) {
             // 序号从1开始
             const sequenceNumber = index + 1;
             const imageUrl = `https://gta-maps.antwen.com/collectibles_images/action_figures/action_figures_${sequenceNumber}.webp`;
             
-            // 创建弹窗
+            // 关闭已存在的弹窗
+            const existingPopup = document.querySelector('.action-figures-popup');
+            if (existingPopup) existingPopup.remove();
+
+            // 统计隐藏/总数
+            const markers = (window.actionFiguresMarkers && window.actionFiguresMarkers) || [];
+            const totalCount = markers.length;
+
+            let hiddenCount = 0;
+            markers.forEach((marker) => {
+                if (marker && typeof marker.getElement === 'function') {
+                    const el = marker.getElement();
+                    if (el && el.style.opacity === '0.3') hiddenCount++;
+                }
+            });
+
+            const currentMarker = markers[index];
+            let isCurrentHidden = false;
+            if (currentMarker && typeof currentMarker.getElement === 'function') {
+                const el = currentMarker.getElement();
+                isCurrentHidden = el && el.style.opacity === '0.3';
+            }
+
+            const title = `🎭 手办 #${sequenceNumber} (${hiddenCount}/${totalCount})`;
+
+            // 构建弹窗
             const popup = document.createElement('div');
             popup.className = 'action-figures-popup';
             popup.style.cssText = `
-                position: fixed;
-                top: 50%;
-                left: 50%;
-                transform: translate(-50%, -50%);
-                background: white;
-                border: 3px solid #E91E63;
-                border-radius: 12px;
-                padding: 20px;
+                position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+                background: var(--gta-bg-medium);
+                border: 1px solid var(--gta-border);
+                border-radius: 8px;
+                box-shadow: 0 2px 15px rgba(0,0,0,0.5);
+                padding: 15px;
                 z-index: 10000;
-                max-width: 80vw;
+                width: min(92vw, 520px);
                 max-height: 80vh;
-                box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-                font-family: Arial, sans-serif;
-                text-align: center;
+                color: var(--gta-text);
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                overflow-y: auto;
             `;
 
-            // 弹窗内容
             popup.innerHTML = `
-                <div style="margin-bottom: 15px; font-size: 20px; font-weight: bold; color: #C2185B;">
-                    🎭 手办 #${sequenceNumber}
+                <div class="popup-header" style="position: relative; margin-bottom: 14px;">
+                    <h3 style="color: var(--gta-primary); font-size: 18px; margin: 0; font-weight: bold;">${title}</h3>
+                    <span class="popup-close" style="position: absolute; top: 0; right: 0; color: var(--gta-text-secondary); font-size: 20px; cursor: pointer; transition: color 0.3s ease;">×</span>
                 </div>
-                <img src="${imageUrl}" 
-                     alt="手办 #${sequenceNumber}" 
-                     style="max-width: 100%; max-height: 60vh; border-radius: 8px; margin-bottom: 15px;">
-                <div style="margin-bottom: 15px; color: #666; font-size: 14px;">
+                <img src="${imageUrl}" alt="手办 #${sequenceNumber}" style="max-width: 100%; height: auto; border-radius: 6px; margin: 8px 0; display: block; cursor: zoom-in;"/>
+                <div style="margin: 10px 0; padding: 10px; background: rgba(233, 30, 99, 0.1); border-radius: 8px; color: var(--gta-text); font-size: 14px; line-height: 1.6;">
                     可在上图位置找到！
                 </div>
-                <div style="margin: 15px 0; padding: 12px; background: #f8f9fa; border-radius: 6px; border-left: 4px solid #E91E63;">
-                    <div style="font-weight: bold; color: #C2185B; margin-bottom: 5px;">🎯 收集奖励</div>
-                    <div style="color: #666; font-size: 14px; line-height: 1.4;">
-                        收集所有手办可获得：<br>
-                        • 特殊载具奖励<br>
-                        • 游戏币奖励<br>
-                        • 解锁隐藏成就
+                <div style="margin: 10px 0; padding: 10px; background: rgba(233, 30, 99, 0.1); border-radius: 8px; color: var(--gta-text); font-size: 14px; line-height: 1.6;">
+                    <div style="font-weight: bold; color: #E91E63; margin-bottom: 5px;">🎯 收集奖励</div>
+                        收集所有手办可获得：特殊载具奖励、游戏币奖励、解锁隐藏成就
                     </div>
+                <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
+                    <button id="hide-action-figures-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease; display: ${isCurrentHidden ? 'none' : 'inline-block'};">隐藏</button>
+                    <button id="show-action-figures-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease; display: ${isCurrentHidden ? 'inline-block' : 'none'};">显示</button>
+                    <button id="close-action-figures-btn" style="padding: 8px 16px; background: var(--gta-primary); color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease;">关闭</button>
                 </div>
-                <button id="hide-action-figures-btn" 
-                        style="padding: 10px 20px; margin-right: 10px;
-                               background: #4CAF50; color: white; 
-                               border: none; border-radius: 6px; 
-                               cursor: pointer; font-size: 16px;
-                               transition: background-color 0.3s;">
-                    隐藏标记
-                </button>
-                <button id="close-action-figures-btn" 
-                        style="padding: 10px 20px; 
-                               background: #f44336; color: white; 
-                               border: none; border-radius: 6px; 
-                               cursor: pointer; font-size: 16px;
-                               transition: background-color 0.3s;">
-                    关闭
-                </button>
             `;
 
-            // 添加到页面
-            document.body.appendChild(popup);
-
-            // 添加隐藏按钮事件监听
-            const hideBtn = popup.querySelector('#hide-action-figures-btn');
-            hideBtn.addEventListener('click', () => {
-                 // 找到对应的标记并设置透明度为25%
-                 document.querySelectorAll('.item-marker').forEach(marker => {
-                     const img = marker.querySelector('img');
-                     if (img && img.src && img.src.includes('action_figures') && marker.dataset.index == index) {
-                         marker.style.opacity = '0.25';
-                         // 将隐藏按钮改为显示按钮
-                         hideBtn.textContent = '显示';
-                         hideBtn.style.background = '#2196F3';
-                         hideBtn.id = 'show-action-figures-btn';
-                         
-                         // 移除旧的点击事件，添加新的显示事件
-                         const newShowBtn = hideBtn.cloneNode(true);
-                         hideBtn.replaceWith(newShowBtn);
-                         newShowBtn.addEventListener('click', () => {
-                             // 恢复透明度为100%
-                             const currentMarker = document.querySelector(`.item-marker[data-index="${index}"]`);
-                             if (currentMarker) {
-                                 currentMarker.style.opacity = '1';
-                             }
-                             popup.remove();
-                         });
-                     }
-                 });
-             });
-
-            // 添加关闭按钮事件监听
+            // 绑定元素
             const closeBtn = popup.querySelector('#close-action-figures-btn');
-            closeBtn.addEventListener('click', () => {
-                popup.remove();
-            });
+            const hideBtn = popup.querySelector('#hide-action-figures-btn');
+            const showBtn = popup.querySelector('#show-action-figures-btn');
+            const popupClose = popup.querySelector('.popup-close');
+            const titleElement = popup.querySelector('h3');
 
-            // 点击弹窗外部关闭
+            // 关闭弹窗
+            const removePopup = () => popup.remove();
+            closeBtn.addEventListener('click', removePopup);
+            popupClose.addEventListener('click', removePopup);
             popup.addEventListener('click', (e) => e.stopPropagation());
-            
-            // 使用setTimeout延迟添加document点击事件，避免立即触发
             setTimeout(() => {
                 const closePopupHandler = (e) => {
                     if (!popup.contains(e.target)) {
-                        popup.remove();
+                        removePopup();
                         document.removeEventListener('click', closePopupHandler);
                     }
                 };
                 document.addEventListener('click', closePopupHandler);
-            }, 100);
+            }, 50);
+
+            // 图片点击放大
+            const popupImage = popup.querySelector('img');
+            if (popupImage) {
+                popupImage.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const overlay = document.createElement('div');
+                    overlay.className = 'action-figures-image-overlay';
+                    overlay.style.cssText = `
+                        position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+                        display: flex; align-items: center; justify-content: center;
+                        z-index: 10002; cursor: zoom-out;
+                    `;
+                    const bigImg = document.createElement('img');
+                    bigImg.src = popupImage.src;
+                    bigImg.alt = popupImage.alt || '';
+                    bigImg.style.cssText = `max-width: 95vw; max-height: 95vh; border-radius: 6px; box-shadow: 0 4px 24px rgba(0,0,0,0.6);`;
+                    overlay.appendChild(bigImg);
+
+                    const removeOverlay = () => {
+                        document.removeEventListener('keydown', onKey);
+                        overlay.remove();
+                    };
+                    const onKey = (ev) => { if (ev.key === 'Escape') removeOverlay(); };
+                    overlay.addEventListener('click', removeOverlay);
+                    document.addEventListener('keydown', onKey);
+                    document.body.appendChild(overlay);
+                });
+            }
+
+            // 工具：隐藏/显示当前标记
+            function setCurrentMarkerVisibility(opacity) {
+                if (currentMarker && typeof currentMarker.setOpacity === 'function') {
+                    currentMarker.setOpacity(opacity);
+                } else if (currentMarker && typeof currentMarker.setStyle === 'function') {
+                    currentMarker.setStyle({ opacity });
+                }
+                
+                // 更新缓存
+                VisibilityCache.updateItemVisibility('action_figures', index, opacity === 0.3);
+            }
+
+            // 隐藏按钮
+            if (hideBtn) {
+                hideBtn.addEventListener('click', () => {
+                    setCurrentMarkerVisibility(0.3);
+                    const newHiddenCount = hiddenCount + (isCurrentHidden ? 0 : 1);
+                    titleElement.textContent = `🎭 手办 #${sequenceNumber} (${newHiddenCount}/${totalCount})`;
+                    hideBtn.style.display = 'none';
+                    showBtn.style.display = 'inline-block';
+                    isCurrentHidden = true;
+
+                    // 刷新侧边栏计数
+                    updateActionFiguresSidebarCount();
+                });
+            }
+
+            // 显示按钮
+            if (showBtn) {
+                showBtn.addEventListener('click', () => {
+                    setCurrentMarkerVisibility(1);
+                    const newHiddenCount = hiddenCount - (isCurrentHidden ? 1 : 0);
+                    titleElement.textContent = `🎭 手办 #${sequenceNumber} (${newHiddenCount}/${totalCount})`;
+                    showBtn.style.display = 'none';
+                    hideBtn.style.display = 'inline-block';
+                    isCurrentHidden = false;
+
+                    // 刷新侧边栏计数
+                    updateActionFiguresSidebarCount();
+                });
+            }
+
+            document.body.appendChild(popup);
+        }
+
+        // 应用缓存的可见性状态到手办标记
+        function applyActionFiguresVisibilityCache() {
+            const markers = (window.actionFiguresMarkers && window.actionFiguresMarkers) || [];
+            if (markers.length > 0) {
+                const visibilityMap = VisibilityCache.loadVisibility('action_figures');
+                markers.forEach((marker, index) => {
+                    const isHidden = visibilityMap[index];
+                    if (isHidden && marker) {
+                        if (typeof marker.setOpacity === 'function') {
+                            marker.setOpacity(0.3);
+                        } else if (typeof marker.setStyle === 'function') {
+                            marker.setStyle({ opacity: 0.3 });
+                        }
+                    }
+                });
+                console.log('已应用手办可见性缓存');
+                return true;
+            }
+            return false;
         }
 
         // 显示元宝图片弹窗
@@ -10610,117 +11127,172 @@
             }, 100);
         }
 
-        // 显示有机坊产品图片弹窗
+        // 有机坊产品弹窗模板（含隐藏/显示联动与计数器、缓存集成）
         function showOrganicFarmImage(index) {
             // 序号从1开始
             const sequenceNumber = index + 1;
-            const imageUrl = `https://gta-maps.antwen.com/collectibles_images/ld_organics/ld_organics_${sequenceNumber.toString().padStart(2, '0')}.webp`;
+            // 修复图片链接逻辑，第1-9个不要带0
+            const imageUrl = sequenceNumber <= 9 
+                ? `https://gta-maps.antwen.com/collectibles_images/ld_organics/ld_organics_${sequenceNumber}.webp`
+                : `https://gta-maps.antwen.com/collectibles_images/ld_organics/ld_organics_${sequenceNumber.toString().padStart(2, '0')}.webp`;
             
-            // 创建弹窗
+            // 关闭已存在的弹窗
+            const existingPopup = document.querySelector('.organic-farm-popup');
+            if (existingPopup) existingPopup.remove();
+
+            // 统计隐藏/总数
+            const markers = (window.organicFarmMarkers && window.organicFarmMarkers) || [];
+            const totalCount = markers.length;
+
+            let hiddenCount = 0;
+            markers.forEach((marker) => {
+                if (marker && typeof marker.getElement === 'function') {
+                    const el = marker.getElement();
+                    if (el && el.style.opacity === '0.3') hiddenCount++;
+                }
+            });
+
+            const currentMarker = markers[index];
+            let isCurrentHidden = false;
+            if (currentMarker && typeof currentMarker.getElement === 'function') {
+                const el = currentMarker.getElement();
+                isCurrentHidden = el && el.style.opacity === '0.3';
+            }
+
+            const title = `🌿 有机坊产品 #${sequenceNumber} (${hiddenCount}/${totalCount})`;
+
+            // 构建弹窗
             const popup = document.createElement('div');
             popup.className = 'organic-farm-popup';
             popup.style.cssText = `
-                position: fixed;
-                top: 50%;
-                left: 50%;
-                transform: translate(-50%, -50%);
-                background: white;
-                border: 3px solid #4CAF50;
-                border-radius: 12px;
-                padding: 20px;
+                position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+                background: var(--gta-bg-medium);
+                border: 1px solid var(--gta-border);
+                border-radius: 8px;
+                box-shadow: 0 2px 15px rgba(0,0,0,0.5);
+                padding: 15px;
                 z-index: 10000;
-                max-width: 80vw;
+                width: min(92vw, 520px);
                 max-height: 80vh;
-                box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-                font-family: Arial, sans-serif;
-                text-align: center;
+                color: var(--gta-text);
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                overflow-y: auto;
             `;
 
-            // 弹窗内容
             popup.innerHTML = `
-                <div style="margin-bottom: 15px; font-size: 20px; font-weight: bold; color: #2E7D32;">
-                    🌿 有机坊产品 #${sequenceNumber}
+                <div class="popup-header" style="position: relative; margin-bottom: 14px;">
+                    <h3 style="color: var(--gta-primary); font-size: 18px; margin: 0; font-weight: bold;">${title}</h3>
+                    <span class="popup-close" style="position: absolute; top: 0; right: 0; color: var(--gta-text-secondary); font-size: 20px; cursor: pointer; transition: color 0.3s ease;">×</span>
                 </div>
-                <img src="${imageUrl}" 
-                     alt="有机坊产品 #${sequenceNumber}" 
-                     style="max-width: 100%; max-height: 60vh; border-radius: 8px; margin-bottom: 15px;">
-                <div style="margin-bottom: 15px; color: #666; font-size: 14px;">
+                <img src="${imageUrl}" alt="有机坊产品 #${sequenceNumber}" style="max-width: 100%; height: auto; border-radius: 6px; margin: 8px 0; display: block; cursor: zoom-in;"/>
+                <div style="margin: 10px 0; padding: 10px; background: rgba(76, 175, 80, 0.1); border-radius: 8px; color: var(--gta-text); font-size: 14px; line-height: 1.6;">
                     可在上图位置找到！
                 </div>
-                <div style="margin: 15px 0; padding: 12px; background: #f8f9fa; border-radius: 6px; border-left: 4px solid #4CAF50;">
-                    <div style="font-weight: bold; color: #2E7D32; margin-bottom: 5px;">🎯 收集奖励</div>
-                    <div style="color: #666; font-size: 14px; line-height: 1.4;">
-                        收集全部有机坊产品可获得特殊衣服和帽子奖励！
-                    </div>
+                <div style="margin: 10px 0; padding: 10px; background: rgba(76, 175, 80, 0.1); border-radius: 8px; color: var(--gta-text); font-size: 14px; line-height: 1.6;">
+                    <div style="font-weight: bold; color: #4CAF50; margin-bottom: 5px;">🎯 收集奖励</div>
+                    收集全部有机坊产品可获得特殊衣服和帽子奖励！
                 </div>
-                <button id="hide-organic-popup-btn" 
-                        style="padding: 10px 20px; margin-right: 10px;
-                               background: #4CAF50; color: white; 
-                               border: none; border-radius: 6px; 
-                               cursor: pointer; font-size: 16px;
-                               transition: background-color 0.3s;">
-                    隐藏标记
-                </button>
-                <button id="close-organic-popup-btn" 
-                        style="padding: 10px 20px; 
-                               background: #f44336; color: white; 
-                               border: none; border-radius: 6px; 
-                               cursor: pointer; font-size: 16px;
-                               transition: background-color 0.3s;">
-                    关闭
-                </button>
+                <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
+                    <button id="hide-organic-farm-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease; display: ${isCurrentHidden ? 'none' : 'inline-block'};">隐藏</button>
+                    <button id="show-organic-farm-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease; display: ${isCurrentHidden ? 'inline-block' : 'none'};">显示</button>
+                    <button id="close-organic-farm-btn" style="padding: 8px 16px; background: var(--gta-primary); color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease;">关闭</button>
+                </div>
             `;
 
-            // 添加隐藏按钮事件监听
-            const hideBtn = popup.querySelector('#hide-organic-popup-btn');
-            hideBtn.addEventListener('click', () => {
-                 // 找到对应的标记并设置透明度为25%
-                 document.querySelectorAll('.item-marker').forEach(marker => {
-                     const img = marker.querySelector('img');
-                     if (img && img.src && img.src.includes('organic_farm') && marker.dataset.index == index) {
-                         marker.style.opacity = '0.25';
-                         // 将隐藏按钮改为显示按钮
-                         hideBtn.textContent = '显示';
-                         hideBtn.style.background = '#2196F3';
-                         hideBtn.id = 'show-organic-popup-btn';
-                         
-                         // 移除旧的点击事件，添加新的显示事件
-                         const newShowBtn = hideBtn.cloneNode(true);
-                         hideBtn.replaceWith(newShowBtn);
-                         newShowBtn.addEventListener('click', () => {
-                             // 恢复透明度为100%
-                             const currentMarker = document.querySelector(`.item-marker[data-index="${index}"]`);
-                             if (currentMarker) {
-                                 currentMarker.style.opacity = '1';
-                             }
-                             popup.remove();
-                         });
-                     }
-                 });
-             });
+            // 绑定元素
+            const closeBtn = popup.querySelector('#close-organic-farm-btn');
+            const hideBtn = popup.querySelector('#hide-organic-farm-btn');
+            const showBtn = popup.querySelector('#show-organic-farm-btn');
+            const popupClose = popup.querySelector('.popup-close');
+            const titleElement = popup.querySelector('h3');
 
-            // 添加关闭按钮事件监听
-            const closeBtn = popup.querySelector('#close-organic-popup-btn');
-            closeBtn.addEventListener('click', () => {
-                popup.remove();
-            });
-
-            // 添加到页面
-            document.body.appendChild(popup);
-
-            // 点击弹窗外部关闭
+            // 关闭弹窗
+            const removePopup = () => popup.remove();
+            closeBtn.addEventListener('click', removePopup);
+            popupClose.addEventListener('click', removePopup);
             popup.addEventListener('click', (e) => e.stopPropagation());
-            
-            // 使用setTimeout延迟添加document点击事件，避免立即触发
             setTimeout(() => {
                 const closePopupHandler = (e) => {
                     if (!popup.contains(e.target)) {
-                        popup.remove();
+                        removePopup();
                         document.removeEventListener('click', closePopupHandler);
                     }
                 };
                 document.addEventListener('click', closePopupHandler);
-            }, 100);
+            }, 50);
+
+            // 图片点击放大
+            const popupImage = popup.querySelector('img');
+            if (popupImage) {
+                popupImage.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const overlay = document.createElement('div');
+                    overlay.className = 'organic-farm-image-overlay';
+                    overlay.style.cssText = `
+                        position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+                        display: flex; align-items: center; justify-content: center;
+                        z-index: 10002; cursor: zoom-out;
+                    `;
+                    const bigImg = document.createElement('img');
+                    bigImg.src = popupImage.src;
+                    bigImg.alt = popupImage.alt || '';
+                    bigImg.style.cssText = `max-width: 95vw; max-height: 95vh; border-radius: 6px; box-shadow: 0 4px 24px rgba(0,0,0,0.6);`;
+                    overlay.appendChild(bigImg);
+
+                    const removeOverlay = () => {
+                        document.removeEventListener('keydown', onKey);
+                        overlay.remove();
+                    };
+                    const onKey = (ev) => { if (ev.key === 'Escape') removeOverlay(); };
+                    overlay.addEventListener('click', removeOverlay);
+                    document.addEventListener('keydown', onKey);
+                    document.body.appendChild(overlay);
+                });
+            }
+
+            // 工具：隐藏/显示当前标记
+            function setCurrentMarkerVisibility(opacity) {
+                if (currentMarker && typeof currentMarker.setOpacity === 'function') {
+                    currentMarker.setOpacity(opacity);
+                } else if (currentMarker && typeof currentMarker.setStyle === 'function') {
+                    currentMarker.setStyle({ opacity });
+                }
+                
+                // 更新缓存
+                VisibilityCache.updateItemVisibility('ld_organics_products', index, opacity === 0.3);
+            }
+
+            // 隐藏按钮
+            if (hideBtn) {
+                hideBtn.addEventListener('click', () => {
+                    setCurrentMarkerVisibility(0.3);
+                    const newHiddenCount = hiddenCount + (isCurrentHidden ? 0 : 1);
+                    titleElement.textContent = `🌿 有机坊产品 #${sequenceNumber} (${newHiddenCount}/${totalCount})`;
+                    hideBtn.style.display = 'none';
+                    showBtn.style.display = 'inline-block';
+                    isCurrentHidden = true;
+
+                    // 刷新侧边栏计数
+                    updateOrganicFarmSidebarCount();
+                });
+            }
+
+            // 显示按钮
+            if (showBtn) {
+                showBtn.addEventListener('click', () => {
+                    setCurrentMarkerVisibility(1);
+                    const newHiddenCount = hiddenCount - (isCurrentHidden ? 1 : 0);
+                    titleElement.textContent = `🌿 有机坊产品 #${sequenceNumber} (${newHiddenCount}/${totalCount})`;
+                    showBtn.style.display = 'none';
+                    hideBtn.style.display = 'inline-block';
+                    isCurrentHidden = false;
+
+                    // 刷新侧边栏计数
+                    updateOrganicFarmSidebarCount();
+                });
+            }
+
+            document.body.appendChild(popup);
         }
 
     // 顶部 old select 已移除；侧边栏复选框与 reset 按钮管理 activeItemTypes
@@ -15167,6 +15739,50 @@
                         // 初始渲染一次
                         setTimeout(() => { try { updateStreetDealersSidebarCount(); } catch(e) {} }, 0);
                     }
+                    // 信号干扰器计数器
+                    else if (type === 'signal_jammers') {
+                        const counter = document.createElement('span');
+                        counter.className = 'signal-jammers-counter';
+                        counter.style.marginLeft = '6px';
+                        counter.style.color = 'var(--gta-text-secondary)';
+                        counter.textContent = '';
+                        label.appendChild(counter);
+                        // 初始渲染一次
+                        setTimeout(() => { try { updateSignalJammersSidebarCount(); } catch(e) {} }, 0);
+                    }
+                    // 手办计数器
+                    else if (type === 'action_figures') {
+                        const counter = document.createElement('span');
+                        counter.className = 'action-figures-counter';
+                        counter.style.marginLeft = '6px';
+                        counter.style.color = 'var(--gta-text-secondary)';
+                        counter.textContent = '';
+                        label.appendChild(counter);
+                        // 初始渲染一次
+                        setTimeout(() => { try { updateActionFiguresSidebarCount(); } catch(e) {} }, 0);
+                    }
+                    // 纸牌计数器
+                    else if (type === 'playing_cards') {
+                        const counter = document.createElement('span');
+                        counter.className = 'playing-cards-counter';
+                        counter.style.marginLeft = '6px';
+                        counter.style.color = 'var(--gta-text-secondary)';
+                        counter.textContent = '';
+                        label.appendChild(counter);
+                        // 初始渲染一次
+                        setTimeout(() => { try { updatePlayingCardsSidebarCount(); } catch(e) {} }, 0);
+                    }
+                    // 有机坊产品计数器
+                    else if (type === 'ld_organics_products') {
+                        const counter = document.createElement('span');
+                        counter.className = 'organic-farm-counter';
+                        counter.style.marginLeft = '6px';
+                        counter.style.color = 'var(--gta-text-secondary)';
+                        counter.textContent = '';
+                        label.appendChild(counter);
+                        // 初始渲染一次
+                        setTimeout(() => { try { updateOrganicFarmSidebarCount(); } catch(e) {} }, 0);
+                    }
                     // 跳伞计数器
                     else if (type === 'skydives') {
                         const counter = document.createElement('span');
@@ -15316,6 +15932,22 @@
                         if (t === 'street_dealers') {
                             try { updateStreetDealersSidebarCount(); } catch(e) {}
                         }
+                        // 信号干扰器计数器
+                        if (t === 'signal_jammers') {
+                            try { updateSignalJammersSidebarCount(); } catch(e) {}
+                        }
+                        // 手办计数器
+                        if (t === 'action_figures') {
+                            try { updateActionFiguresSidebarCount(); } catch(e) {}
+                        }
+                        // 纸牌计数器
+                        if (t === 'playing_cards') {
+                            try { updatePlayingCardsSidebarCount(); } catch(e) {}
+                        }
+                        // 有机坊产品计数器
+                        if (t === 'ld_organics_products') {
+                            try { updateOrganicFarmSidebarCount(); } catch(e) {}
+                        }
                         // 跳伞计数器
                         if (t === 'skydives') {
                             try { updateSkydivesSidebarCount(); } catch(e) {}
@@ -15406,6 +16038,10 @@
                     // 渲染完成后，刷新一次计数器
                     try { updateSmugglerPlaneSidebarCount(); } catch(e) {}
                     try { updateStreetDealersSidebarCount(); } catch(e) {}
+                    try { updateSignalJammersSidebarCount(); } catch(e) {}
+                    try { updateActionFiguresSidebarCount(); } catch(e) {}
+                    try { updatePlayingCardsSidebarCount(); } catch(e) {}
+                    try { updateOrganicFarmSidebarCount(); } catch(e) {}
                     try { updateSkydivesSidebarCount(); } catch(e) {}
                     try { updateRCTimeTrialSidebarCount(); } catch(e) {}
                     try { updateBikeTimeTrialSidebarCount(); } catch(e) {}

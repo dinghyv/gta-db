@@ -1811,6 +1811,26 @@
             updateStreetDealersSidebarCount();
         }
 
+        // ==================== 增强版喷罐位置模板（集成缓存） ====================
+        
+        // 创建侧边栏条目时，为 spray 增加一个计数器占位
+        function attachSprayCounterToLabel(sidebarCheckboxId) {
+            const label = document.querySelector(`#${sidebarCheckboxId} + label`);
+            if (!label) return;
+
+            let counter = label.querySelector('.spray-counter');
+            if (!counter) {
+                counter = document.createElement('span');
+                counter.className = 'spray-counter';
+                counter.style.marginLeft = '6px';
+                counter.style.color = 'var(--gta-text-secondary)';
+                label.appendChild(counter);
+            }
+
+            // 初次渲染计数
+            updateSpraySidebarCount();
+        }
+
         // ==================== 增强版特技跳跃点模板（集成缓存） ====================
         
         // 创建侧边栏条目时，为 stunt_jumps 增加一个计数器占位
@@ -1869,6 +1889,46 @@
 
             // 初次渲染计数
             updatePlayingCardsSidebarCount();
+        }
+
+        // ==================== 增强版陆地迷幻仙人掌模板（集成缓存） ====================
+        
+        // 创建侧边栏条目时，为 ppl 增加一个计数器占位
+        function attachPplCounterToLabel(sidebarCheckboxId) {
+            const label = document.querySelector(`#${sidebarCheckboxId} + label`);
+            if (!label) return;
+
+            let counter = label.querySelector('.ppl-counter');
+            if (!counter) {
+                counter = document.createElement('span');
+                counter.className = 'ppl-counter';
+                counter.style.marginLeft = '6px';
+                counter.style.color = 'var(--gta-text-secondary)';
+                label.appendChild(counter);
+            }
+
+            // 初次渲染计数
+            updatePplSidebarCount();
+        }
+
+        // ==================== 增强版水下迷幻仙人掌模板（集成缓存） ====================
+        
+        // 创建侧边栏条目时，为 ppw 增加一个计数器占位
+        function attachPpwCounterToLabel(sidebarCheckboxId) {
+            const label = document.querySelector(`#${sidebarCheckboxId} + label`);
+            if (!label) return;
+
+            let counter = label.querySelector('.ppw-counter');
+            if (!counter) {
+                counter = document.createElement('span');
+                counter.className = 'ppw-counter';
+                counter.style.marginLeft = '6px';
+                counter.style.color = 'var(--gta-text-secondary)';
+                label.appendChild(counter);
+            }
+
+            // 初次渲染计数
+            updatePpwSidebarCount();
         }
 
         // ==================== 增强版有机坊产品模板（集成缓存） ====================
@@ -2180,6 +2240,86 @@
                 counterEl.textContent = total > 0 ? ` (${hidden}/${total})` : '';
             } catch (e) {
                 console.warn('更新走私贩飞机计数器失败:', e);
+            }
+        }
+
+        // 统计隐藏/总数，并更新侧边栏计数器文本（集成缓存）
+        function updateSpraySidebarCount() {
+            try {
+                const counterEl = document.querySelector('#sidebar-item-spray + label .spray-counter');
+                if (!counterEl) return;
+
+                // 计数器固定为1，隐藏状态通过全局变量控制
+                const totalCount = 1;
+                const hiddenCount = window.sprayHidden ? 1 : 0;
+
+                // 更新缓存
+                CounterCache.updateCounter('spray', hiddenCount, totalCount);
+                counterEl.textContent = totalCount > 0 ? ` (${hiddenCount}/${totalCount})` : '';
+            } catch (e) {
+                console.warn('更新喷罐位置计数器失败:', e);
+            }
+        }
+
+        // 统计隐藏/总数，并更新侧边栏计数器文本（集成缓存）
+        function updateMoviePropsSidebarCount() {
+            try {
+                const counterEl = document.querySelector('#sidebar-item-movie_props + label .movie-props-counter');
+                if (!counterEl) return;
+
+                const markers = (window.moviePropsMarkers && window.moviePropsMarkers) || [];
+                const total = 10; // 固定为10个（7固定 + 3载具按组计数）
+
+                // 读取子类型数量（从数据源）
+                const mp = (window.itemData && window.itemData.movie_props) || { fixed_position: [], vehicles: { pony: [], rebel: [], rumpo: [] } };
+                const fixedCount = mp.fixed_position?.length || 0;
+                const ponyCount = mp.vehicles?.pony?.length || 0;
+                const rebelCount = mp.vehicles?.rebel?.length || 0;
+                const rumpoCount = mp.vehicles?.rumpo?.length || 0;
+
+                // 可见性来源：优先缓存
+                let visibilityMap;
+                try { visibilityMap = VisibilityCache.loadVisibility('movie_props') || []; } catch (_) { visibilityMap = []; }
+
+                const getHiddenByIndex = (i) => {
+                    if (Array.isArray(visibilityMap)) return !!visibilityMap[i];
+                    if (visibilityMap && typeof visibilityMap === 'object') return !!visibilityMap[i];
+                    const m = markers[i];
+                    if (!m) return false;
+                    if (typeof m.getOpacity === 'function') return m.getOpacity() === 0.3;
+                    if (m.options && typeof m.options.opacity !== 'undefined') return m.options.opacity === 0.3;
+                    if (typeof m.getElement === 'function') { const el = m.getElement(); return !!(el && el.style.opacity === '0.3'); }
+                    return false;
+                };
+
+                // 固定点逐一统计
+                let hiddenFixed = 0;
+                for (let i = 0; i < fixedCount; i++) if (getHiddenByIndex(i)) hiddenFixed++;
+
+                // 组范围
+                const ponyStart = fixedCount;
+                const ponyEnd = ponyStart + ponyCount;
+                const rebelStart = ponyEnd;
+                const rebelEnd = rebelStart + rebelCount;
+                const rumpoStart = rebelEnd;
+                const rumpoEnd = rumpoStart + rumpoCount;
+
+                const rangeAllHidden = (start, end) => {
+                    if (start >= end) return false;
+                    for (let i = start; i < end; i++) if (!getHiddenByIndex(i)) return false;
+                    return true;
+                };
+
+                const ponyHidden = rangeAllHidden(ponyStart, ponyEnd);
+                const rebelHidden = rangeAllHidden(rebelStart, rebelEnd);
+                const rumpoHidden = rangeAllHidden(rumpoStart, rumpoEnd);
+
+                const hidden = hiddenFixed + (ponyHidden ? 1 : 0) + (rebelHidden ? 1 : 0) + (rumpoHidden ? 1 : 0);
+
+                CounterCache.updateCounter('movie_props', hidden, total);
+                counterEl.textContent = total > 0 ? ` (${hidden}/${total})` : '';
+            } catch (e) {
+                console.warn('更新电影道具计数器失败:', e);
             }
         }
 
@@ -2593,6 +2733,142 @@
                 counterEl.textContent = total > 0 ? ` (${hidden}/${total})` : '';
             } catch (e) {
                 console.warn('更新纸牌计数器失败:', e);
+            }
+        }
+
+        // 统计隐藏/总数，并更新侧边栏计数器文本（集成缓存）
+        function updateSpraySidebarCount() {
+            try {
+                const counterEl = document.querySelector('#sidebar-item-spray + label .spray-counter');
+                if (!counterEl) return;
+
+                // 喷灌位置计数器固定为1，隐藏一个标记后隐藏全部图标
+                const totalCount = 1;
+                let hiddenCount = 0;
+
+                // 检查是否隐藏（从缓存获取）
+                const cachedCounter = CounterCache.getCounter('spray');
+                hiddenCount = cachedCounter.hidden || 0;
+
+                // 更新缓存
+                CounterCache.updateCounter('spray', hiddenCount, totalCount);
+                counterEl.textContent = totalCount > 0 ? ` (${hiddenCount}/${totalCount})` : '';
+            } catch (e) {
+                console.warn('更新喷灌位置计数器失败:', e);
+            }
+        }
+
+        // ==================== 增强版陆地迷幻仙人掌模板（集成缓存） ====================
+        
+        // 创建侧边栏条目时，为 ppl 增加一个计数器占位
+        function attachPplCounterToLabel(sidebarCheckboxId) {
+            const label = document.querySelector(`#${sidebarCheckboxId} + label`);
+            if (!label) return;
+
+            let counter = label.querySelector('.ppl-counter');
+            if (!counter) {
+                counter = document.createElement('span');
+                counter.className = 'ppl-counter';
+                counter.style.marginLeft = '6px';
+                counter.style.color = 'var(--gta-text-secondary)';
+                label.appendChild(counter);
+            }
+
+            // 初次渲染计数
+            updatePplSidebarCount();
+        }
+
+        // 统计隐藏/总数，并更新侧边栏计数器文本（集成缓存）
+        function updatePplSidebarCount() {
+            try {
+                const counterEl = document.querySelector('#sidebar-item-ppl + label .ppl-counter');
+                if (!counterEl) return;
+
+                // 获取陆地迷幻仙人掌标记
+                const markers = (window.pplMarkers && window.pplMarkers) || [];
+                let total = 0;
+                let hidden = 0;
+
+                if (Array.isArray(markers) && markers.length > 0) {
+                    total = markers.length;
+                    markers.forEach((marker) => {
+                        if (marker && typeof marker.getElement === 'function') {
+                            const el = marker.getElement();
+                            if (el && el.style.opacity === '0.3') {
+                                hidden++;
+                            }
+                        }
+                    });
+                } else {
+                    // 回退：仅有数据尚未渲染 Leaflet 标记时
+                    total = Array.isArray(window.itemData?.ppl) ? window.itemData.ppl.length : 0;
+                    // 从缓存中获取隐藏数量
+                    const cachedCounter = CounterCache.getCounter('ppl');
+                    hidden = cachedCounter.hidden || 0;
+                }
+
+                // 更新缓存
+                CounterCache.updateCounter('ppl', hidden, total);
+                counterEl.textContent = total > 0 ? ` (${hidden}/${total})` : '';
+            } catch (e) {
+                console.warn('更新陆地迷幻仙人掌计数器失败:', e);
+            }
+        }
+
+        // ==================== 增强版水下迷幻仙人掌模板（集成缓存） ====================
+        
+        // 创建侧边栏条目时，为 ppw 增加一个计数器占位
+        function attachPpwCounterToLabel(sidebarCheckboxId) {
+            const label = document.querySelector(`#${sidebarCheckboxId} + label`);
+            if (!label) return;
+
+            let counter = label.querySelector('.ppw-counter');
+            if (!counter) {
+                counter = document.createElement('span');
+                counter.className = 'ppw-counter';
+                counter.style.marginLeft = '6px';
+                counter.style.color = 'var(--gta-text-secondary)';
+                label.appendChild(counter);
+            }
+
+            // 初次渲染计数
+            updatePpwSidebarCount();
+        }
+
+        // 统计隐藏/总数，并更新侧边栏计数器文本（集成缓存）
+        function updatePpwSidebarCount() {
+            try {
+                const counterEl = document.querySelector('#sidebar-item-ppw + label .ppw-counter');
+                if (!counterEl) return;
+
+                // 获取水下迷幻仙人掌标记
+                const markers = (window.ppwMarkers && window.ppwMarkers) || [];
+                let total = 0;
+                let hidden = 0;
+
+                if (Array.isArray(markers) && markers.length > 0) {
+                    total = markers.length;
+                    markers.forEach((marker) => {
+                        if (marker && typeof marker.getElement === 'function') {
+                            const el = marker.getElement();
+                            if (el && el.style.opacity === '0.3') {
+                                hidden++;
+                            }
+                        }
+                    });
+                } else {
+                    // 回退：仅有数据尚未渲染 Leaflet 标记时
+                    total = Array.isArray(window.itemData?.ppw) ? window.itemData.ppw.length : 0;
+                    // 从缓存中获取隐藏数量
+                    const cachedCounter = CounterCache.getCounter('ppw');
+                    hidden = cachedCounter.hidden || 0;
+                }
+
+                // 更新缓存
+                CounterCache.updateCounter('ppw', hidden, total);
+                counterEl.textContent = total > 0 ? ` (${hidden}/${total})` : '';
+            } catch (e) {
+                console.warn('更新水下迷幻仙人掌计数器失败:', e);
             }
         }
 
@@ -3703,6 +3979,27 @@
             return false;
         }
 
+        // 应用缓存的可见性状态到电影道具标记
+        function applyMoviePropsVisibilityCache() {
+            const markers = (window.moviePropsMarkers && window.moviePropsMarkers) || [];
+            if (markers.length > 0) {
+                const visibilityMap = VisibilityCache.loadVisibility('movie_props');
+                markers.forEach((marker, index) => {
+                    const isHidden = visibilityMap[index];
+                    if (isHidden && marker) {
+                        if (typeof marker.setOpacity === 'function') {
+                            marker.setOpacity(0.3);
+                        } else if (typeof marker.setStyle === 'function') {
+                            marker.setStyle({ opacity: 0.3 });
+                        }
+                    }
+                });
+                console.log('已应用电影道具可见性缓存');
+                return true;
+            }
+            return false;
+        }
+
         // 应用缓存的可见性状态到街头毒贩标记
         function applyStreetDealersVisibilityCache() {
             const markers = (window.streetDealersMarkers && window.streetDealersMarkers) || [];
@@ -3957,6 +4254,72 @@
             return false;
         }
 
+        // 应用缓存的可见性状态到喷灌位置标记
+        function applySprayVisibilityCache() {
+            const markers = (window.sprayMarkers && window.sprayMarkers) || [];
+            if (markers.length > 0) {
+                const visibilityMap = VisibilityCache.loadVisibility('spray');
+                // 喷灌位置：隐藏一个标记后隐藏全部图标
+                const isHidden = visibilityMap[0]; // 只检查第一个标记的状态
+                if (isHidden) {
+                    markers.forEach((marker) => {
+                        if (marker) {
+                            if (typeof marker.setOpacity === 'function') {
+                                marker.setOpacity(0.3);
+                            } else if (typeof marker.setStyle === 'function') {
+                                marker.setStyle({ opacity: 0.3 });
+                            }
+                        }
+                    });
+                }
+                console.log('已应用喷灌位置可见性缓存');
+                return true;
+            }
+            return false;
+        }
+
+        // 应用缓存的可见性状态到陆地迷幻仙人掌标记
+        function applyPplVisibilityCache() {
+            const markers = (window.pplMarkers && window.pplMarkers) || [];
+            if (markers.length > 0) {
+                const visibilityMap = VisibilityCache.loadVisibility('ppl');
+                markers.forEach((marker, index) => {
+                    const isHidden = visibilityMap[index];
+                    if (isHidden && marker) {
+                        if (typeof marker.setOpacity === 'function') {
+                            marker.setOpacity(0.3);
+                        } else if (typeof marker.setStyle === 'function') {
+                            marker.setStyle({ opacity: 0.3 });
+                        }
+                    }
+                });
+                console.log('已应用陆地迷幻仙人掌可见性缓存');
+                return true;
+            }
+            return false;
+        }
+
+        // 应用缓存的可见性状态到水下迷幻仙人掌标记
+        function applyPpwVisibilityCache() {
+            const markers = (window.ppwMarkers && window.ppwMarkers) || [];
+            if (markers.length > 0) {
+                const visibilityMap = VisibilityCache.loadVisibility('ppw');
+                markers.forEach((marker, index) => {
+                    const isHidden = visibilityMap[index];
+                    if (isHidden && marker) {
+                        if (typeof marker.setOpacity === 'function') {
+                            marker.setOpacity(0.3);
+                        } else if (typeof marker.setStyle === 'function') {
+                            marker.setStyle({ opacity: 0.3 });
+                        }
+                    }
+                });
+                console.log('已应用水下迷幻仙人掌可见性缓存');
+                return true;
+            }
+            return false;
+        }
+
         // 应用缓存的可见性状态到走私贩飞机标记
         function applySmugglerPlaneVisibilityCache() {
             const groups = (window.smugglerGroupMarkers && window.smugglerGroupMarkers['smuggler_plane']) || [];
@@ -4004,11 +4367,15 @@
                 // 4) 渲染完成后再应用可见性缓存（需在标记存在后）
                 try { applySmugglerPlaneVisibilityCache(); } catch (e) {}
                 try { applyStreetDealersVisibilityCache(); } catch (e) {}
+                try { applyMoviePropsVisibilityCache(); } catch (e) {}
                 try { applyStuntJumpsVisibilityCache(); } catch (e) {}
                 try { applyYuanbaoVisibilityCache(); } catch (e) {}
                 try { applySignalJammersVisibilityCache(); } catch (e) {}
                 try { applyActionFiguresVisibilityCache(); } catch (e) {}
                 try { applyPlayingCardsVisibilityCache(); } catch (e) {}
+                try { applySprayVisibilityCache(); } catch (e) {}
+                try { applyPplVisibilityCache(); } catch (e) {}
+                try { applyPpwVisibilityCache(); } catch (e) {}
                 try { applyOrganicFarmVisibilityCache(); } catch (e) {}
                 try { applySkydivesVisibilityCache(); } catch (e) {}
                 try { applyRCTimeTrialVisibilityCache(); } catch (e) {}
@@ -4029,6 +4396,9 @@
                 try { updateSignalJammersSidebarCount(); } catch (e) {}
                 try { updateActionFiguresSidebarCount(); } catch (e) {}
                 try { updatePlayingCardsSidebarCount(); } catch (e) {}
+                try { updateSpraySidebarCount(); } catch (e) {}
+                try { updatePplSidebarCount(); } catch (e) {}
+                try { updatePpwSidebarCount(); } catch (e) {}
                 try { updateOrganicFarmSidebarCount(); } catch (e) {}
                 try { updateSkydivesSidebarCount(); } catch (e) {}
                 try { updateMadrazoHitsSidebarCount(); } catch (e) {}
@@ -5800,11 +6170,14 @@
                 // 数据加载完成后更新所有计数器
                 try { updateSmugglerPlaneSidebarCount(); } catch(e) {}
                 try { updateStreetDealersSidebarCount(); } catch(e) {}
+                try { updateMoviePropsSidebarCount(); } catch(e) {}
+                try { updateSpraySidebarCount(); } catch(e) {}
                 try { updateStuntJumpsSidebarCount(); } catch(e) {}
                 try { updateYuanbaoSidebarCount(); } catch(e) {}
                 try { updateSignalJammersSidebarCount(); } catch(e) {}
                 try { updateActionFiguresSidebarCount(); } catch(e) {}
                 try { updatePlayingCardsSidebarCount(); } catch(e) {}
+                try { updateSpraySidebarCount(); } catch(e) {}
                 try { updateOrganicFarmSidebarCount(); } catch(e) {}
                 try { updateSkydivesSidebarCount(); } catch(e) {}
                 try { updateRCTimeTrialSidebarCount(); } catch(e) {}
@@ -6620,6 +6993,10 @@
                     showMoviePropsPopup(item, index, subtype);
                 });
                 
+                // 记录 movie_props 标记以便弹窗隐藏/显示控制与可见性缓存
+                if (!window.moviePropsMarkers) window.moviePropsMarkers = [];
+                window.moviePropsMarkers[index] = marker;
+                
                 return marker;
             }
             
@@ -7012,6 +7389,11 @@
                     if (!window.streetDealersMarkers) window.streetDealersMarkers = [];
                     window.streetDealersMarkers[index] = marker;
                 }
+                // 记录 movie_props 标记以便弹窗隐藏/显示控制
+                else if (type === 'movie_props') {
+                    if (!window.moviePropsMarkers) window.moviePropsMarkers = [];
+                    window.moviePropsMarkers[index] = marker;
+                }
                 // 记录 ld_organics_products 标记以便弹窗隐藏/显示控制
                 else if (type === 'ld_organics_products') {
                     if (!window.organicFarmMarkers) window.organicFarmMarkers = [];
@@ -7081,6 +7463,21 @@
                 else if (type === 'stunt_jumps') {
                     if (!window.stuntJumpsMarkers) window.stuntJumpsMarkers = [];
                     window.stuntJumpsMarkers[index] = marker;
+                }
+                // 记录 ppl 标记以便弹窗隐藏/显示控制
+                else if (type === 'ppl') {
+                    if (!window.pplMarkers) window.pplMarkers = [];
+                    window.pplMarkers[index] = marker;
+                }
+                // 记录 ppw 标记以便弹窗隐藏/显示控制
+                else if (type === 'ppw') {
+                    if (!window.ppwMarkers) window.ppwMarkers = [];
+                    window.ppwMarkers[index] = marker;
+                }
+                // 记录 spray 标记以便弹窗隐藏/显示控制
+                else if (type === 'spray') {
+                    if (!window.sprayMarkers) window.sprayMarkers = [];
+                    window.sprayMarkers[index] = marker;
                 }
             } catch (e) {}
             
@@ -7329,10 +7726,14 @@
             });
             leafletMarkers = [];
             
-            // 清空特殊标记存储数组
-            if (window.streetDealersMarkers) {
-                window.streetDealersMarkers = [];
-            }
+            // 清空特殊标记存储数组（但不清除有计数器的标记）
+            // 有计数器的标记需要保持状态，不清除：
+            // - streetDealersMarkers (街头毒贩)
+            // - playingCardsMarkers (纸牌)
+            // - yuanbaoMarkers (元宝)
+            // - pplMarkers (陆地迷幻仙人掌)
+            // - ppwMarkers (水下迷幻仙人掌)
+            
             if (window.gunVanMarkers) {
                 window.gunVanMarkers = [];
             }
@@ -7348,17 +7749,11 @@
             if (window.actionFiguresMarkers) {
                 window.actionFiguresMarkers = [];
             }
-            if (window.playingCardsMarkers) {
-                window.playingCardsMarkers = [];
-            }
             if (window.signalJammersMarkers) {
                 window.signalJammersMarkers = [];
             }
             if (window.organicFarmMarkers) {
                 window.organicFarmMarkers = [];
-            }
-            if (window.yuanbaoMarkers) {
-                window.yuanbaoMarkers = [];
             }
             // 不清除特技跳跃点标记，保持其状态
             // if (window.stuntJumpsMarkers) {
@@ -7852,25 +8247,31 @@
                     // 特殊：电影道具（多个子组）
                     else if (type === 'movie_props') {
                         const mp = itemData.movie_props || { fixed_position: [], vehicles: { pony: [], rebel: [], rumpo: [] } };
+                        let globalIndex = 0;
+                        
                         (mp.fixed_position || []).forEach((p, i) => {
                             if (typeof p.x === 'undefined' || typeof p.y === 'undefined') return;
-                            const marker = createLeafletMarker(p, i, 'movie_props');
+                            const marker = createLeafletMarker(p, globalIndex, 'movie_props');
                             leafletMarkers.push(marker);
+                            globalIndex++;
                         });
                         (mp.vehicles?.pony || []).forEach((p, i) => {
                             if (typeof p.x === 'undefined' || typeof p.y === 'undefined') return;
-                            const marker = createLeafletMarker(p, i, 'movie_props');
+                            const marker = createLeafletMarker(p, globalIndex, 'movie_props');
                             leafletMarkers.push(marker);
+                            globalIndex++;
                         });
                         (mp.vehicles?.rebel || []).forEach((p, i) => {
                             if (typeof p.x === 'undefined' || typeof p.y === 'undefined') return;
-                            const marker = createLeafletMarker(p, i, 'movie_props');
+                            const marker = createLeafletMarker(p, globalIndex, 'movie_props');
                             leafletMarkers.push(marker);
+                            globalIndex++;
                         });
                         (mp.vehicles?.rumpo || []).forEach((p, i) => {
                             if (typeof p.x === 'undefined' || typeof p.y === 'undefined') return;
-                            const marker = createLeafletMarker(p, i, 'movie_props');
+                            const marker = createLeafletMarker(p, globalIndex, 'movie_props');
                             leafletMarkers.push(marker);
+                            globalIndex++;
                         });
                     }
                     // 其他简单数组类型统一处理
@@ -7900,6 +8301,10 @@
             // 重新应用隐藏可见性缓存，确保被隐藏的标记在切换显示后仍保持状态
             try { applySmugglerPlaneVisibilityCache(); } catch (e) {}
             try { applyStreetDealersVisibilityCache(); } catch (e) {}
+            try { applyMoviePropsVisibilityCache(); } catch (e) {}
+            try { applySprayVisibilityCache(); } catch (e) {}
+            try { applyPplVisibilityCache(); } catch (e) {}
+            try { applyPpwVisibilityCache(); } catch (e) {}
             try { applyStuntJumpsVisibilityCache(); } catch (e) {}
             try { applyYuanbaoVisibilityCache(); } catch (e) {}
             try { applySignalJammersVisibilityCache(); } catch (e) {}
@@ -9658,10 +10063,10 @@
         // 信号干扰器弹窗模板（含隐藏/显示联动与计数器、缓存集成）
         function showSignalJammerImage(index) {
             // 序号从1开始
-            const sequenceNumber = index + 1;
-            // 1-9使用单个数字，10+使用两位数
-            const paddedNumber = sequenceNumber < 10 ? sequenceNumber.toString() : sequenceNumber.toString().padStart(2, '0');
-            const imageUrl = `https://gta-maps.antwen.com/collectibles_images/signal_jammers/signal_jammers_${paddedNumber}.webp`;
+             const sequenceNumber = index + 1;
+             // 1-9使用单个数字，10+使用两位数
+             const paddedNumber = sequenceNumber < 10 ? sequenceNumber.toString() : sequenceNumber.toString().padStart(2, '0');
+             const imageUrl = `https://gta-maps.antwen.com/collectibles_images/signal_jammers/signal_jammers_${paddedNumber}.webp`;
             
             // 关闭已存在的弹窗
             const existingPopup = document.querySelector('.signal-jammer-popup');
@@ -10475,7 +10880,7 @@
 
             // 隐藏按钮
             if (hideBtn) {
-                hideBtn.addEventListener('click', () => {
+            hideBtn.addEventListener('click', () => {
                     setCurrentMarkerVisibility(0.3);
                     const newHiddenCount = hiddenCount + (isCurrentHidden ? 0 : 1);
                     titleElement.textContent = `🪙 元宝 #${sequenceNumber} (${newHiddenCount}/${totalCount})`;
@@ -10727,117 +11132,159 @@
             }, 100);
         }
 
-        // 显示喷罐位置弹窗
+        // 喷罐位置弹窗模板（含隐藏/显示联动与计数器、缓存集成）
         function showSprayImage(index) {
             // 序号从1开始
             const sequenceNumber = index + 1;
             const imageUrl = `https://gta-maps.antwen.com/collectibles_images/spray/spray_${sequenceNumber}.webp`;
             
-            // 创建弹窗
+            // 关闭已存在的弹窗
+            const existingPopup = document.querySelector('.spray-popup');
+            if (existingPopup) existingPopup.remove();
+
+            // 计数器固定为1，隐藏一个标记后隐藏全部图标
+            const totalCount = 1;
+            
+            // 检查当前隐藏状态（从缓存获取）
+            const cachedCounter = CounterCache.getCounter('spray');
+            const hiddenCount = cachedCounter.hidden || 0;
+            const isCurrentHidden = hiddenCount > 0;
+
+            const title = `🎨 喷罐位置 #${sequenceNumber} (${hiddenCount}/${totalCount})`;
+
+            // 构建弹窗
             const popup = document.createElement('div');
             popup.className = 'spray-popup';
             popup.style.cssText = `
-                position: fixed;
-                top: 50%;
-                left: 50%;
-                transform: translate(-50%, -50%);
-                background: white;
-                border: 3px solid #2196F3;
-                border-radius: 12px;
-                padding: 20px;
+                position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+                background: var(--gta-bg-medium);
+                border: 1px solid var(--gta-border);
+                border-radius: 8px;
+                box-shadow: 0 2px 15px rgba(0,0,0,0.5);
+                padding: 15px;
                 z-index: 10000;
-                max-width: 80vw;
+                width: min(92vw, 520px);
                 max-height: 80vh;
-                box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-                font-family: Arial, sans-serif;
-                text-align: center;
+                color: var(--gta-text);
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                overflow-y: auto;
             `;
 
-            // 弹窗内容
             popup.innerHTML = `
-                <div style="margin-bottom: 15px; font-size: 20px; font-weight: bold; color: #2196F3;">
-                    🎨 喷罐位置 #${sequenceNumber}
+                <div class="popup-header" style="position: relative; margin-bottom: 14px;">
+                    <h3 style="color: var(--gta-primary); font-size: 18px; margin: 0; font-weight: bold;">${title}</h3>
+                    <span class="popup-close" style="position: absolute; top: 0; right: 0; color: var(--gta-text-secondary); font-size: 20px; cursor: pointer; transition: color 0.3s ease;">×</span>
                 </div>
-                <img src="${imageUrl}"
-                     alt="喷罐位置 #${sequenceNumber}"
-                     style="max-width: 100%; max-height: 60vh; border-radius: 8px; margin-bottom: 15px;">
-                <div style="margin-bottom: 15px; color: #666; font-size: 14px;">
+                <img src="${imageUrl}" alt="喷罐位置 #${sequenceNumber}" style="max-width: 100%; height: auto; border-radius: 6px; margin: 8px 0; display: block; cursor: zoom-in;"/>
+                <div style="margin: 10px 0; padding: 10px; background: rgba(33, 150, 243, 0.1); border-radius: 8px; color: var(--gta-text); font-size: 14px; line-height: 1.6;">
                     可在上图位置找到！
                 </div>
-                <div style="margin: 15px 0; padding: 12px; background: #f8f9fa; border-radius: 6px; border-left: 4px solid #2196F3;">
+                <div style="margin: 10px 0; padding: 10px; background: rgba(33, 150, 243, 0.1); border-radius: 8px; color: var(--gta-text); font-size: 14px; line-height: 1.6;">
                     <div style="font-weight: bold; color: #2196F3; margin-bottom: 5px;">🎯 收集说明</div>
-                    <div style="color: #666; font-size: 14px; line-height: 1.4;">
-                        找到喷罐位置，收集喷罐道具！
-                    </div>
+                    找到喷罐位置，收集喷罐道具！
                 </div>
-                <button id="hide-spray-btn"
-                        style="padding: 10px 20px; margin-right: 10px;
-                               background: #2196F3; color: white; 
-                               border: none; border-radius: 6px; 
-                               cursor: pointer; font-size: 16px;
-                               transition: background-color 0.3s;">
-                    隐藏标记
-                </button>
-                <button id="close-spray-btn"
-                        style="padding: 10px 20px; 
-                               background: #f44336; color: white; 
-                               border: none; border-radius: 6px; 
-                               cursor: pointer; font-size: 16px;
-                               transition: background-color 0.3s;">
-                    关闭
-                </button>
+                <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
+                    <button id="hide-spray-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease; display: ${isCurrentHidden ? 'none' : 'inline-block'};">隐藏</button>
+                    <button id="show-spray-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease; display: ${isCurrentHidden ? 'inline-block' : 'none'};">显示</button>
+                    <button id="close-spray-btn" style="padding: 8px 16px; background: var(--gta-primary); color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease;">关闭</button>
+                </div>
             `;
 
-            // 添加到页面
-            document.body.appendChild(popup);
-
-            // 添加隐藏按钮事件监听
-            const hideBtn = popup.querySelector('#hide-spray-btn');
-            hideBtn.addEventListener('click', () => {
-                 // 找到对应的标记并设置透明度为25%
-                 document.querySelectorAll('.item-marker').forEach(marker => {
-                     const img = marker.querySelector('img');
-                     if (img && img.src && img.src.includes('spray') && marker.dataset.index == index) {
-                         marker.style.opacity = '0.25';
-                         // 将隐藏按钮改为显示按钮
-                         hideBtn.textContent = '显示';
-                         hideBtn.style.background = '#4CAF50';
-                         hideBtn.id = 'show-spray-btn';
-                           
-                         // 移除旧的点击事件，添加新的显示事件
-                         const newShowBtn = hideBtn.cloneNode(true);
-                         hideBtn.replaceWith(newShowBtn);
-                         newShowBtn.addEventListener('click', () => {
-                             // 恢复透明度为100%
-                             const currentMarker = document.querySelector(`.item-marker[data-index="${index}"]`);
-                             if (currentMarker) {
-                                 currentMarker.style.opacity = '1';
-                             }
-                             popup.remove();
-                         });
-                     }
-                 });
-             });
-
-            // 添加关闭按钮事件监听
+            // 绑定元素
             const closeBtn = popup.querySelector('#close-spray-btn');
-            closeBtn.addEventListener('click', () => {
-                popup.remove();
-            });
+            const hideBtn = popup.querySelector('#hide-spray-btn');
+            const showBtn = popup.querySelector('#show-spray-btn');
+            const popupClose = popup.querySelector('.popup-close');
+            const titleElement = popup.querySelector('h3');
 
-            // 点击弹窗外部关闭
+            // 关闭弹窗
+            const removePopup = () => popup.remove();
+            closeBtn.addEventListener('click', removePopup);
+            popupClose.addEventListener('click', removePopup);
             popup.addEventListener('click', (e) => e.stopPropagation());
-            
-            // 使用setTimeout延迟添加document点击事件，避免立即触发
             setTimeout(() => {
                 const closePopupHandler = (e) => {
                     if (!popup.contains(e.target)) {
-                        popup.remove();
+                        removePopup();
                         document.removeEventListener('click', closePopupHandler);
                     }
                 };
                 document.addEventListener('click', closePopupHandler);
-            }, 100);
+            }, 50);
+
+            // 图片点击放大
+            const popupImage = popup.querySelector('img');
+            if (popupImage) {
+                popupImage.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const overlay = document.createElement('div');
+                    overlay.className = 'spray-image-overlay';
+                    overlay.style.cssText = `
+                        position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+                        display: flex; align-items: center; justify-content: center;
+                        z-index: 10002; cursor: zoom-out;
+                    `;
+                    const bigImg = document.createElement('img');
+                    bigImg.src = popupImage.src;
+                    bigImg.alt = popupImage.alt || '';
+                    bigImg.style.cssText = `max-width: 95vw; max-height: 95vh; border-radius: 6px; box-shadow: 0 4px 24px rgba(0,0,0,0.6);`;
+                    overlay.appendChild(bigImg);
+
+                    const removeOverlay = () => {
+                        document.removeEventListener('keydown', onKey);
+                        overlay.remove();
+                    };
+                    const onKey = (ev) => { if (ev.key === 'Escape') removeOverlay(); };
+                    overlay.addEventListener('click', removeOverlay);
+                    document.addEventListener('keydown', onKey);
+                    document.body.appendChild(overlay);
+                });
+            }
+
+            // 工具：隐藏/显示所有喷罐标记
+            function setAllSprayVisibility(opacity) {
+                const markers = (window.sprayMarkers && window.sprayMarkers) || [];
+                markers.forEach((marker) => {
+                    if (marker && typeof marker.setOpacity === 'function') {
+                        marker.setOpacity(opacity);
+                    } else if (marker && typeof marker.setStyle === 'function') {
+                        marker.setStyle({ opacity });
+                    }
+                });
+                
+                // 更新缓存状态 - 固定计数器为1
+                const newHiddenCount = opacity === 0.3 ? 1 : 0;
+                CounterCache.updateCounter('spray', newHiddenCount, 1);
+                VisibilityCache.updateItemVisibility('spray', 0, opacity === 0.3);
+            }
+
+            // 隐藏按钮
+            if (hideBtn) {
+                hideBtn.addEventListener('click', () => {
+                    setAllSprayVisibility(0.3);
+                    titleElement.textContent = `🎨 喷罐位置 #${sequenceNumber} (1/1)`;
+                    hideBtn.style.display = 'none';
+                    showBtn.style.display = 'inline-block';
+
+                    // 刷新侧边栏计数
+                    updateSpraySidebarCount();
+                });
+            }
+
+            // 显示按钮
+            if (showBtn) {
+                showBtn.addEventListener('click', () => {
+                    setAllSprayVisibility(1);
+                    titleElement.textContent = `🎨 喷罐位置 #${sequenceNumber} (0/1)`;
+                    showBtn.style.display = 'none';
+                    hideBtn.style.display = 'inline-block';
+
+                    // 刷新侧边栏计数
+                    updateSpraySidebarCount();
+                });
+            }
+
+            document.body.appendChild(popup);
         }
 
         // 特技跳跃点弹窗模板（含隐藏/显示联动与计数器、缓存集成）
@@ -10900,8 +11347,8 @@
                 </div>
                 <div style="margin: 10px 0; padding: 10px; background: rgba(56, 142, 60, 0.1); border-radius: 8px; color: var(--gta-text); font-size: 14px; line-height: 1.6;">
                     <div style="font-weight: bold; color: #388E3C; margin-bottom: 5px;">🎯 挑战说明</div>
-                    驾驶车辆完成特技跳跃，获得高分和奖励！
-                </div>
+                        驾驶车辆完成特技跳跃，获得高分和奖励！
+                    </div>
                 <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
                     <button id="hide-stunt-jumps-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease; display: ${isCurrentHidden ? 'none' : 'inline-block'};">隐藏</button>
                     <button id="show-stunt-jumps-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease; display: ${isCurrentHidden ? 'inline-block' : 'none'};">显示</button>
@@ -11457,8 +11904,8 @@
                 </div>
                 <div style="margin: 10px 0; padding: 10px; background: rgba(76, 175, 80, 0.1); border-radius: 8px; color: var(--gta-text); font-size: 14px; line-height: 1.6;">
                     <div style="font-weight: bold; color: #4CAF50; margin-bottom: 5px;">🎯 收集奖励</div>
-                    收集全部有机坊产品可获得特殊衣服和帽子奖励！
-                </div>
+                        收集全部有机坊产品可获得特殊衣服和帽子奖励！
+                    </div>
                 <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
                     <button id="hide-organic-farm-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease; display: ${isCurrentHidden ? 'none' : 'inline-block'};">隐藏</button>
                     <button id="show-organic-farm-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease; display: ${isCurrentHidden ? 'inline-block' : 'none'};">显示</button>
@@ -13891,144 +14338,370 @@
             document.body.appendChild(popup);
         }
 
-        // 陆地迷幻仙人掌弹窗
+        // 陆地迷幻仙人掌弹窗模板（含隐藏/显示联动与计数器、缓存集成）
         function showPplPopup(ppl, index) {
-            console.log('显示陆地迷幻仙人掌弹窗:', ppl, index);
+            // 序号从1开始
             const sequenceNumber = index + 1;
-            const title = `🌵 陆地迷幻仙人掌 #${sequenceNumber}`;
-            const content = `游戏中共有 76 个迷幻仙人掌（52 个在陆地上 （包含 2 个特殊的迷幻仙人掌 ），另有 24 个在水下 ）。迷幻仙人掌并不立即出现，有时您须稍等片刻。当您靠近它时，游戏手柄会振动，它还会发出类似动物叫声的声音。吃下（按键：E）迷幻仙人掌后，您将变成 随机动物 中的其中一种，并获得 5.000 RP。您会一直维持动物形态，除非您：死亡、入水/上岸，或按住 E。以上情况都会令您在最近的医院重生。吃过的迷幻仙人掌将在 48 分钟后刷新。切换战局或重启游戏不会重置冷却时间。`;
             const imageUrl = `https://gta-maps.antwen.com/collectibles_images/ppl/ppl_${sequenceNumber}.webp`;
+            const content = `游戏中共有 76 个迷幻仙人掌（52 个在陆地上 （包含 2 个特殊的迷幻仙人掌 ），另有 24 个在水下 ）。迷幻仙人掌并不立即出现，有时您须稍等片刻。当您靠近它时，游戏手柄会振动，它还会发出类似动物叫声的声音。吃下（按键：E）迷幻仙人掌后，您将变成 随机动物 中的其中一种，并获得 5.000 RP。您会一直维持动物形态，除非您：死亡、入水/上岸，或按住 E。以上情况都会令您在最近的医院重生。吃过的迷幻仙人掌将在 48 分钟后刷新。切换战局或重启游戏不会重置冷却时间。`;
             
+            // 关闭已存在的弹窗
+            const existingPopup = document.querySelector('.ppl-popup');
+            if (existingPopup) existingPopup.remove();
+
+            // 统计隐藏/总数
+            const markers = (window.pplMarkers && window.pplMarkers) || [];
+            const totalCount = markers.length;
+
+            let hiddenCount = 0;
+            markers.forEach((marker) => {
+                if (marker && typeof marker.getElement === 'function') {
+                    const el = marker.getElement();
+                    if (el && el.style.opacity === '0.3') hiddenCount++;
+                }
+            });
+
+            const currentMarker = markers[index];
+            let isCurrentHidden = false;
+            if (currentMarker && typeof currentMarker.getElement === 'function') {
+                const el = currentMarker.getElement();
+                isCurrentHidden = el && el.style.opacity === '0.3';
+            }
+
+            const title = `🌵 陆地迷幻仙人掌 #${sequenceNumber} (${hiddenCount}/${totalCount})`;
+
+            // 构建弹窗
             const popup = document.createElement('div');
             popup.className = 'ppl-popup';
             popup.style.cssText = `
                 position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-                background: #fff; border: 3px solid #4CAF50; border-radius: 12px; padding: 18px;
-                z-index: 10000; max-width: 520px; max-height: 80vh; box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-                overflow-y: auto; font-family: 'Microsoft YaHei', sans-serif;
+                background: var(--gta-bg-medium);
+                border: 1px solid var(--gta-border);
+                border-radius: 8px;
+                box-shadow: 0 2px 15px rgba(0,0,0,0.5);
+                padding: 15px;
+                z-index: 10000;
+                width: min(92vw, 520px);
+                max-height: 80vh;
+                color: var(--gta-text);
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                overflow-y: auto;
             `;
             
             popup.innerHTML = `
-                <div style="text-align: center; margin-bottom: 12px;">
-                    <h3 style="margin: 0; color: #4CAF50; font-size: 18px; font-weight: bold;">${title}</h3>
+                <div class="popup-header" style="position: relative; margin-bottom: 14px;">
+                    <h3 style="color: var(--gta-primary); font-size: 18px; margin: 0; font-weight: bold;">${title}</h3>
+                    <span class="popup-close" style="position: absolute; top: 0; right: 0; color: var(--gta-text-secondary); font-size: 20px; cursor: pointer; transition: color 0.3s ease;">×</span>
                 </div>
-                <div style="text-align: center; margin-bottom: 12px;">
-                    <img src="${imageUrl}" alt="陆地迷幻仙人掌 #${sequenceNumber}" style="max-width: 100%; height: auto; border-radius: 6px; margin: 8px 0; display:block;"/>
-                </div>
-                <div style="color: #333; line-height: 1.5; margin-bottom: 16px; font-size: 14px;">
+                <img src="${imageUrl}" alt="陆地迷幻仙人掌 #${sequenceNumber}" style="max-width: 100%; height: auto; border-radius: 6px; margin: 8px 0; display: block; cursor: zoom-in;"/>
+                <div style="margin: 10px 0; padding: 10px; background: rgba(76, 175, 80, 0.1); border-radius: 8px; color: var(--gta-text); font-size: 14px; line-height: 1.6;">
                     ${content}
                 </div>
-                <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px;">
-                    <button id="hide-ppl-btn" style="padding: 10px 18px; background: #4CAF50; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">隐藏</button>
-                    <button id="show-ppl-btn" style="padding: 10px 18px; background: #2196F3; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">显示</button>
-                    <button id="close-ppl-btn" style="padding: 10px 18px; background: #f44336; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">关闭</button>
+                <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
+                    <button id="hide-ppl-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease; display: ${isCurrentHidden ? 'none' : 'inline-block'};">隐藏</button>
+                    <button id="show-ppl-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease; display: ${isCurrentHidden ? 'inline-block' : 'none'};">显示</button>
+                    <button id="close-ppl-btn" style="padding: 8px 16px; background: var(--gta-primary); color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease;">关闭</button>
                 </div>
             `;
             
+            // 绑定元素
+            const closeBtn = popup.querySelector('#close-ppl-btn');
             const hideBtn = popup.querySelector('#hide-ppl-btn');
             const showBtn = popup.querySelector('#show-ppl-btn');
-            const closeBtn = popup.querySelector('#close-ppl-btn');
+            const popupClose = popup.querySelector('.popup-close');
+            const titleElement = popup.querySelector('h3');
 
-            function resolveTargetAndIndex() {
-                const el = document.querySelector(`.item-marker[data-type="ppl"][data-index="${index}"]`);
-                return { el, globalIndex: index };
-            }
-
-            hideBtn.addEventListener('click', () => {
-                const { el } = resolveTargetAndIndex();
-                if (!el) return;
-                el.style.opacity = '0.25';
-            });
-
-            showBtn.addEventListener('click', () => {
-                const { el } = resolveTargetAndIndex();
-                if (!el) return;
-                el.style.opacity = '1';
-            });
-
-            closeBtn.addEventListener('click', () => popup.remove());
-            
+            // 关闭弹窗
+            const removePopup = () => popup.remove();
+            closeBtn.addEventListener('click', removePopup);
+            popupClose.addEventListener('click', removePopup);
             popup.addEventListener('click', (e) => e.stopPropagation());
-            
-            // 点击外部关闭
             setTimeout(() => {
                 const closePopupHandler = (e) => {
-                    if (!popup.contains(e.target)) { popup.remove(); document.removeEventListener('click', closePopupHandler); }
+                    if (!popup.contains(e.target)) {
+                        removePopup();
+                        document.removeEventListener('click', closePopupHandler);
+                    }
                 };
                 document.addEventListener('click', closePopupHandler);
             }, 50);
+
+            // 图片点击放大
+            const popupImage = popup.querySelector('img');
+            if (popupImage) {
+                popupImage.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const overlay = document.createElement('div');
+                    overlay.className = 'ppl-image-overlay';
+                    overlay.style.cssText = `
+                        position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+                        display: flex; align-items: center; justify-content: center;
+                        z-index: 10002; cursor: zoom-out;
+                    `;
+                    const bigImg = document.createElement('img');
+                    bigImg.src = popupImage.src;
+                    bigImg.alt = popupImage.alt || '';
+                    bigImg.style.cssText = `max-width: 95vw; max-height: 95vh; border-radius: 6px; box-shadow: 0 4px 24px rgba(0,0,0,0.6);`;
+                    overlay.appendChild(bigImg);
+
+                    const removeOverlay = () => {
+                        document.removeEventListener('keydown', onKey);
+                        overlay.remove();
+                    };
+                    const onKey = (ev) => { if (ev.key === 'Escape') removeOverlay(); };
+                    overlay.addEventListener('click', removeOverlay);
+                    document.addEventListener('keydown', onKey);
+                    document.body.appendChild(overlay);
+                });
+            }
+
+            // 工具：隐藏/显示当前标记
+            function setCurrentMarkerVisibility(opacity) {
+                if (currentMarker && typeof currentMarker.setOpacity === 'function') {
+                    currentMarker.setOpacity(opacity);
+                } else if (currentMarker && typeof currentMarker.setStyle === 'function') {
+                    currentMarker.setStyle({ opacity });
+                }
+                
+                // 更新缓存
+                VisibilityCache.updateItemVisibility('ppl', index, opacity === 0.3);
+            }
+
+            // 隐藏按钮
+            if (hideBtn) {
+                hideBtn.addEventListener('click', () => {
+                    setCurrentMarkerVisibility(0.3);
+                    const newHiddenCount = hiddenCount + (isCurrentHidden ? 0 : 1);
+                    titleElement.textContent = `🌵 陆地迷幻仙人掌 #${sequenceNumber} (${newHiddenCount}/${totalCount})`;
+                    hideBtn.style.display = 'none';
+                    showBtn.style.display = 'inline-block';
+                    isCurrentHidden = true;
+
+                    // 刷新侧边栏计数
+                    updatePplSidebarCount();
+                });
+            }
+
+            // 显示按钮
+            if (showBtn) {
+                showBtn.addEventListener('click', () => {
+                    setCurrentMarkerVisibility(1);
+                    const newHiddenCount = hiddenCount - (isCurrentHidden ? 1 : 0);
+                    titleElement.textContent = `🌵 陆地迷幻仙人掌 #${sequenceNumber} (${newHiddenCount}/${totalCount})`;
+                    showBtn.style.display = 'none';
+                    hideBtn.style.display = 'inline-block';
+                    isCurrentHidden = false;
+
+                    // 刷新侧边栏计数
+                    updatePplSidebarCount();
+                });
+            }
 
             document.body.appendChild(popup);
         }
 
-        // 水下迷幻仙人掌弹窗
+        // 应用缓存的可见性状态到陆地迷幻仙人掌标记
+        function applyPplVisibilityCache() {
+            const markers = (window.pplMarkers && window.pplMarkers) || [];
+            if (markers.length > 0) {
+                const visibilityMap = VisibilityCache.loadVisibility('ppl');
+                markers.forEach((marker, index) => {
+                    const isHidden = visibilityMap[index];
+                    if (isHidden && marker) {
+                        if (typeof marker.setOpacity === 'function') {
+                            marker.setOpacity(0.3);
+                        } else if (typeof marker.setStyle === 'function') {
+                            marker.setStyle({ opacity: 0.3 });
+                        }
+                    }
+                });
+                console.log('已应用陆地迷幻仙人掌可见性缓存');
+                return true;
+            }
+            return false;
+        }
+
+        // 水下迷幻仙人掌弹窗模板（含隐藏/显示联动与计数器、缓存集成）
         function showPpwPopup(ppw, index) {
-            console.log('显示水下迷幻仙人掌弹窗:', ppw, index);
+            // 序号从1开始
             const sequenceNumber = index + 1;
-            const title = `🌊 水下迷幻仙人掌 #${sequenceNumber}`;
-            const content = `游戏中共有 76 个迷幻仙人掌（52 个在陆地上 （包含 2 个特殊的迷幻仙人掌 ），另有 24 个在水下 ）。迷幻仙人掌并不立即出现，有时您须稍等片刻。当您靠近它时，游戏手柄会振动，它还会发出类似动物叫声的声音。吃下（按键：E）迷幻仙人掌后，您将变成 随机动物 中的其中一种，并获得 5.000 RP。您会一直维持动物形态，除非您：死亡、入水/上岸，或按住 E。以上情况都会令您在最近的医院重生。吃过的迷幻仙人掌将在 48 分钟后刷新。切换战局或重启游戏不会重置冷却时间。`;
             const imageUrl = `https://gta-maps.antwen.com/collectibles_images/ppw/ppw_${sequenceNumber}.webp`;
+            const content = `游戏中共有 76 个迷幻仙人掌（52 个在陆地上 （包含 2 个特殊的迷幻仙人掌 ），另有 24 个在水下 ）。迷幻仙人掌并不立即出现，有时您须稍等片刻。当您靠近它时，游戏手柄会振动，它还会发出类似动物叫声的声音。吃下（按键：E）迷幻仙人掌后，您将变成 随机动物 中的其中一种，并获得 5.000 RP。您会一直维持动物形态，除非您：死亡、入水/上岸，或按住 E。以上情况都会令您在最近的医院重生。吃过的迷幻仙人掌将在 48 分钟后刷新。切换战局或重启游戏不会重置冷却时间。`;
             
+            // 关闭已存在的弹窗
+            const existingPopup = document.querySelector('.ppw-popup');
+            if (existingPopup) existingPopup.remove();
+
+            // 统计隐藏/总数
+            const markers = (window.ppwMarkers && window.ppwMarkers) || [];
+            const totalCount = markers.length;
+
+            let hiddenCount = 0;
+            markers.forEach((marker) => {
+                if (marker && typeof marker.getElement === 'function') {
+                    const el = marker.getElement();
+                    if (el && el.style.opacity === '0.3') hiddenCount++;
+                }
+            });
+
+            const currentMarker = markers[index];
+            let isCurrentHidden = false;
+            if (currentMarker && typeof currentMarker.getElement === 'function') {
+                const el = currentMarker.getElement();
+                isCurrentHidden = el && el.style.opacity === '0.3';
+            }
+
+            const title = `🌊 水下迷幻仙人掌 #${sequenceNumber} (${hiddenCount}/${totalCount})`;
+
+            // 构建弹窗
             const popup = document.createElement('div');
             popup.className = 'ppw-popup';
             popup.style.cssText = `
                 position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-                background: #fff; border: 3px solid #2196F3; border-radius: 12px; padding: 18px;
-                z-index: 10000; max-width: 520px; max-height: 80vh; box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-                overflow-y: auto; font-family: 'Microsoft YaHei', sans-serif;
+                background: var(--gta-bg-medium);
+                border: 1px solid var(--gta-border);
+                border-radius: 8px;
+                box-shadow: 0 2px 15px rgba(0,0,0,0.5);
+                padding: 15px;
+                z-index: 10000;
+                width: min(92vw, 520px);
+                max-height: 80vh;
+                color: var(--gta-text);
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                overflow-y: auto;
             `;
             
             popup.innerHTML = `
-                <div style="text-align: center; margin-bottom: 12px;">
-                    <h3 style="margin: 0; color: #2196F3; font-size: 18px; font-weight: bold;">${title}</h3>
+                <div class="popup-header" style="position: relative; margin-bottom: 14px;">
+                    <h3 style="color: var(--gta-primary); font-size: 18px; margin: 0; font-weight: bold;">${title}</h3>
+                    <span class="popup-close" style="position: absolute; top: 0; right: 0; color: var(--gta-text-secondary); font-size: 20px; cursor: pointer; transition: color 0.3s ease;">×</span>
                 </div>
-                <div style="text-align: center; margin-bottom: 12px;">
-                    <img src="${imageUrl}" alt="水下迷幻仙人掌 #${sequenceNumber}" style="max-width: 100%; height: auto; border-radius: 6px; margin: 8px 0; display:block;"/>
-                </div>
-                <div style="color: #333; line-height: 1.5; margin-bottom: 16px; font-size: 14px;">
+                <img src="${imageUrl}" alt="水下迷幻仙人掌 #${sequenceNumber}" style="max-width: 100%; height: auto; border-radius: 6px; margin: 8px 0; display: block; cursor: zoom-in;"/>
+                <div style="margin: 10px 0; padding: 10px; background: rgba(33, 150, 243, 0.1); border-radius: 8px; color: var(--gta-text); font-size: 14px; line-height: 1.6;">
                     ${content}
                 </div>
-                <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px;">
-                    <button id="hide-ppw-btn" style="padding: 10px 18px; background: #2196F3; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">隐藏</button>
-                    <button id="show-ppw-btn" style="padding: 10px 18px; background: #4CAF50; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">显示</button>
-                    <button id="close-ppw-btn" style="padding: 10px 18px; background: #f44336; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">关闭</button>
+                <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
+                    <button id="hide-ppw-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease; display: ${isCurrentHidden ? 'none' : 'inline-block'};">隐藏</button>
+                    <button id="show-ppw-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease; display: ${isCurrentHidden ? 'inline-block' : 'none'};">显示</button>
+                    <button id="close-ppw-btn" style="padding: 8px 16px; background: var(--gta-primary); color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease;">关闭</button>
                 </div>
             `;
             
+            // 绑定元素
+            const closeBtn = popup.querySelector('#close-ppw-btn');
             const hideBtn = popup.querySelector('#hide-ppw-btn');
             const showBtn = popup.querySelector('#show-ppw-btn');
-            const closeBtn = popup.querySelector('#close-ppw-btn');
+            const popupClose = popup.querySelector('.popup-close');
+            const titleElement = popup.querySelector('h3');
 
-            function resolveTargetAndIndex() {
-                const el = document.querySelector(`.item-marker[data-type="ppw"][data-index="${index}"]`);
-                return { el, globalIndex: index };
-            }
-
-            hideBtn.addEventListener('click', () => {
-                const { el } = resolveTargetAndIndex();
-                if (!el) return;
-                el.style.opacity = '0.25';
-            });
-
-            showBtn.addEventListener('click', () => {
-                const { el } = resolveTargetAndIndex();
-                if (!el) return;
-                el.style.opacity = '1';
-            });
-
-            closeBtn.addEventListener('click', () => popup.remove());
-            
+            // 关闭弹窗
+            const removePopup = () => popup.remove();
+            closeBtn.addEventListener('click', removePopup);
+            popupClose.addEventListener('click', removePopup);
             popup.addEventListener('click', (e) => e.stopPropagation());
-            
-            // 点击外部关闭
             setTimeout(() => {
                 const closePopupHandler = (e) => {
-                    if (!popup.contains(e.target)) { popup.remove(); document.removeEventListener('click', closePopupHandler); }
+                    if (!popup.contains(e.target)) {
+                        removePopup();
+                        document.removeEventListener('click', closePopupHandler);
+                    }
                 };
                 document.addEventListener('click', closePopupHandler);
             }, 50);
 
+            // 图片点击放大
+            const popupImage = popup.querySelector('img');
+            if (popupImage) {
+                popupImage.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const overlay = document.createElement('div');
+                    overlay.className = 'ppw-image-overlay';
+                    overlay.style.cssText = `
+                        position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+                        display: flex; align-items: center; justify-content: center;
+                        z-index: 10002; cursor: zoom-out;
+                    `;
+                    const bigImg = document.createElement('img');
+                    bigImg.src = popupImage.src;
+                    bigImg.alt = popupImage.alt || '';
+                    bigImg.style.cssText = `max-width: 95vw; max-height: 95vh; border-radius: 6px; box-shadow: 0 4px 24px rgba(0,0,0,0.6);`;
+                    overlay.appendChild(bigImg);
+
+                    const removeOverlay = () => {
+                        document.removeEventListener('keydown', onKey);
+                        overlay.remove();
+                    };
+                    const onKey = (ev) => { if (ev.key === 'Escape') removeOverlay(); };
+                    overlay.addEventListener('click', removeOverlay);
+                    document.addEventListener('keydown', onKey);
+                    document.body.appendChild(overlay);
+                });
+            }
+
+            // 工具：隐藏/显示当前标记
+            function setCurrentMarkerVisibility(opacity) {
+                if (currentMarker && typeof currentMarker.setOpacity === 'function') {
+                    currentMarker.setOpacity(opacity);
+                } else if (currentMarker && typeof currentMarker.setStyle === 'function') {
+                    currentMarker.setStyle({ opacity });
+                }
+                
+                // 更新缓存
+                VisibilityCache.updateItemVisibility('ppw', index, opacity === 0.3);
+            }
+
+            // 隐藏按钮
+            if (hideBtn) {
+                hideBtn.addEventListener('click', () => {
+                    setCurrentMarkerVisibility(0.3);
+                    const newHiddenCount = hiddenCount + (isCurrentHidden ? 0 : 1);
+                    titleElement.textContent = `🌊 水下迷幻仙人掌 #${sequenceNumber} (${newHiddenCount}/${totalCount})`;
+                    hideBtn.style.display = 'none';
+                    showBtn.style.display = 'inline-block';
+                    isCurrentHidden = true;
+
+                    // 刷新侧边栏计数
+                    updatePpwSidebarCount();
+                });
+            }
+
+            // 显示按钮
+            if (showBtn) {
+                showBtn.addEventListener('click', () => {
+                    setCurrentMarkerVisibility(1);
+                    const newHiddenCount = hiddenCount - (isCurrentHidden ? 1 : 0);
+                    titleElement.textContent = `🌊 水下迷幻仙人掌 #${sequenceNumber} (${newHiddenCount}/${totalCount})`;
+                    showBtn.style.display = 'none';
+                    hideBtn.style.display = 'inline-block';
+                    isCurrentHidden = false;
+
+                    // 刷新侧边栏计数
+                    updatePpwSidebarCount();
+                });
+            }
+
             document.body.appendChild(popup);
+        }
+
+        // 应用缓存的可见性状态到水下迷幻仙人掌标记
+        function applyPpwVisibilityCache() {
+            const markers = (window.ppwMarkers && window.ppwMarkers) || [];
+            if (markers.length > 0) {
+                const visibilityMap = VisibilityCache.loadVisibility('ppw');
+                markers.forEach((marker, index) => {
+                    const isHidden = visibilityMap[index];
+                    if (isHidden && marker) {
+                        if (typeof marker.setOpacity === 'function') {
+                            marker.setOpacity(0.3);
+                        } else if (typeof marker.setStyle === 'function') {
+                            marker.setStyle({ opacity: 0.3 });
+                        }
+                    }
+                });
+                console.log('已应用水下迷幻仙人掌可见性缓存');
+                return true;
+            }
+            return false;
         }
 
         // 新物品弹窗（地铁站、警察局、望远镜、消防局、医院）
@@ -14895,8 +15568,8 @@
             document.body.appendChild(popup);
         }
 
-        // 电影道具弹窗
-        function showMoviePropsPopup(item, index, subtype) {
+        // 电影道具弹窗模板（含隐藏/显示联动与计数器、缓存集成）
+        function showMoviePropsPopup(item, globalIndex, subtype) {
             const typeNames = {
                 'fixed_position': '固定位置',
                 'pony': 'Pony载具',
@@ -14911,83 +15584,262 @@
                 'rumpo': 'ls_c_mp_rumpo'
             };
             
-            const imageUrl = `https://gta-maps.antwen.com/collectibles_images/${imageUrls[subtype]}/${imageUrls[subtype]}_${(index + 1)}.webp`;
-            const title = `🎬 电影道具 - ${typeNames[subtype]} #${index + 1}`;
+            // 计算子类型索引
+            const mp = itemData.movie_props;
+            const fixedCount = mp.fixed_position?.length || 0;
+            const ponyCount = mp.vehicles?.pony?.length || 0;
+            const rebelCount = mp.vehicles?.rebel?.length || 0;
+            
+            let subtypeIndex = globalIndex;
+            if (subtype === 'pony') subtypeIndex = globalIndex - fixedCount;
+            else if (subtype === 'rebel') subtypeIndex = globalIndex - fixedCount - ponyCount;
+            else if (subtype === 'rumpo') subtypeIndex = globalIndex - fixedCount - ponyCount - rebelCount;
+            
+            const imageUrl = `https://gta-maps.antwen.com/collectibles_images/${imageUrls[subtype]}/${imageUrls[subtype]}_${(subtypeIndex + 1)}.webp`;
+            
+            // 关闭已存在的弹窗
+            const existingPopup = document.querySelector('.movie-props-popup');
+            if (existingPopup) existingPopup.remove();
 
+            // 统计隐藏/总数（固定点逐个计数，三类载具按组计数）
+            const markers = (window.moviePropsMarkers && window.moviePropsMarkers) || [];
+            const totalCount = 10; // 固定为10个（7固定 + 3 载具组）
+
+            // 可见性来源：优先缓存
+            let visibilityMap;
+            try { visibilityMap = VisibilityCache.loadVisibility('movie_props') || []; } catch (_) { visibilityMap = []; }
+
+            const getHiddenByIndex = (i) => {
+                if (Array.isArray(visibilityMap)) return !!visibilityMap[i];
+                if (visibilityMap && typeof visibilityMap === 'object') return !!visibilityMap[i];
+                const m = markers[i];
+                if (!m) return false;
+                if (typeof m.getOpacity === 'function') return m.getOpacity() === 0.3;
+                if (m.options && typeof m.options.opacity !== 'undefined') return m.options.opacity === 0.3;
+                if (typeof m.getElement === 'function') { const el = m.getElement(); return !!(el && el.style.opacity === '0.3'); }
+                return false;
+            };
+
+            // 固定点逐一统计
+            let hiddenFixed = 0;
+            for (let i = 0; i < fixedCount; i++) if (getHiddenByIndex(i)) hiddenFixed++;
+
+            // 组范围
+            const ponyStart = fixedCount;
+            const ponyEnd = ponyStart + ponyCount;
+            const rebelStart = ponyEnd;
+            const rebelEnd = rebelStart + rebelCount;
+            const rumpoStart = rebelEnd;
+            const rumpoEnd = rumpoStart + (mp.vehicles?.rumpo?.length || 0);
+
+            const rangeAllHidden = (start, end) => {
+                if (start >= end) return false;
+                for (let i = start; i < end; i++) if (!getHiddenByIndex(i)) return false;
+                return true;
+            };
+
+            let ponyHidden = rangeAllHidden(ponyStart, ponyEnd);
+            let rebelHidden = rangeAllHidden(rebelStart, rebelEnd);
+            let rumpoHidden = rangeAllHidden(rumpoStart, rumpoEnd);
+
+            const hiddenCount = hiddenFixed + (ponyHidden ? 1 : 0) + (rebelHidden ? 1 : 0) + (rumpoHidden ? 1 : 0);
+
+            // 当前标记引用（用于固定点直接设置透明度）
+            const currentMarker = markers[globalIndex];
+
+            // 当前是否隐藏（固定点看自身；载具看所在组）
+            let isCurrentHidden = false;
+            if (subtype === 'fixed_position') {
+                isCurrentHidden = getHiddenByIndex(globalIndex);
+            } else if (subtype === 'pony') {
+                isCurrentHidden = ponyHidden;
+            } else if (subtype === 'rebel') {
+                isCurrentHidden = rebelHidden;
+            } else if (subtype === 'rumpo') {
+                isCurrentHidden = rumpoHidden;
+            }
+
+            const title = `🎬 电影道具 - ${typeNames[subtype]} #${subtypeIndex + 1} (${hiddenCount}/${totalCount})`;
+
+            // 构建弹窗
             const popup = document.createElement('div');
             popup.className = 'movie-props-popup';
             popup.style.cssText = `
                 position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-                background: #fff; border: 3px solid #9C27B0; border-radius: 12px; padding: 18px;
-                z-index: 10000; max-width: 500px; max-height: 80vh; box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-                font-family: Arial, sans-serif; text-align: center; overflow-y: auto;`;
+                background: var(--gta-bg-medium);
+                border: 1px solid var(--gta-border);
+                border-radius: 8px;
+                box-shadow: 0 2px 15px rgba(0,0,0,0.5);
+                padding: 15px;
+                z-index: 10000;
+                width: min(92vw, 520px);
+                max-height: 80vh;
+                color: var(--gta-text);
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                overflow-y: auto;
+            `;
 
             popup.innerHTML = `
-                <div style="margin-bottom: 14px; font-size: 20px; font-weight: bold; color: #7B1FA2;">${title}</div>
-                <img src="${imageUrl}" alt="电影道具图片" style="max-width: 100%; height: auto; border-radius: 6px; margin: 8px 0;"/>
-                <div style="margin: 10px 0; padding: 10px; background: #f3e5f5; border-radius: 8px; color: #4e342e; font-size: 13px; text-align: left; line-height: 1.6;">
+                <div class="popup-header" style="position: relative; margin-bottom: 14px;">
+                    <h3 style="color: var(--gta-primary); font-size: 18px; margin: 0; font-weight: bold;">${title}</h3>
+                    <span class="popup-close" style="position: absolute; top: 0; right: 0; color: var(--gta-text-secondary); font-size: 20px; cursor: pointer; transition: color 0.3s ease;">×</span>
+                </div>
+                <img src="${imageUrl}" alt="电影道具 #${subtypeIndex + 1}" style="max-width: 100%; height: auto; border-radius: 6px; margin: 8px 0; display: block; cursor: zoom-in;"/>
+                <div style="margin: 10px 0; padding: 10px; background: rgba(156, 39, 176, 0.1); border-radius: 8px; color: var(--gta-text); font-size: 14px; line-height: 1.6;">
                     前往  接取电影道具搜寻任务。电影道具共有 10 个，其中 7 个位置固定，另外 3 个在载具里。每辆载具都有 3 个可能的生成点，其中 1 个会生成移动的载具。当您离生成点足够接近时，载具会以蓝点标记在地图上。如这些生成点都没有生成载具，您可以更换战局继续寻找。<br><br>
                     奖励：每个道具 10.000 GTA$。载具 2.000 RP，其他固定道具 5.000 RP。前往  交付道具以领取奖励。您没必要每收集一个就交付一个，多个道具同时交付时奖励会累加计算。此外，集齐全套收藏品还将获得 50.000 GTA$ 并解锁 太空入侵者 套装（前往 ，从盒子  里领取）。<br><br>
                     总收益：150.000 GTA$、41.000 RP 和套装。
                 </div>
-                <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px;">
-                    <button id="hide-movie-props-btn" style="padding: 10px 18px; background: #4CAF50; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">隐藏</button>
-                    <button id="show-movie-props-btn" style="padding: 10px 18px; background: #2196F3; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">显示</button>
-                    <button id="close-movie-props-btn" style="padding: 10px 18px; background: #f44336; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">关闭</button>
+                <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
+                    <button id="hide-movie-props-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease; display: ${isCurrentHidden ? 'none' : 'inline-block'};">隐藏</button>
+                    <button id="show-movie-props-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease; display: ${isCurrentHidden ? 'inline-block' : 'none'};">显示</button>
+                    <button id="close-movie-props-btn" style="padding: 8px 16px; background: var(--gta-primary); color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease;">关闭</button>
                 </div>
             `;
 
-            // 隐藏/显示/关闭按钮
+            // 绑定元素
+            const closeBtn = popup.querySelector('#close-movie-props-btn');
             const hideBtn = popup.querySelector('#hide-movie-props-btn');
             const showBtn = popup.querySelector('#show-movie-props-btn');
-            const closeBtn = popup.querySelector('#close-movie-props-btn');
+            const popupClose = popup.querySelector('.popup-close');
+            const titleElement = popup.querySelector('h3');
 
-            // 解析全局索引（兼容标记点击与坐标点击）
-            function resolveTargetAndIndex() {
-                const mp = itemData.movie_props;
-                const fixedCount = mp.fixed_position?.length || 0;
-                const ponyCount = mp.vehicles?.pony?.length || 0;
-                const rebelCount = mp.vehicles?.rebel?.length || 0;
-                // 先尝试直接使用 index（标记点击时为全局索引）
-                let globalIndex = index;
-                let el = document.querySelector(`.item-marker[data-type="movie_props"][data-index="${globalIndex}"]`);
-                if (!el) {
-                    // 若找不到，则根据 subtype 折算（坐标点击时 index 是子类型内索引）
-                    if (subtype === 'fixed_position') globalIndex = index;
-                    else if (subtype === 'pony') globalIndex = fixedCount + index;
-                    else if (subtype === 'rebel') globalIndex = fixedCount + ponyCount + index;
-                    else if (subtype === 'rumpo') globalIndex = fixedCount + ponyCount + rebelCount + index;
-                    el = document.querySelector(`.item-marker[data-type="movie_props"][data-index="${globalIndex}"]`);
-                }
-                return { el, globalIndex };
-            }
-
-            // 按钮同时显示：隐藏=25%透明，显示=100%透明
-
-            hideBtn.addEventListener('click', () => {
-                const { el } = resolveTargetAndIndex();
-                if (!el) return;
-                el.style.opacity = '0.25';
-                const img = el.querySelector('img');
-                if (img) img.style.opacity = '0.25';
-            });
-
-            showBtn.addEventListener('click', () => {
-                const { el } = resolveTargetAndIndex();
-                if (!el) return;
-                el.style.opacity = '1';
-                const img = el.querySelector('img');
-                if (img) img.style.opacity = '1';
-            });
-
-            closeBtn.addEventListener('click', () => popup.remove());
+            // 关闭弹窗
+            const removePopup = () => popup.remove();
+            closeBtn.addEventListener('click', removePopup);
+            popupClose.addEventListener('click', removePopup);
             popup.addEventListener('click', (e) => e.stopPropagation());
             setTimeout(() => {
                 const closePopupHandler = (e) => {
-                    if (!popup.contains(e.target)) { popup.remove(); document.removeEventListener('click', closePopupHandler); }
+                    if (!popup.contains(e.target)) {
+                        removePopup();
+                        document.removeEventListener('click', closePopupHandler);
+                    }
                 };
                 document.addEventListener('click', closePopupHandler);
             }, 50);
+
+            // 图片点击放大
+            const popupImage = popup.querySelector('img');
+            if (popupImage) {
+                popupImage.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const overlay = document.createElement('div');
+                    overlay.className = 'movie-props-image-overlay';
+                    overlay.style.cssText = `
+                        position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+                        display: flex; align-items: center; justify-content: center;
+                        z-index: 10002; cursor: zoom-out;
+                    `;
+                    const bigImg = document.createElement('img');
+                    bigImg.src = popupImage.src;
+                    bigImg.alt = popupImage.alt || '';
+                    bigImg.style.cssText = `max-width: 95vw; max-height: 95vh; border-radius: 6px; box-shadow: 0 4px 24px rgba(0,0,0,0.6);`;
+                    overlay.appendChild(bigImg);
+
+                    const removeOverlay = () => {
+                        document.removeEventListener('keydown', onKey);
+                        overlay.remove();
+                    };
+                    const onKey = (ev) => { if (ev.key === 'Escape') removeOverlay(); };
+                    overlay.addEventListener('click', removeOverlay);
+                    document.addEventListener('keydown', onKey);
+                    document.body.appendChild(overlay);
+                });
+            }
+
+            // 工具：隐藏/显示当前标记（实现特殊隐藏逻辑）
+            function setCurrentMarkerVisibility(opacity) {
+                if (subtype === 'fixed_position') {
+                    // 固定位置：单独隐藏
+                    if (currentMarker && typeof currentMarker.setOpacity === 'function') {
+                        currentMarker.setOpacity(opacity);
+                    } else if (currentMarker && typeof currentMarker.setStyle === 'function') {
+                        currentMarker.setStyle({ opacity });
+                    }
+                    // 更新缓存
+                    VisibilityCache.updateItemVisibility('movie_props', globalIndex, opacity === 0.3);
+                } else {
+                    // 载具类型：隐藏同类的所有图标
+                    let startIndex, endIndex;
+                    if (subtype === 'pony') {
+                        startIndex = fixedCount;
+                        endIndex = fixedCount + ponyCount;
+                    } else if (subtype === 'rebel') {
+                        startIndex = fixedCount + ponyCount;
+                        endIndex = fixedCount + ponyCount + rebelCount;
+                    } else if (subtype === 'rumpo') {
+                        startIndex = fixedCount + ponyCount + rebelCount;
+                        endIndex = startIndex + (mp.vehicles?.rumpo?.length || 0);
+                    }
+                    
+                    // 隐藏同类型的所有标记
+                    for (let idx = startIndex; idx < endIndex; idx++) {
+                        const marker = markers[idx];
+                        if (marker && typeof marker.setOpacity === 'function') {
+                            marker.setOpacity(opacity);
+                        } else if (marker && typeof marker.setStyle === 'function') {
+                            marker.setStyle({ opacity });
+                        }
+                        // 更新缓存
+                        VisibilityCache.updateItemVisibility('movie_props', idx, opacity === 0.3);
+                    }
+                }
+            }
+
+            // 隐藏按钮
+            if (hideBtn) {
+                hideBtn.addEventListener('click', () => {
+                    setCurrentMarkerVisibility(0.3);
+                    let newHiddenCount;
+                    if (subtype === 'fixed_position') {
+                        newHiddenCount = hiddenCount + (isCurrentHidden ? 0 : 1);
+                    } else if (subtype === 'pony') {
+                        newHiddenCount = hiddenCount + (ponyHidden ? 0 : 1);
+                        ponyHidden = true;
+                    } else if (subtype === 'rebel') {
+                        newHiddenCount = hiddenCount + (rebelHidden ? 0 : 1);
+                        rebelHidden = true;
+                    } else {
+                        newHiddenCount = hiddenCount + (rumpoHidden ? 0 : 1);
+                        rumpoHidden = true;
+                    }
+                    titleElement.textContent = `🎬 电影道具 - ${typeNames[subtype]} #${subtypeIndex + 1} (${newHiddenCount}/${totalCount})`;
+                    hideBtn.style.display = 'none';
+                    showBtn.style.display = 'inline-block';
+                    isCurrentHidden = true;
+
+                    // 刷新侧边栏计数
+                    updateMoviePropsSidebarCount();
+                });
+            }
+
+            // 显示按钮
+            if (showBtn) {
+                showBtn.addEventListener('click', () => {
+                    setCurrentMarkerVisibility(1);
+                    let newHiddenCount;
+                    if (subtype === 'fixed_position') {
+                        newHiddenCount = hiddenCount - (isCurrentHidden ? 1 : 0);
+                    } else if (subtype === 'pony') {
+                        newHiddenCount = hiddenCount - (ponyHidden ? 1 : 0);
+                        ponyHidden = false;
+                    } else if (subtype === 'rebel') {
+                        newHiddenCount = hiddenCount - (rebelHidden ? 1 : 0);
+                        rebelHidden = false;
+                    } else {
+                        newHiddenCount = hiddenCount - (rumpoHidden ? 1 : 0);
+                        rumpoHidden = false;
+                    }
+                    titleElement.textContent = `🎬 电影道具 - ${typeNames[subtype]} #${subtypeIndex + 1} (${newHiddenCount}/${totalCount})`;
+                    showBtn.style.display = 'none';
+                    hideBtn.style.display = 'inline-block';
+                    isCurrentHidden = false;
+
+                    // 刷新侧边栏计数
+                    updateMoviePropsSidebarCount();
+                });
+            }
 
             document.body.appendChild(popup);
         }
@@ -16006,6 +16858,50 @@
                         // 初始渲染一次
                         try { updateStreetDealersSidebarCount(); } catch(e) {}
                     }
+                    // 电影道具计数器
+                    else if (type === 'movie_props') {
+                        const counter = document.createElement('span');
+                        counter.className = 'movie-props-counter';
+                        counter.style.marginLeft = '6px';
+                        counter.style.color = 'var(--gta-text-secondary)';
+                        counter.textContent = '';
+                        label.appendChild(counter);
+                        // 初始渲染一次
+                        try { updateMoviePropsSidebarCount(); } catch(e) {}
+                    }
+                    // 喷罐位置计数器
+                    else if (type === 'spray') {
+                        const counter = document.createElement('span');
+                        counter.className = 'spray-counter';
+                        counter.style.marginLeft = '6px';
+                        counter.style.color = 'var(--gta-text-secondary)';
+                        counter.textContent = '';
+                        label.appendChild(counter);
+                        // 初始渲染一次
+                        try { updateSpraySidebarCount(); } catch(e) {}
+                    }
+                    // 陆地迷幻仙人掌计数器
+                    else if (type === 'ppl') {
+                        const counter = document.createElement('span');
+                        counter.className = 'ppl-counter';
+                        counter.style.marginLeft = '6px';
+                        counter.style.color = 'var(--gta-text-secondary)';
+                        counter.textContent = '';
+                        label.appendChild(counter);
+                        // 初始渲染一次
+                        try { updatePplSidebarCount(); } catch(e) {}
+                    }
+                    // 水下迷幻仙人掌计数器
+                    else if (type === 'ppw') {
+                        const counter = document.createElement('span');
+                        counter.className = 'ppw-counter';
+                        counter.style.marginLeft = '6px';
+                        counter.style.color = 'var(--gta-text-secondary)';
+                        counter.textContent = '';
+                        label.appendChild(counter);
+                        // 初始渲染一次
+                        try { updatePpwSidebarCount(); } catch(e) {}
+                    }
                     // 特技跳跃点计数器
                     else if (type === 'stunt_jumps') {
                         const counter = document.createElement('span');
@@ -16060,6 +16956,39 @@
                         label.appendChild(counter);
                         // 初始渲染一次
                         try { updatePlayingCardsSidebarCount(); } catch(e) {}
+                    }
+                    // 喷灌位置计数器
+                    else if (type === 'spray') {
+                        const counter = document.createElement('span');
+                        counter.className = 'spray-counter';
+                        counter.style.marginLeft = '6px';
+                        counter.style.color = 'var(--gta-text-secondary)';
+                        counter.textContent = '';
+                        label.appendChild(counter);
+                        // 初始渲染一次
+                        try { updateSpraySidebarCount(); } catch(e) {}
+                    }
+                    // 陆地迷幻仙人掌计数器
+                    else if (type === 'ppl') {
+                        const counter = document.createElement('span');
+                        counter.className = 'ppl-counter';
+                        counter.style.marginLeft = '6px';
+                        counter.style.color = 'var(--gta-text-secondary)';
+                        counter.textContent = '';
+                        label.appendChild(counter);
+                        // 初始渲染一次
+                        try { updatePplSidebarCount(); } catch(e) {}
+                    }
+                    // 水下迷幻仙人掌计数器
+                    else if (type === 'ppw') {
+                        const counter = document.createElement('span');
+                        counter.className = 'ppw-counter';
+                        counter.style.marginLeft = '6px';
+                        counter.style.color = 'var(--gta-text-secondary)';
+                        counter.textContent = '';
+                        label.appendChild(counter);
+                        // 初始渲染一次
+                        try { updatePpwSidebarCount(); } catch(e) {}
                     }
                     // 有机坊产品计数器
                     else if (type === 'ld_organics_products') {
@@ -16221,6 +17150,22 @@
                         if (t === 'street_dealers') {
                             try { updateStreetDealersSidebarCount(); } catch(e) {}
                         }
+                        // 电影道具计数器
+                        if (t === 'movie_props') {
+                            try { updateMoviePropsSidebarCount(); } catch(e) {}
+                        }
+                        // 喷罐位置计数器
+                        if (t === 'spray') {
+                            try { updateSpraySidebarCount(); } catch(e) {}
+                        }
+                        // 陆地迷幻仙人掌计数器
+                        if (t === 'ppl') {
+                            try { updatePplSidebarCount(); } catch(e) {}
+                        }
+                        // 水下迷幻仙人掌计数器
+                        if (t === 'ppw') {
+                            try { updatePpwSidebarCount(); } catch(e) {}
+                        }
                         // 特技跳跃点计数器
                         if (t === 'stunt_jumps') {
                             try { updateStuntJumpsSidebarCount(); } catch(e) {}
@@ -16240,6 +17185,18 @@
                         // 纸牌计数器
                         if (t === 'playing_cards') {
                             try { updatePlayingCardsSidebarCount(); } catch(e) {}
+                        }
+                        // 喷灌位置计数器
+                        if (t === 'spray') {
+                            try { updateSpraySidebarCount(); } catch(e) {}
+                        }
+                        // 陆地迷幻仙人掌计数器
+                        if (t === 'ppl') {
+                            try { updatePplSidebarCount(); } catch(e) {}
+                        }
+                        // 水下迷幻仙人掌计数器
+                        if (t === 'ppw') {
+                            try { updatePpwSidebarCount(); } catch(e) {}
                         }
                         // 有机坊产品计数器
                         if (t === 'ld_organics_products') {
@@ -16335,11 +17292,16 @@
                     // 渲染完成后，刷新一次计数器
                     try { updateSmugglerPlaneSidebarCount(); } catch(e) {}
                     try { updateStreetDealersSidebarCount(); } catch(e) {}
+                    try { updateMoviePropsSidebarCount(); } catch(e) {}
+                    try { updateSpraySidebarCount(); } catch(e) {}
+                    try { updatePplSidebarCount(); } catch(e) {}
+                    try { updatePpwSidebarCount(); } catch(e) {}
                     try { updateStuntJumpsSidebarCount(); } catch(e) {}
                     try { updateYuanbaoSidebarCount(); } catch(e) {}
                     try { updateSignalJammersSidebarCount(); } catch(e) {}
                     try { updateActionFiguresSidebarCount(); } catch(e) {}
                     try { updatePlayingCardsSidebarCount(); } catch(e) {}
+                    try { updateSpraySidebarCount(); } catch(e) {}
                     try { updateOrganicFarmSidebarCount(); } catch(e) {}
                     try { updateSkydivesSidebarCount(); } catch(e) {}
                     try { updateRCTimeTrialSidebarCount(); } catch(e) {}

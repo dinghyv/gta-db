@@ -1811,6 +1811,26 @@
             updateStreetDealersSidebarCount();
         }
 
+        // ==================== 增强版玛德拉索雇凶模板（集成缓存） ====================
+        
+        // 创建侧边栏条目时，为 madrazo_hits 增加一个计数器占位
+        function attachMadrazoHitsCounterToLabel(sidebarCheckboxId) {
+            const label = document.querySelector(`#${sidebarCheckboxId} + label`);
+            if (!label) return;
+
+            let counter = label.querySelector('.madrazo-hits-counter');
+            if (!counter) {
+                counter = document.createElement('span');
+                counter.className = 'madrazo-hits-counter';
+                counter.style.marginLeft = '6px';
+                counter.style.color = 'var(--gta-text-secondary)';
+                label.appendChild(counter);
+            }
+
+            // 初次渲染计数
+            updateMadrazoHitsSidebarCount();
+        }
+
         // ==================== 增强版藏匿屋模板（集成缓存） ====================
         
         // 创建侧边栏条目时，为 stash_houses 增加一个计数器占位
@@ -2339,6 +2359,30 @@
             }
 
             document.body.appendChild(popup);
+        }
+
+        // 统计隐藏/总数，并更新侧边栏计数器文本（玛德拉索雇凶特殊：固定为1个）
+        function updateMadrazoHitsSidebarCount() {
+            try {
+                const counterEl = document.querySelector('#sidebar-item-madrazo_hits + label .madrazo-hits-counter');
+                if (!counterEl) return;
+
+                // 玛德拉索雇凶特殊：固定为1个，虽然会显示多个图标
+                const total = 1;
+                let hidden = 0;
+
+                // 检查是否有缓存的隐藏状态
+                const visibilityMap = VisibilityCache.loadVisibility('madrazo_hits');
+                if (visibilityMap[0] === true) {
+                    hidden = 1;
+                }
+
+                // 更新缓存
+                CounterCache.updateCounter('madrazo_hits', hidden, total);
+                counterEl.textContent = total > 0 ? ` (${hidden}/${total})` : '';
+            } catch (e) {
+                console.warn('更新玛德拉索雇凶计数器失败:', e);
+            }
         }
 
         // 街头毒贩弹窗模板（含隐藏/显示联动与计数器、缓存集成）
@@ -3071,6 +3115,29 @@
             return false;
         }
 
+        // 应用缓存的可见性状态到玛德拉索雇凶标记
+        function applyMadrazoHitsVisibilityCache() {
+            const markers = (window.madrazoHitsMarkers && window.madrazoHitsMarkers) || [];
+            if (markers.length > 0) {
+                const visibilityMap = VisibilityCache.loadVisibility('madrazo_hits');
+                const isHidden = visibilityMap[0] === true;
+                if (isHidden) {
+                    markers.forEach((marker) => {
+                        if (marker) {
+                            if (typeof marker.setOpacity === 'function') {
+                                marker.setOpacity(0.3);
+                            } else if (typeof marker.setStyle === 'function') {
+                                marker.setStyle({ opacity: 0.3 });
+                            }
+                        }
+                    });
+                }
+                console.log('已应用玛德拉索雇凶可见性缓存');
+                return true;
+            }
+            return false;
+        }
+
         // 应用缓存的可见性状态到街头毒贩标记
         function applyStreetDealersVisibilityCache() {
             const markers = (window.streetDealersMarkers && window.streetDealersMarkers) || [];
@@ -3351,6 +3418,7 @@
                 // 4) 渲染完成后再应用可见性缓存（需在标记存在后）
                 try { applySmugglerPlaneVisibilityCache(); } catch (e) {}
                 try { applyStreetDealersVisibilityCache(); } catch (e) {}
+                try { applyMadrazoHitsVisibilityCache(); } catch (e) {}
                 try { applyStashHousesVisibilityCache(); } catch (e) {}
                 try { applyLSTagsVisibilityCache(); } catch (e) {}
                 try { applyShipwreckedVisibilityCache(); } catch (e) {}
@@ -3361,6 +3429,7 @@
                 // 5) 刷新计数器（如有）
                 try { updateSmugglerPlaneSidebarCount(); } catch (e) {}
                 try { updateStreetDealersSidebarCount(); } catch (e) {}
+                try { updateMadrazoHitsSidebarCount(); } catch (e) {}
                 try { updateStashHousesSidebarCount(); } catch (e) {}
                 try { updateLSTagsSidebarCount(); } catch (e) {}
                 try { updateShipwreckedSidebarCount(); } catch (e) {}
@@ -5129,6 +5198,7 @@
                 // 数据加载完成后更新所有计数器
                 try { updateSmugglerPlaneSidebarCount(); } catch(e) {}
                 try { updateStreetDealersSidebarCount(); } catch(e) {}
+                try { updateMadrazoHitsSidebarCount(); } catch(e) {}
                 try { updateStashHousesSidebarCount(); } catch(e) {}
                 try { updateLSTagsSidebarCount(); } catch(e) {}
                 try { updateShipwreckedSidebarCount(); } catch(e) {}
@@ -6331,6 +6401,11 @@
                     if (!window.streetDealersMarkers) window.streetDealersMarkers = [];
                     window.streetDealersMarkers[index] = marker;
                 }
+                // 记录 madrazo_hits 标记以便弹窗隐藏/显示控制
+                else if (type === 'madrazo_hits') {
+                    if (!window.madrazoHitsMarkers) window.madrazoHitsMarkers = [];
+                    window.madrazoHitsMarkers[index] = marker;
+                }
                 // 记录 ls_tags 标记以便弹窗隐藏/显示控制
                 else if (type === 'ls_tags') {
                     if (!window.lsTagsMarkers) window.lsTagsMarkers = [];
@@ -7144,6 +7219,7 @@
             // 重新应用隐藏可见性缓存，确保被隐藏的标记在切换显示后仍保持状态
             try { applySmugglerPlaneVisibilityCache(); } catch (e) {}
             try { applyStreetDealersVisibilityCache(); } catch (e) {}
+            try { applyMadrazoHitsVisibilityCache(); } catch (e) {}
             try { applyStashHousesVisibilityCache(); } catch (e) {}
             try { applyLSTagsVisibilityCache(); } catch (e) {}
             try { applyShipwreckedVisibilityCache(); } catch (e) {}
@@ -13316,66 +13392,123 @@
             document.body.appendChild(popup);
         }
 
-        // 玛德拉索雇凶弹窗
+        // 玛德拉索雇凶弹窗模板（含隐藏/显示联动与计数器、缓存集成）
         function showMadrazoHitsPopup(item, index) {
-            const title = `🎯 玛德拉索雇凶 #${index + 1}`;
+            // 关闭已存在的弹窗
+            const existingPopup = document.querySelector('.madrazo-hits-popup');
+            if (existingPopup) existingPopup.remove();
+
+            // 玛德拉索雇凶特殊：固定为1个，虽然会显示多个图标
+            const totalCount = 1;
+            let hiddenCount = 0;
+
+            // 检查是否有缓存的隐藏状态
+            const visibilityMap = VisibilityCache.loadVisibility('madrazo_hits');
+            if (visibilityMap[0] === true) {
+                hiddenCount = 1;
+            }
+
+            const title = `🎯 玛德拉索雇凶 #${index + 1} (${hiddenCount}/${totalCount})`;
             const content = `您需要拥有保金办公室  才能进行玛德拉索雇凶。<br><br>您每天都可接下马丁·玛德拉索的雇凶暗杀。干掉目标即可获得 500 RP 与 20.000 GTA$ 奖励，使用玛德拉索指定的武器完成暗杀还可额外获得 10.000 GTA$。目标的位置常驻于游戏内地图上，您可参考本地图的图标在游戏中查找。`;
             
+            // 构建弹窗
             const popup = document.createElement('div');
             popup.className = 'madrazo-hits-popup';
             popup.style.cssText = `
                 position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-                background: #fff; border: 3px solid #E91E63; border-radius: 12px; padding: 18px;
-                z-index: 10000; max-width: 520px; max-height: 80vh; box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-                font-family: Arial, sans-serif; text-align: left; overflow-y: auto;`;
+                background: var(--gta-bg-medium);
+                border: 1px solid var(--gta-border);
+                border-radius: 8px;
+                box-shadow: 0 2px 15px rgba(0,0,0,0.5);
+                padding: 15px;
+                z-index: 10000;
+                width: min(92vw, 520px);
+                max-height: 80vh;
+                color: var(--gta-text);
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                overflow-y: auto;
+            `;
 
             popup.innerHTML = `
-                <div style="margin-bottom: 12px; font-size: 20px; font-weight: bold; color: #E91E63; text-align:center;">${title}</div>
-                <div style="margin: 10px 0; padding: 10px; background: #fce4ec; border-radius: 8px; color: #4e342e; font-size: 13px; line-height: 1.6;">
+                <div class="popup-header" style="position: relative; margin-bottom: 14px;">
+                    <h3 style="color: var(--gta-primary); font-size: 18px; margin: 0; font-weight: bold;">${title}</h3>
+                    <span class="popup-close" style="position: absolute; top: 0; right: 0; color: var(--gta-text-secondary); font-size: 20px; cursor: pointer; transition: color 0.3s ease;">×</span>
+                </div>
+                <div style="margin: 10px 0; padding: 10px; background: rgba(25, 118, 210, 0.1); border-radius: 8px; color: var(--gta-text); font-size: 14px; line-height: 1.6;">
                     ${content}
                 </div>
-                <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px;">
-                    <button id="hide-madrazo-btn" style="padding: 10px 18px; background: #4CAF50; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">隐藏</button>
-                    <button id="show-madrazo-btn" style="padding: 10px 18px; background: #2196F3; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">显示</button>
-                    <button id="close-madrazo-btn" style="padding: 10px 18px; background: #E91E63; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">关闭</button>
+                <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
+                    <button id="hide-madrazo-hits-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease; display: ${hiddenCount > 0 ? 'none' : 'inline-block'};">隐藏</button>
+                    <button id="show-madrazo-hits-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease; display: ${hiddenCount > 0 ? 'inline-block' : 'none'};">显示</button>
+                    <button id="close-madrazo-hits-btn" style="padding: 8px 16px; background: var(--gta-primary); color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease;">关闭</button>
                 </div>
             `;
 
-            // 隐藏/显示/关闭按钮
-            const hideBtn = popup.querySelector('#hide-madrazo-btn');
-            const showBtn = popup.querySelector('#show-madrazo-btn');
-            const closeBtn = popup.querySelector('#close-madrazo-btn');
+            // 绑定元素
+            const closeBtn = popup.querySelector('#close-madrazo-hits-btn');
+            const hideBtn = popup.querySelector('#hide-madrazo-hits-btn');
+            const showBtn = popup.querySelector('#show-madrazo-hits-btn');
+            const popupClose = popup.querySelector('.popup-close');
+            const titleElement = popup.querySelector('h3');
 
-            // 解析目标标记和索引
-            function resolveTargetAndIndex() {
-                const el = document.querySelector(`.item-marker[data-type="madrazo_hits"][data-index="${index}"]`);
-                return { el, globalIndex: index };
-            }
-
-            // 隐藏按钮：设置标记透明度为25%
-            hideBtn.addEventListener('click', () => {
-                const { el } = resolveTargetAndIndex();
-                if (!el) return;
-                el.style.opacity = '0.25';
-            });
-
-            // 显示按钮：恢复标记透明度为100%
-            showBtn.addEventListener('click', () => {
-                const { el } = resolveTargetAndIndex();
-                if (!el) return;
-                el.style.opacity = '1';
-            });
-
-            // 关闭按钮
-            closeBtn.addEventListener('click', () => popup.remove());
-            
+            // 关闭弹窗
+            const removePopup = () => popup.remove();
+            closeBtn.addEventListener('click', removePopup);
+            popupClose.addEventListener('click', removePopup);
             popup.addEventListener('click', (e) => e.stopPropagation());
             setTimeout(() => {
                 const closePopupHandler = (e) => {
-                    if (!popup.contains(e.target)) { popup.remove(); document.removeEventListener('click', closePopupHandler); }
+                    if (!popup.contains(e.target)) {
+                        removePopup();
+                        document.removeEventListener('click', closePopupHandler);
+                    }
                 };
                 document.addEventListener('click', closePopupHandler);
             }, 50);
+
+            // 工具：隐藏/显示所有玛德拉索雇凶标记
+            function setAllMadrazoHitsVisibility(opacity) {
+                // 隐藏/显示所有玛德拉索雇凶标记
+                const markers = (window.madrazoHitsMarkers && window.madrazoHitsMarkers) || [];
+                markers.forEach((marker) => {
+                    if (marker && typeof marker.setOpacity === 'function') {
+                        marker.setOpacity(opacity);
+                    } else if (marker && typeof marker.setStyle === 'function') {
+                        marker.setStyle({ opacity });
+                    }
+                });
+                
+                // 更新缓存
+                VisibilityCache.updateItemVisibility('madrazo_hits', 0, opacity === 0.3);
+            }
+
+            // 隐藏按钮
+            if (hideBtn) {
+            hideBtn.addEventListener('click', () => {
+                    setAllMadrazoHitsVisibility(0.3);
+                    const newHiddenCount = 1;
+                    titleElement.textContent = `🎯 玛德拉索雇凶 #${index + 1} (${newHiddenCount}/${totalCount})`;
+                    hideBtn.style.display = 'none';
+                    showBtn.style.display = 'inline-block';
+
+                    // 刷新侧边栏计数
+                    updateMadrazoHitsSidebarCount();
+                });
+            }
+
+            // 显示按钮
+            if (showBtn) {
+            showBtn.addEventListener('click', () => {
+                    setAllMadrazoHitsVisibility(1);
+                    const newHiddenCount = 0;
+                    titleElement.textContent = `🎯 玛德拉索雇凶 #${index + 1} (${newHiddenCount}/${totalCount})`;
+                    showBtn.style.display = 'none';
+                    hideBtn.style.display = 'inline-block';
+
+                    // 刷新侧边栏计数
+                    updateMadrazoHitsSidebarCount();
+                });
+            }
 
             document.body.appendChild(popup);
         }
@@ -14650,6 +14783,17 @@
                         // 初始渲染一次
                         setTimeout(() => { try { updateStreetDealersSidebarCount(); } catch(e) {} }, 0);
                     }
+                    // 玛德拉索雇凶计数器
+                    else if (type === 'madrazo_hits') {
+                        const counter = document.createElement('span');
+                        counter.className = 'madrazo-hits-counter';
+                        counter.style.marginLeft = '6px';
+                        counter.style.color = 'var(--gta-text-secondary)';
+                        counter.textContent = '';
+                        label.appendChild(counter);
+                        // 初始渲染一次
+                        setTimeout(() => { try { updateMadrazoHitsSidebarCount(); } catch(e) {} }, 0);
+                    }
                     // 藏匿屋计数器
                     else if (type === 'stash_houses') {
                         const counter = document.createElement('span');
@@ -14755,6 +14899,10 @@
                         if (t === 'street_dealers') {
                             try { updateStreetDealersSidebarCount(); } catch(e) {}
                         }
+                        // 玛德拉索雇凶计数器
+                        if (t === 'madrazo_hits') {
+                            try { updateMadrazoHitsSidebarCount(); } catch(e) {}
+                        }
                         // 藏匿屋计数器
                         if (t === 'stash_houses') {
                             try { updateStashHousesSidebarCount(); } catch(e) {}
@@ -14829,6 +14977,7 @@
                     // 渲染完成后，刷新一次计数器
                     try { updateSmugglerPlaneSidebarCount(); } catch(e) {}
                     try { updateStreetDealersSidebarCount(); } catch(e) {}
+                    try { updateMadrazoHitsSidebarCount(); } catch(e) {}
                     try { updateStashHousesSidebarCount(); } catch(e) {}
                     try { updateLSTagsSidebarCount(); } catch(e) {}
                     try { updateShipwreckedSidebarCount(); } catch(e) {}

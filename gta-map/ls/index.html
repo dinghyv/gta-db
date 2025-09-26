@@ -1811,6 +1811,26 @@
             updateStreetDealersSidebarCount();
         }
 
+        // ==================== 增强版特技跳跃点模板（集成缓存） ====================
+        
+        // 创建侧边栏条目时，为 stunt_jumps 增加一个计数器占位
+        function attachStuntJumpsCounterToLabel(sidebarCheckboxId) {
+            const label = document.querySelector(`#${sidebarCheckboxId} + label`);
+            if (!label) return;
+
+            let counter = label.querySelector('.stunt-jumps-counter');
+            if (!counter) {
+                counter = document.createElement('span');
+                counter.className = 'stunt-jumps-counter';
+                counter.style.marginLeft = '6px';
+                counter.style.color = 'var(--gta-text-secondary)';
+                label.appendChild(counter);
+            }
+
+            // 初次渲染计数
+            updateStuntJumpsSidebarCount();
+        }
+
         // ==================== 增强版手办模板（集成缓存） ====================
         
         // 创建侧边栏条目时，为 action_figures 增加一个计数器占位
@@ -2573,6 +2593,80 @@
                 counterEl.textContent = total > 0 ? ` (${hidden}/${total})` : '';
             } catch (e) {
                 console.warn('更新纸牌计数器失败:', e);
+            }
+        }
+
+        // 统计隐藏/总数，并更新侧边栏计数器文本（集成缓存）
+        function updateYuanbaoSidebarCount() {
+            try {
+                const counterEl = document.querySelector('#sidebar-item-yuanbao + label .yuanbao-counter');
+                if (!counterEl) return;
+
+                // 获取元宝标记
+                const markers = (window.yuanbaoMarkers && window.yuanbaoMarkers) || [];
+                let total = 0;
+                let hidden = 0;
+
+                if (Array.isArray(markers) && markers.length > 0) {
+                    total = markers.length;
+                    markers.forEach((marker) => {
+                        if (marker && typeof marker.getElement === 'function') {
+                            const el = marker.getElement();
+                            if (el && el.style.opacity === '0.3') {
+                                hidden++;
+                            }
+                        }
+                    });
+                } else {
+                    // 回退：仅有数据尚未渲染 Leaflet 标记时
+                    total = Array.isArray(window.itemData?.yuanbao) ? window.itemData.yuanbao.length : 0;
+                    // 从缓存中获取隐藏数量
+                    const cachedCounter = CounterCache.getCounter('yuanbao');
+                    hidden = cachedCounter.hidden || 0;
+                }
+
+                // 更新缓存
+                CounterCache.updateCounter('yuanbao', hidden, total);
+                counterEl.textContent = total > 0 ? ` (${hidden}/${total})` : '';
+            } catch (e) {
+                console.warn('更新元宝计数器失败:', e);
+            }
+        }
+
+        // 统计隐藏/总数，并更新侧边栏计数器文本（集成缓存）
+        function updateStuntJumpsSidebarCount() {
+            try {
+                const counterEl = document.querySelector('#sidebar-item-stunt_jumps + label .stunt-jumps-counter');
+                if (!counterEl) return;
+
+                // 获取特技跳跃点标记
+                const markers = (window.stuntJumpsMarkers && window.stuntJumpsMarkers) || [];
+                let total = 0;
+                let hidden = 0;
+
+                if (Array.isArray(markers) && markers.length > 0) {
+                    total = markers.length;
+                    markers.forEach((marker) => {
+                        if (marker && typeof marker.getElement === 'function') {
+                            const el = marker.getElement();
+                            if (el && el.style.opacity === '0.3') {
+                                hidden++;
+                            }
+                        }
+                    });
+                } else {
+                    // 回退：仅有数据尚未渲染 Leaflet 标记时
+                    total = Array.isArray(window.itemData?.stunt_jumps) ? window.itemData.stunt_jumps.length : 0;
+                    // 从缓存中获取隐藏数量
+                    const cachedCounter = CounterCache.getCounter('stunt_jumps');
+                    hidden = cachedCounter.hidden || 0;
+                }
+
+                // 更新缓存
+                CounterCache.updateCounter('stunt_jumps', hidden, total);
+                counterEl.textContent = total > 0 ? ` (${hidden}/${total})` : '';
+            } catch (e) {
+                console.warn('更新特技跳跃点计数器失败:', e);
             }
         }
 
@@ -3588,6 +3682,27 @@
             return false;
         }
 
+        // 应用缓存的可见性状态到特技跳跃点标记
+        function applyStuntJumpsVisibilityCache() {
+            const markers = (window.stuntJumpsMarkers && window.stuntJumpsMarkers) || [];
+            if (markers.length > 0) {
+                const visibilityMap = VisibilityCache.loadVisibility('stunt_jumps');
+                markers.forEach((marker, index) => {
+                    const isHidden = visibilityMap[index];
+                    if (isHidden && marker) {
+                        if (typeof marker.setOpacity === 'function') {
+                            marker.setOpacity(0.3);
+                        } else if (typeof marker.setStyle === 'function') {
+                            marker.setStyle({ opacity: 0.3 });
+                        }
+                    }
+                });
+                console.log('已应用特技跳跃点可见性缓存');
+                return true;
+            }
+            return false;
+        }
+
         // 应用缓存的可见性状态到街头毒贩标记
         function applyStreetDealersVisibilityCache() {
             const markers = (window.streetDealersMarkers && window.streetDealersMarkers) || [];
@@ -3889,6 +4004,8 @@
                 // 4) 渲染完成后再应用可见性缓存（需在标记存在后）
                 try { applySmugglerPlaneVisibilityCache(); } catch (e) {}
                 try { applyStreetDealersVisibilityCache(); } catch (e) {}
+                try { applyStuntJumpsVisibilityCache(); } catch (e) {}
+                try { applyYuanbaoVisibilityCache(); } catch (e) {}
                 try { applySignalJammersVisibilityCache(); } catch (e) {}
                 try { applyActionFiguresVisibilityCache(); } catch (e) {}
                 try { applyPlayingCardsVisibilityCache(); } catch (e) {}
@@ -3907,6 +4024,8 @@
                 // 5) 刷新计数器（如有）
                 try { updateSmugglerPlaneSidebarCount(); } catch (e) {}
                 try { updateStreetDealersSidebarCount(); } catch (e) {}
+                try { updateStuntJumpsSidebarCount(); } catch (e) {}
+                try { updateYuanbaoSidebarCount(); } catch (e) {}
                 try { updateSignalJammersSidebarCount(); } catch (e) {}
                 try { updateActionFiguresSidebarCount(); } catch (e) {}
                 try { updatePlayingCardsSidebarCount(); } catch (e) {}
@@ -5681,6 +5800,8 @@
                 // 数据加载完成后更新所有计数器
                 try { updateSmugglerPlaneSidebarCount(); } catch(e) {}
                 try { updateStreetDealersSidebarCount(); } catch(e) {}
+                try { updateStuntJumpsSidebarCount(); } catch(e) {}
+                try { updateYuanbaoSidebarCount(); } catch(e) {}
                 try { updateSignalJammersSidebarCount(); } catch(e) {}
                 try { updateActionFiguresSidebarCount(); } catch(e) {}
                 try { updatePlayingCardsSidebarCount(); } catch(e) {}
@@ -6951,6 +7072,16 @@
                     if (!window.signalJammersMarkers) window.signalJammersMarkers = [];
                     window.signalJammersMarkers[index] = marker;
                 }
+                // 记录 yuanbao 标记以便弹窗隐藏/显示控制
+                else if (type === 'yuanbao') {
+                    if (!window.yuanbaoMarkers) window.yuanbaoMarkers = [];
+                    window.yuanbaoMarkers[index] = marker;
+                }
+                // 记录 stunt_jumps 标记以便弹窗隐藏/显示控制
+                else if (type === 'stunt_jumps') {
+                    if (!window.stuntJumpsMarkers) window.stuntJumpsMarkers = [];
+                    window.stuntJumpsMarkers[index] = marker;
+                }
             } catch (e) {}
             
             // 添加点击事件
@@ -7226,6 +7357,13 @@
             if (window.organicFarmMarkers) {
                 window.organicFarmMarkers = [];
             }
+            if (window.yuanbaoMarkers) {
+                window.yuanbaoMarkers = [];
+            }
+            // 不清除特技跳跃点标记，保持其状态
+            // if (window.stuntJumpsMarkers) {
+            //     window.stuntJumpsMarkers = [];
+            // }
         }
         
         // 更新Leaflet标记的半径（响应地图缩放）
@@ -7762,6 +7900,8 @@
             // 重新应用隐藏可见性缓存，确保被隐藏的标记在切换显示后仍保持状态
             try { applySmugglerPlaneVisibilityCache(); } catch (e) {}
             try { applyStreetDealersVisibilityCache(); } catch (e) {}
+            try { applyStuntJumpsVisibilityCache(); } catch (e) {}
+            try { applyYuanbaoVisibilityCache(); } catch (e) {}
             try { applySignalJammersVisibilityCache(); } catch (e) {}
             try { applyActionFiguresVisibilityCache(); } catch (e) {}
             try { applyPlayingCardsVisibilityCache(); } catch (e) {}
@@ -9989,6 +10129,27 @@
             return false;
         }
 
+        // 应用缓存的可见性状态到元宝标记
+        function applyYuanbaoVisibilityCache() {
+            const markers = (window.yuanbaoMarkers && window.yuanbaoMarkers) || [];
+            if (markers.length > 0) {
+                const visibilityMap = VisibilityCache.loadVisibility('yuanbao');
+                markers.forEach((marker, index) => {
+                    const isHidden = visibilityMap[index];
+                    if (isHidden && marker) {
+                        if (typeof marker.setOpacity === 'function') {
+                            marker.setOpacity(0.3);
+                        } else if (typeof marker.setStyle === 'function') {
+                            marker.setStyle({ opacity: 0.3 });
+                        }
+                    }
+                });
+                console.log('已应用元宝可见性缓存');
+                return true;
+            }
+            return false;
+        }
+
         // 手办弹窗模板（含隐藏/显示联动与计数器、缓存集成）
         function showActionFiguresImage(index) {
             // 序号从1开始
@@ -10175,44 +10336,65 @@
             return false;
         }
 
-        // 显示元宝图片弹窗
+        // 元宝弹窗模板（含隐藏/显示联动与计数器、缓存集成）
         function showYuanbaoImage(index) {
             // 序号从1开始
             const sequenceNumber = index + 1;
             const imageUrl = `https://gta-maps.antwen.com/collectibles_images/yuanbao/yuanbao_${sequenceNumber}.webp`;
             
-            // 创建弹窗
+            // 关闭已存在的弹窗
+            const existingPopup = document.querySelector('.yuanbao-popup');
+            if (existingPopup) existingPopup.remove();
+
+            // 统计隐藏/总数
+            const markers = (window.yuanbaoMarkers && window.yuanbaoMarkers) || [];
+            const totalCount = markers.length;
+
+            let hiddenCount = 0;
+            markers.forEach((marker) => {
+                if (marker && typeof marker.getElement === 'function') {
+                    const el = marker.getElement();
+                    if (el && el.style.opacity === '0.3') hiddenCount++;
+                }
+            });
+
+            const currentMarker = markers[index];
+            let isCurrentHidden = false;
+            if (currentMarker && typeof currentMarker.getElement === 'function') {
+                const el = currentMarker.getElement();
+                isCurrentHidden = el && el.style.opacity === '0.3';
+            }
+
+            const title = `🪙 元宝 #${sequenceNumber} (${hiddenCount}/${totalCount})`;
+
+            // 构建弹窗
             const popup = document.createElement('div');
             popup.className = 'yuanbao-popup';
             popup.style.cssText = `
-                position: fixed;
-                top: 50%;
-                left: 50%;
-                transform: translate(-50%, -50%);
-                background: white;
-                border: 3px solid #FFD700;
-                border-radius: 12px;
-                padding: 20px;
+                position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+                background: var(--gta-bg-medium);
+                border: 1px solid var(--gta-border);
+                border-radius: 8px;
+                box-shadow: 0 2px 15px rgba(0,0,0,0.5);
+                padding: 15px;
                 z-index: 10000;
-                max-width: 80vw;
+                width: min(92vw, 520px);
                 max-height: 80vh;
-                box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-                font-family: Arial, sans-serif;
-                text-align: center;
+                color: var(--gta-text);
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                overflow-y: auto;
             `;
 
-            // 弹窗内容
             popup.innerHTML = `
-                <div style="margin-bottom: 15px; font-size: 20px; font-weight: bold; color: #B8860B;">
-                    🪙 元宝 #${sequenceNumber}
+                <div class="popup-header" style="position: relative; margin-bottom: 14px;">
+                    <h3 style="color: var(--gta-primary); font-size: 18px; margin: 0; font-weight: bold;">${title}</h3>
+                    <span class="popup-close" style="position: absolute; top: 0; right: 0; color: var(--gta-text-secondary); font-size: 20px; cursor: pointer; transition: color 0.3s ease;">×</span>
                 </div>
-                <img src="${imageUrl}" 
-                     alt="元宝 #${sequenceNumber}" 
-                     style="max-width: 100%; max-height: 60vh; border-radius: 8px; margin-bottom: 15px;">
+                <img src="${imageUrl}" alt="元宝 #${sequenceNumber}" style="max-width: 100%; height: auto; border-radius: 6px; margin: 8px 0; display: block; cursor: zoom-in;"/>
                 <div style="margin-bottom: 15px; color: #666; font-size: 14px;">
                     可在上图位置找到！
                 </div>
-                <div style="margin: 15px 0; padding: 12px; background: #f8f9fa; border-radius: 6px; border-left: 4px solid #FFD700;">
+                <div style="margin: 10px 0; padding: 10px; background: rgba(255, 215, 0, 0.1); border-radius: 8px; color: var(--gta-text); font-size: 14px; line-height: 1.6;">
                     <div style="font-weight: bold; color: #B8860B; margin-bottom: 5px;">🎯 收集奖励</div>
                     <div style="color: #666; font-size: 14px; line-height: 1.4;">
                         收集所有元宝可获得：<br>
@@ -10221,74 +10403,107 @@
                         • 解锁隐藏成就
                     </div>
                 </div>
-                <button id="hide-yuanbao-btn" 
-                        style="padding: 10px 20px; margin-right: 10px;
-                               background: #4CAF50; color: white; 
-                               border: none; border-radius: 6px; 
-                               cursor: pointer; font-size: 16px;
-                               transition: background-color 0.3s;">
-                    隐藏标记
-                </button>
-                <button id="close-yuanbao-btn" 
-                        style="padding: 10px 20px; 
-                               background: #f44336; color: white; 
-                               border: none; border-radius: 6px; 
-                               cursor: pointer; font-size: 16px;
-                               transition: background-color 0.3s;">
-                    关闭
-                </button>
+                <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
+                    <button id="hide-yuanbao-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease; display: ${isCurrentHidden ? 'none' : 'inline-block'};">隐藏</button>
+                    <button id="show-yuanbao-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease; display: ${isCurrentHidden ? 'inline-block' : 'none'};">显示</button>
+                    <button id="close-yuanbao-btn" style="padding: 8px 16px; background: var(--gta-primary); color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease;">关闭</button>
+                </div>
             `;
 
-            // 添加到页面
-            document.body.appendChild(popup);
-
-            // 添加隐藏按钮事件监听
-            const hideBtn = popup.querySelector('#hide-yuanbao-btn');
-            hideBtn.addEventListener('click', () => {
-                 // 找到对应的标记并设置透明度为25%
-                 document.querySelectorAll('.item-marker').forEach(marker => {
-                     const img = marker.querySelector('img');
-                     if (img && img.src && img.src.includes('yuanbao') && marker.dataset.index == index) {
-                         marker.style.opacity = '0.25';
-                         // 将隐藏按钮改为显示按钮
-                         hideBtn.textContent = '显示';
-                         hideBtn.style.background = '#2196F3';
-                         hideBtn.id = 'show-yuanbao-btn';
-                         
-                         // 移除旧的点击事件，添加新的显示事件
-                         const newShowBtn = hideBtn.cloneNode(true);
-                         hideBtn.replaceWith(newShowBtn);
-                         newShowBtn.addEventListener('click', () => {
-                             // 恢复透明度为100%
-                             const currentMarker = document.querySelector(`.item-marker[data-index="${index}"]`);
-                             if (currentMarker) {
-                                 currentMarker.style.opacity = '1';
-                             }
-                             popup.remove();
-                         });
-                     }
-                 });
-             });
-
-            // 添加关闭按钮事件监听
+            // 绑定元素
             const closeBtn = popup.querySelector('#close-yuanbao-btn');
-            closeBtn.addEventListener('click', () => {
-                popup.remove();
-            });
+            const hideBtn = popup.querySelector('#hide-yuanbao-btn');
+            const showBtn = popup.querySelector('#show-yuanbao-btn');
+            const popupClose = popup.querySelector('.popup-close');
+            const titleElement = popup.querySelector('h3');
 
-            // 点击弹窗外部关闭
+            // 关闭弹窗
+            const removePopup = () => popup.remove();
+            closeBtn.addEventListener('click', removePopup);
+            popupClose.addEventListener('click', removePopup);
             popup.addEventListener('click', (e) => e.stopPropagation());
-            
-            // 使用setTimeout延迟添加document点击事件，避免立即触发
             setTimeout(() => {
                 const closePopupHandler = (e) => {
                     if (!popup.contains(e.target)) {
-                        popup.remove();
+                        removePopup();
                         document.removeEventListener('click', closePopupHandler);
                     }
                 };
                 document.addEventListener('click', closePopupHandler);
-            }, 100);
+            }, 50);
+
+            // 图片点击放大（PC/移动端）
+            const popupImage = popup.querySelector('img');
+            if (popupImage) {
+                popupImage.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const overlay = document.createElement('div');
+                    overlay.className = 'yuanbao-image-overlay';
+                    overlay.style.cssText = `
+                        position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+                        display: flex; align-items: center; justify-content: center;
+                        z-index: 10002; cursor: zoom-out;
+                    `;
+                    const bigImg = document.createElement('img');
+                    bigImg.src = popupImage.src;
+                    bigImg.alt = popupImage.alt || '';
+                    bigImg.style.cssText = `max-width: 95vw; max-height: 95vh; border-radius: 6px; box-shadow: 0 4px 24px rgba(0,0,0,0.6);`;
+                    overlay.appendChild(bigImg);
+
+                    const removeOverlay = () => {
+                        document.removeEventListener('keydown', onKey);
+                        overlay.remove();
+                    };
+                    const onKey = (ev) => { if (ev.key === 'Escape') removeOverlay(); };
+                    overlay.addEventListener('click', removeOverlay);
+                    document.addEventListener('keydown', onKey);
+                    document.body.appendChild(overlay);
+                });
+            }
+
+            // 工具：隐藏/显示当前标记
+            function setCurrentMarkerVisibility(opacity) {
+                if (currentMarker && typeof currentMarker.setOpacity === 'function') {
+                    currentMarker.setOpacity(opacity);
+                } else if (currentMarker && typeof currentMarker.setStyle === 'function') {
+                    currentMarker.setStyle({ opacity });
+                }
+                
+                // 更新缓存
+                VisibilityCache.updateItemVisibility('yuanbao', index, opacity === 0.3);
+            }
+
+            // 隐藏按钮
+            if (hideBtn) {
+                hideBtn.addEventListener('click', () => {
+                    setCurrentMarkerVisibility(0.3);
+                    const newHiddenCount = hiddenCount + (isCurrentHidden ? 0 : 1);
+                    titleElement.textContent = `🪙 元宝 #${sequenceNumber} (${newHiddenCount}/${totalCount})`;
+                    hideBtn.style.display = 'none';
+                    showBtn.style.display = 'inline-block';
+                    isCurrentHidden = true;
+
+                    // 刷新侧边栏计数
+                    updateYuanbaoSidebarCount();
+                });
+            }
+
+            // 显示按钮
+            if (showBtn) {
+                showBtn.addEventListener('click', () => {
+                    setCurrentMarkerVisibility(1);
+                    const newHiddenCount = hiddenCount - (isCurrentHidden ? 1 : 0);
+                    titleElement.textContent = `🪙 元宝 #${sequenceNumber} (${newHiddenCount}/${totalCount})`;
+                    showBtn.style.display = 'none';
+                    hideBtn.style.display = 'inline-block';
+                    isCurrentHidden = false;
+
+                    // 刷新侧边栏计数
+                    updateYuanbaoSidebarCount();
+                });
+            }
+
+            document.body.appendChild(popup);
         }
 
 
@@ -10625,117 +10840,169 @@
             }, 100);
         }
 
-        // 显示特技跳跃点弹窗
+        // 特技跳跃点弹窗模板（含隐藏/显示联动与计数器、缓存集成）
         function showStuntJumpsImage(index) {
             // 序号从1开始
             const sequenceNumber = index + 1;
             const imageUrl = `https://gta-maps.antwen.com/collectibles_images/stunt_jumps/stunt_jumps_${sequenceNumber}.webp`;
             
-            // 创建弹窗
+            // 关闭已存在的弹窗
+            const existingPopup = document.querySelector('.stunt-jumps-popup');
+            if (existingPopup) existingPopup.remove();
+
+            // 统计隐藏/总数
+            const markers = (window.stuntJumpsMarkers && window.stuntJumpsMarkers) || [];
+            const totalCount = markers.length;
+
+            let hiddenCount = 0;
+            markers.forEach((marker) => {
+                if (marker && typeof marker.getElement === 'function') {
+                    const el = marker.getElement();
+                    if (el && el.style.opacity === '0.3') hiddenCount++;
+                }
+            });
+
+            const currentMarker = markers[index];
+            let isCurrentHidden = false;
+            if (currentMarker && typeof currentMarker.getElement === 'function') {
+                const el = currentMarker.getElement();
+                isCurrentHidden = el && el.style.opacity === '0.3';
+            }
+
+            const title = `🚀 特技跳跃点 #${sequenceNumber} (${hiddenCount}/${totalCount})`;
+
+            // 构建弹窗
             const popup = document.createElement('div');
             popup.className = 'stunt-jumps-popup';
             popup.style.cssText = `
-                position: fixed;
-                top: 50%;
-                left: 50%;
-                transform: translate(-50%, -50%);
-                background: white;
-                border: 3px solid #388E3C;
-                border-radius: 12px;
-                padding: 20px;
+                position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+                background: var(--gta-bg-medium);
+                border: 1px solid var(--gta-border);
+                border-radius: 8px;
+                box-shadow: 0 2px 15px rgba(0,0,0,0.5);
+                padding: 15px;
                 z-index: 10000;
-                max-width: 80vw;
+                width: min(92vw, 520px);
                 max-height: 80vh;
-                box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-                font-family: Arial, sans-serif;
-                text-align: center;
+                color: var(--gta-text);
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                overflow-y: auto;
             `;
 
-            // 弹窗内容
             popup.innerHTML = `
-                <div style="margin-bottom: 15px; font-size: 20px; font-weight: bold; color: #388E3C;">
-                    🚀 特技跳跃点 #${sequenceNumber}
+                <div class="popup-header" style="position: relative; margin-bottom: 14px;">
+                    <h3 style="color: var(--gta-primary); font-size: 18px; margin: 0; font-weight: bold;">${title}</h3>
+                    <span class="popup-close" style="position: absolute; top: 0; right: 0; color: var(--gta-text-secondary); font-size: 20px; cursor: pointer; transition: color 0.3s ease;">×</span>
                 </div>
-                <img src="${imageUrl}"
-                     alt="特技跳跃点 #${sequenceNumber}"
-                     style="max-width: 100%; max-height: 60vh; border-radius: 8px; margin-bottom: 15px;">
-                <div style="margin-bottom: 15px; color: #666; font-size: 14px;">
+                <img src="${imageUrl}" alt="特技跳跃点 #${sequenceNumber}" style="max-width: 100%; height: auto; border-radius: 6px; margin: 8px 0; display: block; cursor: zoom-in;"/>
+                <div style="margin: 10px 0; padding: 10px; background: rgba(56, 142, 60, 0.1); border-radius: 8px; color: var(--gta-text); font-size: 14px; line-height: 1.6;">
                     可在上图位置找到！
                 </div>
-                <div style="margin: 15px 0; padding: 12px; background: #f8f9fa; border-radius: 6px; border-left: 4px solid #388E3C;">
+                <div style="margin: 10px 0; padding: 10px; background: rgba(56, 142, 60, 0.1); border-radius: 8px; color: var(--gta-text); font-size: 14px; line-height: 1.6;">
                     <div style="font-weight: bold; color: #388E3C; margin-bottom: 5px;">🎯 挑战说明</div>
-                    <div style="color: #666; font-size: 14px; line-height: 1.4;">
-                        驾驶车辆完成特技跳跃，获得高分和奖励！
-                    </div>
+                    驾驶车辆完成特技跳跃，获得高分和奖励！
                 </div>
-                <button id="hide-stunt-jumps-btn"
-                        style="padding: 10px 20px; margin-right: 10px;
-                               background: #388E3C; color: white; 
-                               border: none; border-radius: 6px; 
-                               cursor: pointer; font-size: 16px;
-                               transition: background-color 0.3s;">
-                    隐藏标记
-                </button>
-                <button id="close-stunt-jumps-btn"
-                        style="padding: 10px 20px; 
-                               background: #f44336; color: white; 
-                               border: none; border-radius: 6px; 
-                               cursor: pointer; font-size: 16px;
-                               transition: background-color 0.3s;">
-                    关闭
-                </button>
+                <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
+                    <button id="hide-stunt-jumps-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease; display: ${isCurrentHidden ? 'none' : 'inline-block'};">隐藏</button>
+                    <button id="show-stunt-jumps-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease; display: ${isCurrentHidden ? 'inline-block' : 'none'};">显示</button>
+                    <button id="close-stunt-jumps-btn" style="padding: 8px 16px; background: var(--gta-primary); color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease;">关闭</button>
+                </div>
             `;
 
-            // 添加到页面
-            document.body.appendChild(popup);
-
-            // 添加隐藏按钮事件监听
-            const hideBtn = popup.querySelector('#hide-stunt-jumps-btn');
-            hideBtn.addEventListener('click', () => {
-                 // 找到对应的标记并设置透明度为25%
-                 document.querySelectorAll('.item-marker').forEach(marker => {
-                     const img = marker.querySelector('img');
-                     if (img && img.src && img.src.includes('stunt_jumps') && marker.dataset.index == index) {
-                         marker.style.opacity = '0.25';
-                         // 将隐藏按钮改为显示按钮
-                         hideBtn.textContent = '显示';
-                         hideBtn.style.background = '#2196F3';
-                         hideBtn.id = 'show-stunt-jumps-btn';
-                          
-                         // 移除旧的点击事件，添加新的显示事件
-                         const newShowBtn = hideBtn.cloneNode(true);
-                         hideBtn.replaceWith(newShowBtn);
-                         newShowBtn.addEventListener('click', () => {
-                             // 恢复透明度为100%
-                             const currentMarker = document.querySelector(`.item-marker[data-index="${index}"]`);
-                             if (currentMarker) {
-                                 currentMarker.style.opacity = '1';
-                             }
-                             popup.remove();
-                         });
-                     }
-                 });
-             });
-
-            // 添加关闭按钮事件监听
+            // 绑定元素
             const closeBtn = popup.querySelector('#close-stunt-jumps-btn');
-            closeBtn.addEventListener('click', () => {
-                popup.remove();
-            });
+            const hideBtn = popup.querySelector('#hide-stunt-jumps-btn');
+            const showBtn = popup.querySelector('#show-stunt-jumps-btn');
+            const popupClose = popup.querySelector('.popup-close');
+            const titleElement = popup.querySelector('h3');
 
-            // 点击弹窗外部关闭
+            // 关闭弹窗
+            const removePopup = () => popup.remove();
+            closeBtn.addEventListener('click', removePopup);
+            popupClose.addEventListener('click', removePopup);
             popup.addEventListener('click', (e) => e.stopPropagation());
-            
-            // 使用setTimeout延迟添加document点击事件，避免立即触发
             setTimeout(() => {
                 const closePopupHandler = (e) => {
                     if (!popup.contains(e.target)) {
-                        popup.remove();
+                        removePopup();
                         document.removeEventListener('click', closePopupHandler);
                     }
                 };
                 document.addEventListener('click', closePopupHandler);
-            }, 100);
+            }, 50);
+
+            // 图片点击放大
+            const popupImage = popup.querySelector('img');
+            if (popupImage) {
+                popupImage.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const overlay = document.createElement('div');
+                    overlay.className = 'stunt-jumps-image-overlay';
+                    overlay.style.cssText = `
+                        position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+                        display: flex; align-items: center; justify-content: center;
+                        z-index: 10002; cursor: zoom-out;
+                    `;
+                    const bigImg = document.createElement('img');
+                    bigImg.src = popupImage.src;
+                    bigImg.alt = popupImage.alt || '';
+                    bigImg.style.cssText = `max-width: 95vw; max-height: 95vh; border-radius: 6px; box-shadow: 0 4px 24px rgba(0,0,0,0.6);`;
+                    overlay.appendChild(bigImg);
+
+                    const removeOverlay = () => {
+                        document.removeEventListener('keydown', onKey);
+                        overlay.remove();
+                    };
+                    const onKey = (ev) => { if (ev.key === 'Escape') removeOverlay(); };
+                    overlay.addEventListener('click', removeOverlay);
+                    document.addEventListener('keydown', onKey);
+                    document.body.appendChild(overlay);
+                });
+            }
+
+            // 工具：隐藏/显示当前标记
+            function setCurrentMarkerVisibility(opacity) {
+                if (currentMarker && typeof currentMarker.setOpacity === 'function') {
+                    currentMarker.setOpacity(opacity);
+                } else if (currentMarker && typeof currentMarker.setStyle === 'function') {
+                    currentMarker.setStyle({ opacity });
+                }
+                
+                // 更新缓存
+                VisibilityCache.updateItemVisibility('stunt_jumps', index, opacity === 0.3);
+            }
+
+            // 隐藏按钮
+            if (hideBtn) {
+                hideBtn.addEventListener('click', () => {
+                    setCurrentMarkerVisibility(0.3);
+                    const newHiddenCount = hiddenCount + (isCurrentHidden ? 0 : 1);
+                    titleElement.textContent = `🚀 特技跳跃点 #${sequenceNumber} (${newHiddenCount}/${totalCount})`;
+                    hideBtn.style.display = 'none';
+                    showBtn.style.display = 'inline-block';
+                    isCurrentHidden = true;
+
+                    // 刷新侧边栏计数
+                    updateStuntJumpsSidebarCount();
+                });
+            }
+
+            // 显示按钮
+            if (showBtn) {
+                showBtn.addEventListener('click', () => {
+                    setCurrentMarkerVisibility(1);
+                    const newHiddenCount = hiddenCount - (isCurrentHidden ? 1 : 0);
+                    titleElement.textContent = `🚀 特技跳跃点 #${sequenceNumber} (${newHiddenCount}/${totalCount})`;
+                    showBtn.style.display = 'none';
+                    hideBtn.style.display = 'inline-block';
+                    isCurrentHidden = false;
+
+                    // 刷新侧边栏计数
+                    updateStuntJumpsSidebarCount();
+                });
+            }
+
+            document.body.appendChild(popup);
         }
 
         function showSnowmenImage(index) {
@@ -15726,7 +15993,7 @@
                         counter.textContent = '';
                         label.appendChild(counter);
                         // 初始渲染一次
-                        setTimeout(() => { try { updateSmugglerPlaneSidebarCount(); } catch(e) {} }, 0);
+                        try { updateSmugglerPlaneSidebarCount(); } catch(e) {}
                     }
                     // 街头毒贩计数器
                     else if (type === 'street_dealers') {
@@ -15737,7 +16004,29 @@
                         counter.textContent = '';
                         label.appendChild(counter);
                         // 初始渲染一次
-                        setTimeout(() => { try { updateStreetDealersSidebarCount(); } catch(e) {} }, 0);
+                        try { updateStreetDealersSidebarCount(); } catch(e) {}
+                    }
+                    // 特技跳跃点计数器
+                    else if (type === 'stunt_jumps') {
+                        const counter = document.createElement('span');
+                        counter.className = 'stunt-jumps-counter';
+                        counter.style.marginLeft = '6px';
+                        counter.style.color = 'var(--gta-text-secondary)';
+                        counter.textContent = '';
+                        label.appendChild(counter);
+                        // 初始渲染一次
+                        try { updateStuntJumpsSidebarCount(); } catch(e) {}
+                    }
+                    // 元宝计数器
+                    else if (type === 'yuanbao') {
+                        const counter = document.createElement('span');
+                        counter.className = 'yuanbao-counter';
+                        counter.style.marginLeft = '6px';
+                        counter.style.color = 'var(--gta-text-secondary)';
+                        counter.textContent = '';
+                        label.appendChild(counter);
+                        // 初始渲染一次
+                        try { updateYuanbaoSidebarCount(); } catch(e) {}
                     }
                     // 信号干扰器计数器
                     else if (type === 'signal_jammers') {
@@ -15748,7 +16037,7 @@
                         counter.textContent = '';
                         label.appendChild(counter);
                         // 初始渲染一次
-                        setTimeout(() => { try { updateSignalJammersSidebarCount(); } catch(e) {} }, 0);
+                        try { updateSignalJammersSidebarCount(); } catch(e) {}
                     }
                     // 手办计数器
                     else if (type === 'action_figures') {
@@ -15759,7 +16048,7 @@
                         counter.textContent = '';
                         label.appendChild(counter);
                         // 初始渲染一次
-                        setTimeout(() => { try { updateActionFiguresSidebarCount(); } catch(e) {} }, 0);
+                        try { updateActionFiguresSidebarCount(); } catch(e) {}
                     }
                     // 纸牌计数器
                     else if (type === 'playing_cards') {
@@ -15770,7 +16059,7 @@
                         counter.textContent = '';
                         label.appendChild(counter);
                         // 初始渲染一次
-                        setTimeout(() => { try { updatePlayingCardsSidebarCount(); } catch(e) {} }, 0);
+                        try { updatePlayingCardsSidebarCount(); } catch(e) {}
                     }
                     // 有机坊产品计数器
                     else if (type === 'ld_organics_products') {
@@ -15781,7 +16070,7 @@
                         counter.textContent = '';
                         label.appendChild(counter);
                         // 初始渲染一次
-                        setTimeout(() => { try { updateOrganicFarmSidebarCount(); } catch(e) {} }, 0);
+                        try { updateOrganicFarmSidebarCount(); } catch(e) {}
                     }
                     // 跳伞计数器
                     else if (type === 'skydives') {
@@ -15792,7 +16081,7 @@
                         counter.textContent = '';
                         label.appendChild(counter);
                         // 初始渲染一次
-                        setTimeout(() => { try { updateSkydivesSidebarCount(); } catch(e) {} }, 0);
+                        try { updateSkydivesSidebarCount(); } catch(e) {}
                     }
                     // RC时间挑战赛计数器
                     else if (type === 'rc_time_trial') {
@@ -15803,7 +16092,7 @@
                         counter.textContent = '';
                         label.appendChild(counter);
                         // 初始渲染一次
-                        setTimeout(() => { try { updateRCTimeTrialSidebarCount(); } catch(e) {} }, 0);
+                        try { updateRCTimeTrialSidebarCount(); } catch(e) {}
                     }
                     // 自行车时间挑战赛计数器
                     else if (type === 'bike_time_trial') {
@@ -15814,7 +16103,7 @@
                         counter.textContent = '';
                         label.appendChild(counter);
                         // 初始渲染一次
-                        setTimeout(() => { try { updateBikeTimeTrialSidebarCount(); } catch(e) {} }, 0);
+                        try { updateBikeTimeTrialSidebarCount(); } catch(e) {}
                     }
                     // 玛德拉索雇凶计数器
                     else if (type === 'madrazo_hits') {
@@ -15825,7 +16114,7 @@
                         counter.textContent = '';
                         label.appendChild(counter);
                         // 初始渲染一次
-                        setTimeout(() => { try { updateMadrazoHitsSidebarCount(); } catch(e) {} }, 0);
+                        try { updateMadrazoHitsSidebarCount(); } catch(e) {}
                     }
                     // 藏匿屋计数器
                     else if (type === 'stash_houses') {
@@ -15836,7 +16125,7 @@
                         counter.textContent = '';
                         label.appendChild(counter);
                         // 初始渲染一次
-                        setTimeout(() => { try { updateStashHousesSidebarCount(); } catch(e) {} }, 0);
+                        try { updateStashHousesSidebarCount(); } catch(e) {}
                     }
                     // LS涂鸦计数器
                     else if (type === 'ls_tags') {
@@ -15847,7 +16136,7 @@
                         counter.textContent = '';
                         label.appendChild(counter);
                         // 初始渲染一次
-                        setTimeout(() => { try { updateLSTagsSidebarCount(); } catch(e) {} }, 0);
+                        try { updateLSTagsSidebarCount(); } catch(e) {}
                     }
                     // 沉船计数器
                     else if (type === 'shipwrecked') {
@@ -15858,7 +16147,7 @@
                         counter.textContent = '';
                         label.appendChild(counter);
                         // 初始渲染一次
-                        setTimeout(() => { try { updateShipwreckedSidebarCount(); } catch(e) {} }, 0);
+                        try { updateShipwreckedSidebarCount(); } catch(e) {}
                     }
                     // 隐藏包裹计数器
                     else if (type === 'hidden_caches') {
@@ -15869,7 +16158,7 @@
                         counter.textContent = '';
                         label.appendChild(counter);
                         // 初始渲染一次
-                        setTimeout(() => { try { updateHiddenCachesSidebarCount(); } catch(e) {} }, 0);
+                        try { updateHiddenCachesSidebarCount(); } catch(e) {}
                     }
                     // 吞云吐雾馆产品计数器
                     else if (type === 'smoke_on_the_water_product') {
@@ -15880,7 +16169,7 @@
                         counter.textContent = '';
                         label.appendChild(counter);
                         // 初始渲染一次
-                        setTimeout(() => { try { updateSmokeProductSidebarCount(); } catch(e) {} }, 0);
+                        try { updateSmokeProductSidebarCount(); } catch(e) {}
                     }
                     // 右侧计数器（gun_van）已移除
                     // 右侧计数器（dead_drop）
@@ -15892,7 +16181,7 @@
                         counter.textContent = '';
                         label.appendChild(counter);
                         // 初始渲染一次
-                        setTimeout(() => { try { updateDeadDropSidebarCount(); } catch(e) {} }, 0);
+                        try { updateDeadDropSidebarCount(); } catch(e) {}
                     }
 
                     wrapper.appendChild(chk);
@@ -15931,6 +16220,14 @@
                         // 街头毒贩计数器
                         if (t === 'street_dealers') {
                             try { updateStreetDealersSidebarCount(); } catch(e) {}
+                        }
+                        // 特技跳跃点计数器
+                        if (t === 'stunt_jumps') {
+                            try { updateStuntJumpsSidebarCount(); } catch(e) {}
+                        }
+                        // 元宝计数器
+                        if (t === 'yuanbao') {
+                            try { updateYuanbaoSidebarCount(); } catch(e) {}
                         }
                         // 信号干扰器计数器
                         if (t === 'signal_jammers') {
@@ -16038,6 +16335,8 @@
                     // 渲染完成后，刷新一次计数器
                     try { updateSmugglerPlaneSidebarCount(); } catch(e) {}
                     try { updateStreetDealersSidebarCount(); } catch(e) {}
+                    try { updateStuntJumpsSidebarCount(); } catch(e) {}
+                    try { updateYuanbaoSidebarCount(); } catch(e) {}
                     try { updateSignalJammersSidebarCount(); } catch(e) {}
                     try { updateActionFiguresSidebarCount(); } catch(e) {}
                     try { updatePlayingCardsSidebarCount(); } catch(e) {}

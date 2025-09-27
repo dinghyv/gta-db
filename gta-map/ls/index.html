@@ -5955,10 +5955,12 @@
                     }
                     
                     // 加载peyote_sp数据
-                    if (cardsData.peyote_sp) {
+                    if (cardsData.peyote_sp && Array.isArray(cardsData.peyote_sp) && cardsData.peyote_sp.length > 0) {
+                        const peyoteData = cardsData.peyote_sp[0]; // 取数组中的第一个对象
+                        
                         // 陆地迷幻仙人掌
-                        if (cardsData.peyote_sp.land) {
-                            itemData.peyote_sp_land = cardsData.peyote_sp.land.map((item, index) => ({
+                        if (peyoteData.land) {
+                            itemData.peyote_sp_land = peyoteData.land.map((item, index) => ({
                                 x: item.x,
                                 y: item.y,
                                 name: `迷幻仙人掌陆地 ${index + 1}`
@@ -5967,8 +5969,8 @@
                         }
                         
                         // 鸟类迷幻仙人掌
-                        if (cardsData.peyote_sp.air) {
-                            itemData.peyote_sp_air = cardsData.peyote_sp.air.map((item, index) => ({
+                        if (peyoteData.air) {
+                            itemData.peyote_sp_air = peyoteData.air.map((item, index) => ({
                                 x: item.x,
                                 y: item.y,
                                 name: `迷幻仙人掌鸟类 ${index + 1}`
@@ -5977,8 +5979,8 @@
                         }
                         
                         // 水下迷幻仙人掌
-                        if (cardsData.peyote_sp.water) {
-                            itemData.peyote_sp_water = cardsData.peyote_sp.water.map((item, index) => ({
+                        if (peyoteData.water) {
+                            itemData.peyote_sp_water = peyoteData.water.map((item, index) => ({
                                 x: item.x,
                                 y: item.y,
                                 name: `迷幻仙人掌水下 ${index + 1}`
@@ -5987,8 +5989,8 @@
                         }
                         
                         // 金色迷幻仙人掌
-                        if (cardsData.peyote_sp.special) {
-                            itemData.peyote_sp_special = cardsData.peyote_sp.special.map((item, index) => ({
+                        if (peyoteData.special) {
+                            itemData.peyote_sp_special = peyoteData.special.map((item, index) => ({
                                 x: item.x,
                                 y: item.y,
                                 name: `迷幻仙人掌金色 ${index + 1}`

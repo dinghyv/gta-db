@@ -1198,6 +1198,7 @@
             'action_figures',
             'yuanbao',
             'letter_scraps',
+            'submarine_pieces',
             'spaceship_parts',
             'nuclear_waste',
             
@@ -1330,6 +1331,7 @@
             action_figures: '../src/assets/action_figures.svg',
             yuanbao: '../src/assets/yuanbao.svg',
             letter_scraps: '../src/assets/letter.svg',
+            submarine_pieces: '../src/assets/submarine_pieces.svg',
             spaceship_parts: '../src/assets/spaceship_parts.svg',
             nuclear_waste: '../src/assets/nuclear_waste.svg',
             ld_organics_products: '../src/assets/organic_farm.svg',
@@ -1456,6 +1458,7 @@
             action_figures: [],
             yuanbao: [],
             letter_scraps: [],
+            submarine_pieces: [],
             spaceship_parts: [],
             nuclear_waste: [],
             ld_organics_products: [],
@@ -4746,6 +4749,8 @@
                 // 4) 渲染完成后再应用可见性缓存（需在标记存在后）
                 try { applySmugglerPlaneVisibilityCache(); } catch (e) {}
                 try { applyStreetDealersVisibilityCache(); } catch (e) {}
+                try { applySubmarinePiecesVisibilityCache(); } catch (e) {}
+                try { applyNuclearWasteVisibilityCache(); } catch (e) {}
                 try { applySlasherVisibilityCache(); } catch (e) {}
                 try { applyTreasureHuntVisibilityCache(); } catch (e) {}
                 try { applyUfoVisibilityCache(); } catch (e) {}
@@ -4778,6 +4783,8 @@
                 // 5) 刷新计数器（如有）
                 try { updateSmugglerPlaneSidebarCount(); } catch (e) {}
                 try { updateStreetDealersSidebarCount(); } catch (e) {}
+                try { updateSubmarinePiecesSidebarCount(); } catch (e) {}
+                try { updateNuclearWasteSidebarCount(); } catch (e) {}
                 try { updateSlasherSidebarCount(); } catch (e) {}
                 try { updateTreasureHuntSidebarCount(); } catch (e) {}
                 try { updateUfoSidebarCount(); } catch (e) {}
@@ -5459,6 +5466,7 @@
             { value: 'action_figures', text: '手办' },
             { value: 'yuanbao', text: '元宝' },
             { value: 'letter_scraps', text: '残缺信件' },
+            { value: 'submarine_pieces', text: '潜水艇碎片' },
             { value: 'spaceship_parts', text: '宇宙飞船部件' },
             { value: 'nuclear_waste', text: '核废料' },
             { value: 'stunt_jumps', text: '特技跳跃点' },
@@ -5912,6 +5920,16 @@
                             name: `信件残片 ${index + 1}`
                         }));
                         console.log('信件残片数据加载成功，共', itemData.letter_scraps.length, '个位置');
+                    }
+                    
+                    // 加载submarine_pieces数据
+                    if (cardsData.submarine_pieces) {
+                        itemData.submarine_pieces = cardsData.submarine_pieces.map((item, index) => ({
+                            x: item.x,
+                            y: item.y,
+                            name: `潜水艇碎片 ${index + 1}`
+                        }));
+                        console.log('潜水艇碎片数据加载成功，共', itemData.submarine_pieces.length, '个位置');
                     }
                     
                     // 加载spaceship_parts数据
@@ -7860,6 +7878,11 @@
                     if (!window.letterScrapsMarkers) window.letterScrapsMarkers = [];
                     window.letterScrapsMarkers[index] = marker;
                 }
+                // 记录 submarine_pieces 标记以便弹窗隐藏/显示控制
+                else if (type === 'submarine_pieces') {
+                    if (!window.submarinePiecesMarkers) window.submarinePiecesMarkers = [];
+                    window.submarinePiecesMarkers[index] = marker;
+                }
                 // 记录 spaceship_parts 标记以便弹窗隐藏/显示控制
                 else if (type === 'spaceship_parts') {
                     if (!window.spaceshipPartsMarkers) window.spaceshipPartsMarkers = [];
@@ -8000,6 +8023,10 @@
                 // 特殊处理残缺信件，显示图片弹窗
                 else if (type === 'letter_scraps') {
                     showLetterScrapsImage(index);
+                }
+                // 特殊处理潜水艇碎片，显示图片弹窗
+                else if (type === 'submarine_pieces') {
+                    showSubmarinePiecesImage(index);
                 }
                 // 特殊处理宇宙飞船部件，显示图片弹窗
                 else if (type === 'spaceship_parts') {
@@ -8810,6 +8837,8 @@
             // 重新应用隐藏可见性缓存，确保被隐藏的标记在切换显示后仍保持状态
             try { applySmugglerPlaneVisibilityCache(); } catch (e) {}
             try { applyStreetDealersVisibilityCache(); } catch (e) {}
+            try { applySubmarinePiecesVisibilityCache(); } catch (e) {}
+            try { applyNuclearWasteVisibilityCache(); } catch (e) {}
             try { applySlasherVisibilityCache(); } catch (e) {}
             try { applyTreasureHuntVisibilityCache(); } catch (e) {}
             try { applyUfoVisibilityCache(); } catch (e) {}
@@ -18622,6 +18651,7 @@
                     ],
                     '线下收集品': [
                         'letter_scraps',
+                        'submarine_pieces',
                         'spaceship_parts',
                         'nuclear_waste'
                     ],
@@ -18896,6 +18926,17 @@
                         // 初始渲染一次
                         try { updateLetterScrapsSidebarCount(); } catch(e) {}
                     }
+                    // 潜水艇碎片计数器
+                    else if (type === 'submarine_pieces') {
+                        const counter = document.createElement('span');
+                        counter.className = 'submarine-pieces-counter';
+                        counter.style.marginLeft = '6px';
+                        counter.style.color = 'var(--gta-text-secondary)';
+                        counter.textContent = '';
+                        label.appendChild(counter);
+                        // 初始渲染一次
+                        try { updateSubmarinePiecesSidebarCount(); } catch(e) {}
+                    }
                     // 宇宙飞船部件计数器
                     else if (type === 'spaceship_parts') {
                         const counter = document.createElement('span');
@@ -19111,6 +19152,14 @@
                         if (t === 'street_dealers') {
                             try { updateStreetDealersSidebarCount(); } catch(e) {}
                         }
+                        // 潜水艇碎片计数器
+                        if (t === 'submarine_pieces') {
+                            try { updateSubmarinePiecesSidebarCount(); } catch(e) {}
+                        }
+                        // 核废料计数器
+                        if (t === 'nuclear_waste') {
+                            try { updateNuclearWasteSidebarCount(); } catch(e) {}
+                        }
                         // 洛圣都杀人狂计数器
                         if (t === 'serial_killer_slasher') {
                             try { updateSlasherSidebarCount(); } catch(e) {}
@@ -19285,6 +19334,8 @@
                     // 渲染完成后，刷新一次计数器
                     try { updateSmugglerPlaneSidebarCount(); } catch(e) {}
                     try { updateStreetDealersSidebarCount(); } catch(e) {}
+                    try { updateSubmarinePiecesSidebarCount(); } catch(e) {}
+                    try { updateNuclearWasteSidebarCount(); } catch(e) {}
                     try { updateSlasherSidebarCount(); } catch(e) {}
                     try { updateTreasureHuntSidebarCount(); } catch(e) {}
                     try { updateUfoSidebarCount(); } catch(e) {}
@@ -19653,6 +19704,64 @@
                 let total = 0;
                 let hidden = 0;
 
+                // 始终使用数据总数，不管是否有标记
+                total = Array.isArray(window.itemData?.nuclear_waste) ? window.itemData.nuclear_waste.length : 0;
+
+                if (Array.isArray(markers) && markers.length > 0) {
+                    // 如果有标记，统计隐藏的标记
+                    markers.forEach((marker) => {
+                        if (marker && typeof marker.getElement === 'function') {
+                            const el = marker.getElement();
+                            if (el && el.style.opacity === '0.3') {
+                                hidden++;
+                            }
+                        }
+                    });
+                } else {
+                    // 如果没有标记，从缓存中获取隐藏数量
+                    const cachedCounter = CounterCache.getCounter('nuclear_waste');
+                    hidden = cachedCounter.hidden || 0;
+                }
+
+                // 更新缓存
+                CounterCache.updateCounter('nuclear_waste', hidden, total);
+                counterEl.textContent = total > 0 ? ` (${hidden}/${total})` : '';
+            } catch (e) {
+                console.warn('更新核废料计数器失败:', e);
+            }
+        }
+
+        // ==================== 增强版潜水艇碎片模板（集成缓存） ====================
+        
+        // 创建侧边栏条目时，为 submarine_pieces 增加一个计数器占位
+        function attachSubmarinePiecesCounterToLabel(sidebarCheckboxId) {
+            const label = document.querySelector(`#${sidebarCheckboxId} + label`);
+            if (!label) return;
+
+            let counter = label.querySelector('.submarine-pieces-counter');
+            if (!counter) {
+                counter = document.createElement('span');
+                counter.className = 'submarine-pieces-counter';
+                counter.style.marginLeft = '6px';
+                counter.style.color = 'var(--gta-text-secondary)';
+                label.appendChild(counter);
+            }
+
+            // 初次渲染计数
+            updateSubmarinePiecesSidebarCount();
+        }
+
+        // 统计隐藏/总数，并更新侧边栏计数器文本（集成缓存）
+        function updateSubmarinePiecesSidebarCount() {
+            try {
+                const counterEl = document.querySelector('#sidebar-item-submarine_pieces + label .submarine-pieces-counter');
+                if (!counterEl) return;
+
+                // 获取潜水艇碎片标记
+                const markers = (window.submarinePiecesMarkers && window.submarinePiecesMarkers) || [];
+                let total = 0;
+                let hidden = 0;
+
                 if (Array.isArray(markers) && markers.length > 0) {
                     total = markers.length;
                     markers.forEach((marker) => {
@@ -19665,18 +19774,206 @@
                     });
                 } else {
                     // 回退：仅有数据尚未渲染 Leaflet 标记时
-                    total = Array.isArray(window.itemData?.nuclear_waste) ? window.itemData.nuclear_waste.length : 0;
+                    total = Array.isArray(window.itemData?.submarine_pieces) ? window.itemData.submarine_pieces.length : 0;
                     // 从缓存中获取隐藏数量
-                    const cachedCounter = CounterCache.getCounter('nuclear_waste');
+                    const cachedCounter = CounterCache.getCounter('submarine_pieces');
                     hidden = cachedCounter.hidden || 0;
                 }
 
                 // 更新缓存
-                CounterCache.updateCounter('nuclear_waste', hidden, total);
+                CounterCache.updateCounter('submarine_pieces', hidden, total);
                 counterEl.textContent = total > 0 ? ` (${hidden}/${total})` : '';
             } catch (e) {
-                console.warn('更新核废料计数器失败:', e);
+                console.warn('更新潜水艇碎片计数器失败:', e);
             }
+        }
+
+        // 潜水艇碎片弹窗模板（含隐藏/显示联动与计数器、缓存集成）
+        function showSubmarinePiecesImage(index) {
+            // 序号从1开始
+            const sequenceNumber = index + 1;
+            const imageUrl = `https://gta-maps.antwen.com/collectibles_images/submarine_pieces/submarine_pieces_${sequenceNumber}.webp`;
+            
+            // 关闭已存在的弹窗
+            const existingPopup = document.querySelector('.submarine-pieces-popup');
+            if (existingPopup) existingPopup.remove();
+
+            // 统计隐藏/总数
+            const markers = (window.submarinePiecesMarkers && window.submarinePiecesMarkers) || [];
+            const totalCount = markers.length;
+
+            let hiddenCount = 0;
+            markers.forEach((marker) => {
+                if (marker && typeof marker.getElement === 'function') {
+                    const el = marker.getElement();
+                    if (el && el.style.opacity === '0.3') hiddenCount++;
+                }
+            });
+
+            const currentMarker = markers[index];
+            let isCurrentHidden = false;
+            if (currentMarker && typeof currentMarker.getElement === 'function') {
+                const el = currentMarker.getElement();
+                isCurrentHidden = el && el.style.opacity === '0.3';
+            }
+
+            const title = `🚢 潜水艇碎片 #${sequenceNumber} (${hiddenCount}/${totalCount})`;
+
+            // 构建弹窗
+            const popup = document.createElement('div');
+            popup.className = 'submarine-pieces-popup';
+            popup.style.cssText = `
+                position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+                background: var(--gta-bg-medium);
+                border: 1px solid var(--gta-border);
+                border-radius: 8px;
+                box-shadow: 0 2px 15px rgba(0,0,0,0.5);
+                padding: 15px;
+                z-index: 10000;
+                width: min(92vw, 520px);
+                max-height: 80vh;
+                color: var(--gta-text);
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                overflow-y: auto;
+            `;
+
+            popup.innerHTML = `
+                <div class="popup-header" style="position: relative; margin-bottom: 14px;">
+                    <h3 style="color: var(--gta-primary); font-size: 18px; margin: 0; font-weight: bold;">${title}</h3>
+                    <span class="popup-close" style="position: absolute; top: 0; right: 0; color: var(--gta-text-secondary); font-size: 20px; cursor: pointer; transition: color 0.3s ease;">×</span>
+                </div>
+                <img src="${imageUrl}" alt="潜水艇碎片 #${sequenceNumber}" style="max-width: 100%; height: auto; border-radius: 6px; margin: 8px 0; display: block; cursor: zoom-in;"/>
+                <div style="margin: 10px 0; padding: 10px; background: rgba(33, 150, 243, 0.1); border-radius: 8px; color: var(--gta-text); font-size: 14px; line-height: 1.6;">
+                    可在上图位置找到！
+                </div>
+                <div style="margin: 10px 0; padding: 10px; background: rgba(33, 150, 243, 0.1); border-radius: 8px; color: var(--gta-text); font-size: 14px; line-height: 1.6;">
+                    <div style="font-weight: bold; color: #1976D2; margin-bottom: 5px;">🎯 收集奖励</div>
+                    游戏中总共有 30 个潜水艇碎片。要收集这些碎片，您必须在完成主线任务抢劫梅利威瑟与闪电突袭后，使用任意角色购买声呐打捞码头（250.000 GTA$），以此接取陌生人和怪胎任务深海意外（麦克）。<br><br>
+                    每个角色都可以拾取碎片，但只有麦克可以交付它们。您最好使用购买码头附赠的小艇。驾驶该载具时，游戏会显示碎片所在的区域，并以绿色区域标识在地图上。碎片会发出声波，您可以在小地图上看到。<br><br>
+                    一旦集齐所有碎片，您将解锁陌生人和怪胎任务真相浮现（麦克）。
+                </div>
+                <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
+                    <button id="hide-submarine-pieces-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease; display: ${isCurrentHidden ? 'none' : 'inline-block'};">隐藏</button>
+                    <button id="show-submarine-pieces-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease; display: ${isCurrentHidden ? 'inline-block' : 'none'};">显示</button>
+                    <button id="close-submarine-pieces-btn" style="padding: 8px 16px; background: var(--gta-primary); color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease;">关闭</button>
+                </div>
+            `;
+
+            // 绑定元素
+            const closeBtn = popup.querySelector('#close-submarine-pieces-btn');
+            const hideBtn = popup.querySelector('#hide-submarine-pieces-btn');
+            const showBtn = popup.querySelector('#show-submarine-pieces-btn');
+            const popupClose = popup.querySelector('.popup-close');
+            const titleElement = popup.querySelector('h3');
+
+            // 关闭弹窗
+            const removePopup = () => popup.remove();
+            closeBtn.addEventListener('click', removePopup);
+            popupClose.addEventListener('click', removePopup);
+            popup.addEventListener('click', (e) => e.stopPropagation());
+            setTimeout(() => {
+                const closePopupHandler = (e) => {
+                    if (!popup.contains(e.target)) {
+                        removePopup();
+                        document.removeEventListener('click', closePopupHandler);
+                    }
+                };
+                document.addEventListener('click', closePopupHandler);
+            }, 50);
+
+            // 图片点击放大
+            const popupImage = popup.querySelector('img');
+            if (popupImage) {
+                popupImage.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const overlay = document.createElement('div');
+                    overlay.className = 'submarine-pieces-image-overlay';
+                    overlay.style.cssText = `
+                        position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+                        display: flex; align-items: center; justify-content: center;
+                        z-index: 10002; cursor: zoom-out;
+                    `;
+                    const bigImg = document.createElement('img');
+                    bigImg.src = popupImage.src;
+                    bigImg.alt = popupImage.alt || '';
+                    bigImg.style.cssText = `max-width: 95vw; max-height: 95vh; border-radius: 6px; box-shadow: 0 4px 24px rgba(0,0,0,0.6);`;
+                    overlay.appendChild(bigImg);
+
+                    const removeOverlay = () => {
+                        document.removeEventListener('keydown', onKey);
+                        overlay.remove();
+                    };
+                    const onKey = (ev) => { if (ev.key === 'Escape') removeOverlay(); };
+                    overlay.addEventListener('click', removeOverlay);
+                    document.addEventListener('keydown', onKey);
+                    document.body.appendChild(overlay);
+                });
+            }
+
+            // 工具：隐藏/显示当前标记
+            function setCurrentMarkerVisibility(opacity) {
+                if (currentMarker && typeof currentMarker.setOpacity === 'function') {
+                    currentMarker.setOpacity(opacity);
+                } else if (currentMarker && typeof currentMarker.setStyle === 'function') {
+                    currentMarker.setStyle({ opacity });
+                }
+                
+                // 更新缓存
+                VisibilityCache.updateItemVisibility('submarine_pieces', index, opacity === 0.3);
+            }
+
+            // 隐藏按钮
+            if (hideBtn) {
+                hideBtn.addEventListener('click', () => {
+                    setCurrentMarkerVisibility(0.3);
+                    const newHiddenCount = hiddenCount + (isCurrentHidden ? 0 : 1);
+                    titleElement.textContent = `🚢 潜水艇碎片 #${sequenceNumber} (${newHiddenCount}/${totalCount})`;
+                    hideBtn.style.display = 'none';
+                    showBtn.style.display = 'inline-block';
+                    isCurrentHidden = true;
+
+                    // 刷新侧边栏计数
+                    updateSubmarinePiecesSidebarCount();
+                });
+            }
+
+            // 显示按钮
+            if (showBtn) {
+                showBtn.addEventListener('click', () => {
+                    setCurrentMarkerVisibility(1);
+                    const newHiddenCount = hiddenCount - (isCurrentHidden ? 1 : 0);
+                    titleElement.textContent = `🚢 潜水艇碎片 #${sequenceNumber} (${newHiddenCount}/${totalCount})`;
+                    showBtn.style.display = 'none';
+                    hideBtn.style.display = 'inline-block';
+                    isCurrentHidden = false;
+
+                    // 刷新侧边栏计数
+                    updateSubmarinePiecesSidebarCount();
+                });
+            }
+
+            document.body.appendChild(popup);
+        }
+
+        // 应用缓存的可见性状态到潜水艇碎片标记
+        function applySubmarinePiecesVisibilityCache() {
+            const markers = (window.submarinePiecesMarkers && window.submarinePiecesMarkers) || [];
+            if (markers.length > 0) {
+                const visibilityMap = VisibilityCache.loadVisibility('submarine_pieces');
+                markers.forEach((marker, index) => {
+                    const isHidden = visibilityMap[index];
+                    if (isHidden && marker) {
+                        if (typeof marker.setOpacity === 'function') {
+                            marker.setOpacity(0.3);
+                        } else if (typeof marker.setStyle === 'function') {
+                            marker.setStyle({ opacity: 0.3 });
+                        }
+                    }
+                });
+                console.log('已应用潜水艇碎片可见性缓存');
+                return true;
+            }
+            return false;
         }
 
         // 核废料弹窗模板（含隐藏/显示联动与计数器、缓存集成）

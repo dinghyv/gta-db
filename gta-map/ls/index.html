@@ -1197,6 +1197,7 @@
             'smoke_on_the_water_product',
             'action_figures',
             'yuanbao',
+            'letter_scraps',
             
             // 第3组：设施服务
             'ld_organics_products',
@@ -1326,6 +1327,7 @@
             smoke_on_the_water_product: '../src/assets/smoke_product.svg',
             action_figures: '../src/assets/action_figures.svg',
             yuanbao: '../src/assets/yuanbao.svg',
+            letter_scraps: '../src/assets/letter.svg',
             ld_organics_products: '../src/assets/organic_farm.svg',
             signal_jammers: '../src/assets/signal_jammer.svg',
             jack_o_lanterns: '../src/assets/jack.svg',
@@ -1449,6 +1451,7 @@
             smoke_on_the_water_product: [],
             action_figures: [],
             yuanbao: [],
+            letter_scraps: [],
             ld_organics_products: [],
             signal_jammers: [],
             jack_o_lanterns: [],
@@ -2411,6 +2414,60 @@
                 counterEl.textContent = ` (${hidden}/${total})`;
             } catch (e) {
                 console.warn('更新街头毒贩计数器失败:', e);
+            }
+        }
+
+        // 统计隐藏/总数，并更新侧边栏计数器文本（集成缓存）
+        function updateSlasherSidebarCount() {
+            try {
+                const counterEl = document.querySelector('#sidebar-item-serial_killer_slasher + label .slasher-counter');
+                if (!counterEl) return;
+
+                const markers = (window.slasherMarkers && window.slasherMarkers) || [];
+                const total = 4; // 固定为4个（3个slasher1.svg + 1个slasher2.svg组）
+
+                // 读取子类型数量（从数据源）
+                const slasherData = (window.itemData && window.itemData.serial_killer_slasher) || { first: [], last: [] };
+                const firstCount = slasherData.first?.length || 0;
+                const lastCount = slasherData.last?.length || 0;
+
+                // 可见性来源：优先缓存
+                let visibilityMap;
+                try { visibilityMap = VisibilityCache.loadVisibility('serial_killer_slasher') || []; } catch (_) { visibilityMap = []; }
+
+                const getHiddenByIndex = (i) => {
+                    if (Array.isArray(visibilityMap)) return !!visibilityMap[i];
+                    if (visibilityMap && typeof visibilityMap === 'object') return !!visibilityMap[i];
+                    const m = markers[i];
+                    if (!m) return false;
+                    if (typeof m.getOpacity === 'function') return m.getOpacity() === 0.3;
+                    if (m.options && typeof m.options.opacity !== 'undefined') return m.options.opacity === 0.3;
+                    if (typeof m.getElement === 'function') { const el = m.getElement(); return !!(el && el.style.opacity === '0.3'); }
+                    return false;
+                };
+
+                // slasher1.svg 逐一统计（前3个）
+                let hiddenFirst = 0;
+                for (let i = 0; i < firstCount; i++) if (getHiddenByIndex(i)) hiddenFirst++;
+
+                // slasher2.svg 组范围（最后1个组，包含所有last标记）
+                const lastStart = firstCount;
+                const lastEnd = firstCount + lastCount;
+
+                const rangeAllHidden = (start, end) => {
+                    if (start >= end) return false;
+                    for (let i = start; i < end; i++) if (!getHiddenByIndex(i)) return false;
+                    return true;
+                };
+
+                const lastHidden = rangeAllHidden(lastStart, lastEnd);
+
+                const hidden = hiddenFirst + (lastHidden ? 1 : 0);
+
+                CounterCache.updateCounter('serial_killer_slasher', hidden, total);
+                counterEl.textContent = total > 0 ? ` (${hidden}/${total})` : '';
+            } catch (e) {
+                console.warn('更新洛圣都杀人狂计数器失败:', e);
             }
         }
 
@@ -4268,6 +4325,27 @@
             return false;
         }
 
+        // 应用缓存的可见性状态到洛圣都杀人狂标记
+        function applySlasherVisibilityCache() {
+            const markers = (window.slasherMarkers && window.slasherMarkers) || [];
+            if (markers.length > 0) {
+                const visibilityMap = VisibilityCache.loadVisibility('serial_killer_slasher');
+                markers.forEach((marker, index) => {
+                    const isHidden = visibilityMap[index];
+                    if (isHidden && marker) {
+                        if (typeof marker.setOpacity === 'function') {
+                            marker.setOpacity(0.3);
+                        } else if (typeof marker.setStyle === 'function') {
+                            marker.setStyle({ opacity: 0.3 });
+                        }
+                    }
+                });
+                console.log('已应用洛圣都杀人狂可见性缓存');
+                return true;
+            }
+            return false;
+        }
+
         // 应用缓存的可见性状态到幽灵曝光2025标记
         function applyGhosts3VisibilityCache() {
             const markers = (window.ghosts3Markers && window.ghosts3Markers) || [];
@@ -4662,6 +4740,7 @@
                 // 4) 渲染完成后再应用可见性缓存（需在标记存在后）
                 try { applySmugglerPlaneVisibilityCache(); } catch (e) {}
                 try { applyStreetDealersVisibilityCache(); } catch (e) {}
+                try { applySlasherVisibilityCache(); } catch (e) {}
                 try { applyTreasureHuntVisibilityCache(); } catch (e) {}
                 try { applyUfoVisibilityCache(); } catch (e) {}
                 try { applyGhosts3VisibilityCache(); } catch (e) {}
@@ -4673,6 +4752,7 @@
                 try { applySignalJammersVisibilityCache(); } catch (e) {}
                 try { applyActionFiguresVisibilityCache(); } catch (e) {}
                 try { applyPlayingCardsVisibilityCache(); } catch (e) {}
+                try { applyLetterScrapsVisibilityCache(); } catch (e) {}
                 try { applySprayVisibilityCache(); } catch (e) {}
                 try { applyPplVisibilityCache(); } catch (e) {}
                 try { applyPpwVisibilityCache(); } catch (e) {}
@@ -4691,6 +4771,7 @@
                 // 5) 刷新计数器（如有）
                 try { updateSmugglerPlaneSidebarCount(); } catch (e) {}
                 try { updateStreetDealersSidebarCount(); } catch (e) {}
+                try { updateSlasherSidebarCount(); } catch (e) {}
                 try { updateTreasureHuntSidebarCount(); } catch (e) {}
                 try { updateUfoSidebarCount(); } catch (e) {}
                 try { updateGhosts3SidebarCount(); } catch (e) {}
@@ -4700,6 +4781,7 @@
                 try { updateSignalJammersSidebarCount(); } catch (e) {}
                 try { updateActionFiguresSidebarCount(); } catch (e) {}
                 try { updatePlayingCardsSidebarCount(); } catch (e) {}
+                try { updateLetterScrapsSidebarCount(); } catch (e) {}
                 try { updateSpraySidebarCount(); } catch (e) {}
                 try { updatePplSidebarCount(); } catch (e) {}
                 try { updatePpwSidebarCount(); } catch (e) {}
@@ -5368,6 +5450,7 @@
             { value: 'smoke_on_the_water_product', text: '吞云吐雾馆产品（测试）' },
             { value: 'action_figures', text: '手办' },
             { value: 'yuanbao', text: '元宝' },
+            { value: 'letter_scraps', text: '信件残片' },
             { value: 'stunt_jumps', text: '特技跳跃点' },
             { value: 'spray', text: '喷罐位置' },
             { value: 'ld_organics_products', text: '有机坊产品' },
@@ -5809,6 +5892,16 @@
                             name: card[2] || '纸牌位置'
                         }));
                         console.log('纸牌位置数据加载成功，共', itemData.playing_cards.length, '个位置');
+                    }
+                    
+                    // 加载letter_scraps数据
+                    if (cardsData.letter_scraps) {
+                        itemData.letter_scraps = cardsData.letter_scraps.map((item, index) => ({
+                            x: item.x,
+                            y: item.y,
+                            name: `信件残片 ${index + 1}`
+                        }));
+                        console.log('信件残片数据加载成功，共', itemData.letter_scraps.length, '个位置');
                     }
                     
                     // 加载其他物品数据
@@ -6482,6 +6575,7 @@
                 try { updateSignalJammersSidebarCount(); } catch(e) {}
                 try { updateActionFiguresSidebarCount(); } catch(e) {}
                 try { updatePlayingCardsSidebarCount(); } catch(e) {}
+                try { updateLetterScrapsSidebarCount(); } catch(e) {}
                 try { updateJackOLanternsSidebarCount(); } catch(e) {}
                 try { updateSpraySidebarCount(); } catch(e) {}
                 try { updateOrganicFarmSidebarCount(); } catch(e) {}
@@ -7009,6 +7103,11 @@
                     const displayIndex = index;
                     showSlasherPopup(item, displayIndex, isFirst ? 'first' : 'last');
                 });
+                
+                // 存储标记到全局数组
+                if (!window.slasherMarkers) window.slasherMarkers = [];
+                window.slasherMarkers[index] = marker;
+                
                 return marker;
             }
 
@@ -7726,6 +7825,11 @@
                     if (!window.playingCardsMarkers) window.playingCardsMarkers = [];
                     window.playingCardsMarkers[index] = marker;
                 }
+                // 记录 letter_scraps 标记以便弹窗隐藏/显示控制
+                else if (type === 'letter_scraps') {
+                    if (!window.letterScrapsMarkers) window.letterScrapsMarkers = [];
+                    window.letterScrapsMarkers[index] = marker;
+                }
                 // 记录 skydives 标记以便弹窗隐藏/显示控制
                 else if (type === 'skydives') {
                     if (!window.skydivesMarkers) window.skydivesMarkers = [];
@@ -7816,6 +7920,11 @@
                     if (!window.ufoMarkers) window.ufoMarkers = [];
                     window.ufoMarkers[index] = marker;
                 }
+                // 记录 serial_killer_slasher 标记以便弹窗隐藏/显示控制（已在createLeafletMarker中处理）
+                // else if (type === 'serial_killer_slasher') {
+                //     if (!window.slasherMarkers) window.slasherMarkers = [];
+                //     window.slasherMarkers[index] = marker;
+                // }
             } catch (e) {}
             
             // 添加点击事件
@@ -7847,6 +7956,10 @@
                 // 特殊处理纸牌，显示图片弹窗
                 else if (type === 'playing_cards') {
                     showPlayingCardsImage(index);
+                }
+                // 特殊处理信件残片，显示图片弹窗
+                else if (type === 'letter_scraps') {
+                    showLetterScrapsImage(index);
                 }
                 // 特殊处理吞云吐雾馆产品，显示图片弹窗
                 else if (type === 'smoke_on_the_water_product') {
@@ -8067,6 +8180,7 @@
             // 有计数器的标记需要保持状态，不清除：
             // - streetDealersMarkers (街头毒贩)
             // - playingCardsMarkers (纸牌)
+            // - letterScrapsMarkers (信件残片)
             // - yuanbaoMarkers (元宝)
             // - pplMarkers (陆地迷幻仙人掌)
             // - ppwMarkers (水下迷幻仙人掌)
@@ -8586,7 +8700,8 @@
                         });
                         last.forEach((p, i) => {
                             if (typeof p.x === 'undefined' || typeof p.y === 'undefined') return;
-                            const marker = createLeafletMarker({ ...p, subtype: 'last' }, i, 'serial_killer_slasher');
+                            const globalIndex = first.length + i; // 使用全局索引
+                            const marker = createLeafletMarker({ ...p, subtype: 'last' }, globalIndex, 'serial_killer_slasher');
                             leafletMarkers.push(marker);
                         });
                     }
@@ -8647,6 +8762,7 @@
             // 重新应用隐藏可见性缓存，确保被隐藏的标记在切换显示后仍保持状态
             try { applySmugglerPlaneVisibilityCache(); } catch (e) {}
             try { applyStreetDealersVisibilityCache(); } catch (e) {}
+            try { applySlasherVisibilityCache(); } catch (e) {}
             try { applyTreasureHuntVisibilityCache(); } catch (e) {}
             try { applyUfoVisibilityCache(); } catch (e) {}
             try { applyGhosts3VisibilityCache(); } catch (e) {}
@@ -8661,6 +8777,7 @@
             try { applySignalJammersVisibilityCache(); } catch (e) {}
             try { applyActionFiguresVisibilityCache(); } catch (e) {}
             try { applyPlayingCardsVisibilityCache(); } catch (e) {}
+            try { applyLetterScrapsVisibilityCache(); } catch (e) {}
             try { applyOrganicFarmVisibilityCache(); } catch (e) {}
             try { applySkydivesVisibilityCache(); } catch (e) {}
             try { applyJackOLanternsVisibilityCache(); } catch (e) {}
@@ -10949,6 +11066,244 @@
             }
 
             document.body.appendChild(popup);
+        }
+
+        // ==================== 增强版信件残片模板（集成缓存） ====================
+        
+        // 创建侧边栏条目时，为 letter_scraps 增加一个计数器占位
+        function attachLetterScrapsCounterToLabel(sidebarCheckboxId) {
+            const label = document.querySelector(`#${sidebarCheckboxId} + label`);
+            if (!label) return;
+
+            let counter = label.querySelector('.letter-scraps-counter');
+            if (!counter) {
+                counter = document.createElement('span');
+                counter.className = 'letter-scraps-counter';
+                counter.style.marginLeft = '6px';
+                counter.style.color = 'var(--gta-text-secondary)';
+                label.appendChild(counter);
+            }
+
+            // 初次渲染计数
+            updateLetterScrapsSidebarCount();
+        }
+
+        // 统计隐藏/总数，并更新侧边栏计数器文本（集成缓存）
+        function updateLetterScrapsSidebarCount() {
+            try {
+                const counterEl = document.querySelector('#sidebar-item-letter_scraps + label .letter-scraps-counter');
+                if (!counterEl) return;
+
+                // 获取信件残片标记
+                const markers = (window.letterScrapsMarkers && window.letterScrapsMarkers) || [];
+                let total = 0;
+                let hidden = 0;
+
+                if (Array.isArray(markers) && markers.length > 0) {
+                    total = markers.length;
+                    markers.forEach((marker) => {
+                        if (marker && typeof marker.getElement === 'function') {
+                            const el = marker.getElement();
+                            if (el && el.style.opacity === '0.3') {
+                                hidden++;
+                            }
+                        }
+                    });
+                } else {
+                    // 回退：仅有数据尚未渲染 Leaflet 标记时
+                    total = Array.isArray(window.itemData?.letter_scraps) ? window.itemData.letter_scraps.length : 0;
+                    // 从缓存中获取隐藏数量
+                    const cachedCounter = CounterCache.getCounter('letter_scraps');
+                    hidden = cachedCounter.hidden || 0;
+                }
+
+                // 更新缓存
+                CounterCache.updateCounter('letter_scraps', hidden, total);
+                counterEl.textContent = total > 0 ? ` (${hidden}/${total})` : '';
+            } catch (e) {
+                console.warn('更新信件残片计数器失败:', e);
+            }
+        }
+
+        // 信件残片弹窗模板（含隐藏/显示联动与计数器、缓存集成）
+        function showLetterScrapsImage(index) {
+            // 序号从1开始
+            const sequenceNumber = index + 1;
+            const imageUrl = `https://gta-maps.antwen.com/collectibles_images/letter_scraps/letter_scraps_${sequenceNumber}.webp`;
+            
+            // 关闭已存在的弹窗
+            const existingPopup = document.querySelector('.letter-scraps-popup');
+            if (existingPopup) existingPopup.remove();
+
+            // 统计隐藏/总数
+            const markers = (window.letterScrapsMarkers && window.letterScrapsMarkers) || [];
+            const totalCount = markers.length;
+
+            let hiddenCount = 0;
+            markers.forEach((marker) => {
+                if (marker && typeof marker.getElement === 'function') {
+                    const el = marker.getElement();
+                    if (el && el.style.opacity === '0.3') hiddenCount++;
+                }
+            });
+
+            const currentMarker = markers[index];
+            let isCurrentHidden = false;
+            if (currentMarker && typeof currentMarker.getElement === 'function') {
+                const el = currentMarker.getElement();
+                isCurrentHidden = el && el.style.opacity === '0.3';
+            }
+
+            const title = `📜 信件残片 #${sequenceNumber} (${hiddenCount}/${totalCount})`;
+
+            // 构建弹窗
+            const popup = document.createElement('div');
+            popup.className = 'letter-scraps-popup';
+            popup.style.cssText = `
+                position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+                background: var(--gta-bg-medium);
+                border: 1px solid var(--gta-border);
+                border-radius: 8px;
+                box-shadow: 0 2px 15px rgba(0,0,0,0.5);
+                padding: 15px;
+                z-index: 10000;
+                width: min(92vw, 520px);
+                max-height: 80vh;
+                color: var(--gta-text);
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                overflow-y: auto;
+            `;
+
+            popup.innerHTML = `
+                <div class="popup-header" style="position: relative; margin-bottom: 14px;">
+                    <h3 style="color: var(--gta-primary); font-size: 18px; margin: 0; font-weight: bold;">${title}</h3>
+                    <span class="popup-close" style="position: absolute; top: 0; right: 0; color: var(--gta-text-secondary); font-size: 20px; cursor: pointer; transition: color 0.3s ease;">×</span>
+                </div>
+                <img src="${imageUrl}" alt="信件残片 #${sequenceNumber}" style="max-width: 100%; height: auto; border-radius: 6px; margin: 8px 0; display: block; cursor: zoom-in;"/>
+                <div style="margin: 10px 0; padding: 10px; background: rgba(156, 39, 176, 0.1); border-radius: 8px; color: var(--gta-text); font-size: 14px; line-height: 1.6;">
+                    可在上图位置找到！
+                </div>
+                <div style="margin: 10px 0; padding: 10px; background: rgba(156, 39, 176, 0.1); border-radius: 8px; color: var(--gta-text); font-size: 14px; line-height: 1.6;">
+                    <div style="font-weight: bold; color: #7B1FA2; margin-bottom: 5px;">🎯 收集奖励</div>
+                    游戏中总共有 50 个信件残片。要收集这些信件，您必须完成主线任务有借有还。<br>
+                    每个角色都可以拾取残片。小查还可以帮助富兰克林找到它附近的残片。收集所有 50 个信件残片是 100% 完成度的要求之一。<br><br>
+                    集齐信件残片，揭示女演员里奥诺拉·约翰逊谋杀案的真相。您将解锁陌生人与怪咖任务好麦坞明日之星（富兰克林）。完成后，您将获得一个成就。完成此任务是 100% 完成度的要求之一。
+                </div>
+                <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
+                    <button id="hide-letter-scraps-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease; display: ${isCurrentHidden ? 'none' : 'inline-block'};">隐藏</button>
+                    <button id="show-letter-scraps-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease; display: ${isCurrentHidden ? 'inline-block' : 'none'};">显示</button>
+                    <button id="close-letter-scraps-btn" style="padding: 8px 16px; background: var(--gta-primary); color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease;">关闭</button>
+                </div>
+            `;
+
+            // 绑定元素
+            const closeBtn = popup.querySelector('#close-letter-scraps-btn');
+            const hideBtn = popup.querySelector('#hide-letter-scraps-btn');
+            const showBtn = popup.querySelector('#show-letter-scraps-btn');
+            const popupClose = popup.querySelector('.popup-close');
+            const titleElement = popup.querySelector('h3');
+
+            // 关闭弹窗
+            const removePopup = () => popup.remove();
+            closeBtn.addEventListener('click', removePopup);
+            popupClose.addEventListener('click', removePopup);
+            popup.addEventListener('click', (e) => e.stopPropagation());
+            setTimeout(() => {
+                const closePopupHandler = (e) => {
+                    if (!popup.contains(e.target)) {
+                        removePopup();
+                        document.removeEventListener('click', closePopupHandler);
+                    }
+                };
+                document.addEventListener('click', closePopupHandler);
+            }, 50);
+
+            // 图片点击放大
+            const popupImage = popup.querySelector('img');
+            if (popupImage) {
+                popupImage.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const overlay = document.createElement('div');
+                    overlay.className = 'letter-scraps-image-overlay';
+                    overlay.style.cssText = `
+                        position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+                        display: flex; align-items: center; justify-content: center;
+                        z-index: 10002; cursor: zoom-out;
+                    `;
+                    const bigImg = document.createElement('img');
+                    bigImg.src = popupImage.src;
+                    bigImg.alt = popupImage.alt || '';
+                    bigImg.style.cssText = `max-width: 95vw; max-height: 95vh; border-radius: 6px; box-shadow: 0 4px 24px rgba(0,0,0,0.6);`;
+                    overlay.appendChild(bigImg);
+                    overlay.addEventListener('click', () => overlay.remove());
+                    document.body.appendChild(overlay);
+                });
+            }
+
+            // 工具：隐藏/显示当前标记
+            function setCurrentMarkerVisibility(opacity) {
+                if (currentMarker && typeof currentMarker.setOpacity === 'function') {
+                    currentMarker.setOpacity(opacity);
+                } else if (currentMarker && typeof currentMarker.setStyle === 'function') {
+                    currentMarker.setStyle({ opacity });
+                }
+                
+                // 更新缓存
+                VisibilityCache.updateItemVisibility('letter_scraps', index, opacity === 0.3);
+            }
+
+            // 隐藏按钮
+            if (hideBtn) {
+                hideBtn.addEventListener('click', () => {
+                    setCurrentMarkerVisibility(0.3);
+                    const newHiddenCount = hiddenCount + (isCurrentHidden ? 0 : 1);
+                    titleElement.textContent = `📜 信件残片 #${sequenceNumber} (${newHiddenCount}/${totalCount})`;
+                    hideBtn.style.display = 'none';
+                    showBtn.style.display = 'inline-block';
+                    isCurrentHidden = true;
+
+                    // 刷新侧边栏计数
+                    updateLetterScrapsSidebarCount();
+                });
+            }
+
+            // 显示按钮
+            if (showBtn) {
+                showBtn.addEventListener('click', () => {
+                    setCurrentMarkerVisibility(1);
+                    const newHiddenCount = hiddenCount - (isCurrentHidden ? 1 : 0);
+                    titleElement.textContent = `📜 信件残片 #${sequenceNumber} (${newHiddenCount}/${totalCount})`;
+                    showBtn.style.display = 'none';
+                    hideBtn.style.display = 'inline-block';
+                    isCurrentHidden = false;
+
+                    // 刷新侧边栏计数
+                    updateLetterScrapsSidebarCount();
+                });
+            }
+
+            document.body.appendChild(popup);
+        }
+
+        // 应用缓存的可见性状态到信件残片标记
+        function applyLetterScrapsVisibilityCache() {
+            const markers = (window.letterScrapsMarkers && window.letterScrapsMarkers) || [];
+            if (markers.length > 0) {
+                const visibilityMap = VisibilityCache.loadVisibility('letter_scraps');
+                markers.forEach((marker, index) => {
+                    const isHidden = visibilityMap[index];
+                    if (isHidden && marker) {
+                        if (typeof marker.setOpacity === 'function') {
+                            marker.setOpacity(0.3);
+                        } else if (typeof marker.setStyle === 'function') {
+                            marker.setStyle({ opacity: 0.3 });
+                        }
+                    }
+                });
+                console.log('已应用信件残片可见性缓存');
+                return true;
+            }
+            return false;
         }
 
         // 应用缓存的可见性状态到纸牌标记
@@ -16552,86 +16907,229 @@
             document.body.appendChild(popup);
         }
 
-        // 洛圣都杀人狂弹窗
+        // 洛圣都杀人狂弹窗模板（含隐藏/显示联动与计数器、缓存集成）
         function showSlasherPopup(item, index, subtype) {
             const isFirst = subtype === 'first';
             const base = isFirst ? 'ls_slasher' : 'ls_slasher_final';
-            const title = isFirst ? `🩸 杀人狂线索 #${index + 1}` : `🩸 最后一条线索 #${index + 1}`;
-            const imageUrl = `https://gta-maps.antwen.com/collectibles_images/${base}/${base}_${(index + 1)}.webp`;
+            const imageUrl = `https://gta-maps.antwen.com/collectibles_images/${base}/${base}_${(index - 3 )}.webp`;
+            
+            // 关闭已存在的弹窗
+            const existingPopup = document.querySelector('.slasher-popup');
+            if (existingPopup) existingPopup.remove();
 
+            // 统计隐藏/总数
+            const markers = (window.slasherMarkers && window.slasherMarkers) || [];
+            const totalCount = 4; // 固定为4个（3个slasher1.svg + 1个slasher2.svg组）
+
+            // 读取子类型数量（从数据源）
+            const slasherData = (window.itemData && window.itemData.serial_killer_slasher) || { first: [], last: [] };
+            const firstCount = slasherData.first?.length || 0;
+            const lastCount = slasherData.last?.length || 0;
+
+            // 可见性来源：优先缓存
+            let visibilityMap;
+            try { visibilityMap = VisibilityCache.loadVisibility('serial_killer_slasher') || []; } catch (_) { visibilityMap = []; }
+
+            const getHiddenByIndex = (i) => {
+                if (Array.isArray(visibilityMap)) return !!visibilityMap[i];
+                if (visibilityMap && typeof visibilityMap === 'object') return !!visibilityMap[i];
+                const m = markers[i];
+                if (!m) return false;
+                if (typeof m.getOpacity === 'function') return m.getOpacity() === 0.3;
+                if (m.options && typeof m.options.opacity !== 'undefined') return m.options.opacity === 0.3;
+                if (typeof m.getElement === 'function') { const el = m.getElement(); return !!(el && el.style.opacity === '0.3'); }
+                return false;
+            };
+
+            // slasher1.svg 逐一统计（前3个）
+            let hiddenFirst = 0;
+            for (let i = 0; i < firstCount; i++) if (getHiddenByIndex(i)) hiddenFirst++;
+
+            // slasher2.svg 组范围（最后1个组，包含所有last标记）
+            const lastStart = firstCount;
+            const lastEnd = firstCount + lastCount;
+
+            const rangeAllHidden = (start, end) => {
+                if (start >= end) return false;
+                for (let i = start; i < end; i++) if (!getHiddenByIndex(i)) return false;
+                return true;
+            };
+
+            const lastHidden = rangeAllHidden(lastStart, lastEnd);
+            const hiddenCount = hiddenFirst + (lastHidden ? 1 : 0);
+
+            // 计算当前标记的全局索引
+            let globalIndex = index;
+            if (subtype === 'last') {
+                globalIndex = firstCount + index;
+            }
+
+            const currentMarker = markers[globalIndex];
+            let isCurrentHidden = false;
+            if (subtype === 'first') {
+                isCurrentHidden = getHiddenByIndex(globalIndex);
+            } else {
+                isCurrentHidden = lastHidden;
+            }
+
+            const title = isFirst ? `🩸 杀人狂线索 #${index + 1} (${hiddenCount}/${totalCount})` : `🩸 最后一条线索 #${index - 3} (${hiddenCount}/${totalCount})`;
+
+            // 构建弹窗
             const popup = document.createElement('div');
             popup.className = 'slasher-popup';
             popup.style.cssText = `
                 position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-                background: #fff; border: 3px solid #b71c1c; border-radius: 12px; padding: 18px;
-                z-index: 10000; max-width: 520px; max-height: 80vh; box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-                font-family: Arial, sans-serif; text-align: left; overflow-y: auto;`;
+                background: var(--gta-bg-medium);
+                border: 1px solid var(--gta-border);
+                border-radius: 8px;
+                box-shadow: 0 2px 15px rgba(0,0,0,0.5);
+                padding: 15px;
+                z-index: 10000;
+                width: min(92vw, 520px);
+                max-height: 80vh;
+                color: var(--gta-text);
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                overflow-y: auto;
+            `;
 
             popup.innerHTML = `
-                <div style="margin-bottom: 12px; font-size: 20px; font-weight: bold; color: #b71c1c; text-align:center;">${title}</div>
-                <img src="${imageUrl}" alt="杀人狂线索" style="max-width: 100%; height: auto; border-radius: 6px; margin: 8px 0;"/>
-                <div style="margin: 10px 0; padding: 10px; background: #ffebee; border-radius: 8px; color: #4e342e; font-size: 13px; line-height: 1.6;">
+                <div class="popup-header" style="position: relative; margin-bottom: 14px;">
+                    <h3 style="color: var(--gta-primary); font-size: 18px; margin: 0; font-weight: bold;">${title}</h3>
+                    <span class="popup-close" style="position: absolute; top: 0; right: 0; color: var(--gta-text-secondary); font-size: 20px; cursor: pointer; transition: color 0.3s ease;">×</span>
+                </div>
+                <img src="${imageUrl}" alt="杀人狂线索" style="max-width: 100%; height: auto; border-radius: 6px; margin: 8px 0; display: block; cursor: zoom-in;"/>
+                <div style="margin: 10px 0; padding: 10px; background: rgba(183, 28, 28, 0.1); border-radius: 8px; color: var(--gta-text); font-size: 14px; line-height: 1.6;">
                     一共有 5 条线索。前四条线索 总是在相同的位置。集齐前 4 条后，最后一条线索 将在 5 个可能位置中的随机 1 处生成。<br><br>
                     线索会发出令人毛骨悚然的声音以帮助您定位它，您须按 E 来调查它。<br><br>
                     奖励：每条线索都会给您 5.000 GTA$ 和 2.000 RP。找到所有线索后，杀人狂会一直试图埋伏并杀死您，直到您消灭他。他只会在晚上 700 和早上 500 之间出现在布莱恩郡 。杀死他您将获得 50.000 GTA$ 和海军左轮手枪。用海军左轮手枪完成 50 次击杀，即可赚取 200.000 GTA$，并在 Red Dead 在线模式中解锁一款独家武器。
                 </div>
-                <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px;">
-                    <button id="hide-slasher-btn" style="padding: 10px 18px; background: #4CAF50; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">隐藏</button>
-                    <button id="show-slasher-btn" style="padding: 10px 18px; background: #2196F3; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">显示</button>
-                    <button id="close-slasher-btn" style="padding: 10px 18px; background: #b71c1c; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">关闭</button>
+                <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
+                    <button id="hide-slasher-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease; display: ${isCurrentHidden ? 'none' : 'inline-block'};">隐藏</button>
+                    <button id="show-slasher-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease; display: ${isCurrentHidden ? 'inline-block' : 'none'};">显示</button>
+                    <button id="close-slasher-btn" style="padding: 8px 16px; background: var(--gta-primary); color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease;">关闭</button>
                 </div>
             `;
 
-            // 隐藏/显示/关闭按钮
+            // 绑定元素
+            const closeBtn = popup.querySelector('#close-slasher-btn');
             const hideBtn = popup.querySelector('#hide-slasher-btn');
             const showBtn = popup.querySelector('#show-slasher-btn');
-            const closeBtn = popup.querySelector('#close-slasher-btn');
+            const popupClose = popup.querySelector('.popup-close');
+            const titleElement = popup.querySelector('h3');
 
-            // 解析目标标记和索引（兼容标记点击与坐标点击）
-            function resolveTargetAndIndex() {
-                const slasherData = itemData.serial_killer_slasher;
-                let globalIndex = index;
-                let el;
-                
-                if (subtype === 'first') {
-                    // 前四条线索
-                    el = document.querySelector(`.item-marker[data-type="serial_killer_slasher_first"][data-index="${index}"]`);
-                } else {
-                    // 最后一条线索
-                    el = document.querySelector(`.item-marker[data-type="serial_killer_slasher_last"][data-index="${index}"]`);
-                }
-                
-                return { el, globalIndex };
-            }
-
-            // 隐藏按钮：设置标记透明度为25%
-            hideBtn.addEventListener('click', () => {
-                const { el } = resolveTargetAndIndex();
-                if (!el) return;
-                el.style.opacity = '0.25';
-                const img = el.querySelector('img');
-                if (img) img.style.opacity = '0.25';
-            });
-
-            // 显示按钮：恢复标记透明度为100%
-            showBtn.addEventListener('click', () => {
-                const { el } = resolveTargetAndIndex();
-                if (!el) return;
-                el.style.opacity = '1';
-                const img = el.querySelector('img');
-                if (img) img.style.opacity = '1';
-            });
-
-            // 关闭按钮
-            closeBtn.addEventListener('click', () => popup.remove());
-            
+            // 关闭弹窗
+            const removePopup = () => popup.remove();
+            closeBtn.addEventListener('click', removePopup);
+            popupClose.addEventListener('click', removePopup);
             popup.addEventListener('click', (e) => e.stopPropagation());
             setTimeout(() => {
                 const closePopupHandler = (e) => {
-                    if (!popup.contains(e.target)) { popup.remove(); document.removeEventListener('click', closePopupHandler); }
+                    if (!popup.contains(e.target)) {
+                        removePopup();
+                        document.removeEventListener('click', closePopupHandler);
+                    }
                 };
                 document.addEventListener('click', closePopupHandler);
             }, 50);
+
+            // 图片点击放大
+            const popupImage = popup.querySelector('img');
+            if (popupImage) {
+                popupImage.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const overlay = document.createElement('div');
+                    overlay.className = 'slasher-image-overlay';
+                    overlay.style.cssText = `
+                        position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+                        display: flex; align-items: center; justify-content: center;
+                        z-index: 10002; cursor: zoom-out;
+                    `;
+                    const bigImg = document.createElement('img');
+                    bigImg.src = popupImage.src;
+                    bigImg.alt = popupImage.alt || '';
+                    bigImg.style.cssText = `max-width: 95vw; max-height: 95vh; border-radius: 6px; box-shadow: 0 4px 24px rgba(0,0,0,0.6);`;
+                    overlay.appendChild(bigImg);
+
+                    const removeOverlay = () => {
+                        document.removeEventListener('keydown', onKey);
+                        overlay.remove();
+                    };
+                    const onKey = (ev) => { if (ev.key === 'Escape') removeOverlay(); };
+                    overlay.addEventListener('click', removeOverlay);
+                    document.addEventListener('keydown', onKey);
+                    document.body.appendChild(overlay);
+                });
+            }
+
+            // 工具：隐藏/显示当前标记（实现特殊隐藏逻辑）
+            function setCurrentMarkerVisibility(opacity) {
+                if (subtype === 'first') {
+                    // slasher1.svg：单独隐藏
+                    if (currentMarker && typeof currentMarker.setOpacity === 'function') {
+                        currentMarker.setOpacity(opacity);
+                    } else if (currentMarker && typeof currentMarker.setStyle === 'function') {
+                        currentMarker.setStyle({ opacity });
+                    }
+                    // 更新缓存
+                    VisibilityCache.updateItemVisibility('serial_killer_slasher', globalIndex, opacity === 0.3);
+                } else {
+                    // slasher2.svg：隐藏同类的所有图标
+                    const lastStart = firstCount;
+                    const lastEnd = firstCount + lastCount;
+                    
+                    // 隐藏同类型的所有标记
+                    for (let idx = lastStart; idx < lastEnd; idx++) {
+                        const marker = markers[idx];
+                        if (marker && typeof marker.setOpacity === 'function') {
+                            marker.setOpacity(opacity);
+                        } else if (marker && typeof marker.setStyle === 'function') {
+                            marker.setStyle({ opacity });
+                        }
+                        // 更新缓存
+                        VisibilityCache.updateItemVisibility('serial_killer_slasher', idx, opacity === 0.3);
+                    }
+                }
+            }
+
+            // 隐藏按钮
+            if (hideBtn) {
+                hideBtn.addEventListener('click', () => {
+                    setCurrentMarkerVisibility(0.3);
+                    let newHiddenCount;
+                    if (subtype === 'first') {
+                        newHiddenCount = hiddenCount + (isCurrentHidden ? 0 : 1);
+                    } else {
+                        newHiddenCount = hiddenCount + (lastHidden ? 0 : 1);
+                    }
+                    titleElement.textContent = isFirst ? `🩸 杀人狂线索 #${index + 1} (${newHiddenCount}/${totalCount})` : `🩸 最后一条线索 #${index + 1} (${newHiddenCount}/${totalCount})`;
+                    hideBtn.style.display = 'none';
+                    showBtn.style.display = 'inline-block';
+                    isCurrentHidden = true;
+
+                    // 刷新侧边栏计数
+                    updateSlasherSidebarCount();
+                });
+            }
+
+            // 显示按钮
+            if (showBtn) {
+                showBtn.addEventListener('click', () => {
+                    setCurrentMarkerVisibility(1);
+                    let newHiddenCount;
+                    if (subtype === 'first') {
+                        newHiddenCount = hiddenCount - (isCurrentHidden ? 1 : 0);
+                    } else {
+                        newHiddenCount = hiddenCount - (lastHidden ? 1 : 0);
+                    }
+                    titleElement.textContent = isFirst ? `🩸 杀人狂线索 #${index + 1} (${newHiddenCount}/${totalCount})` : `🩸 最后一条线索 #${index + 1} (${newHiddenCount}/${totalCount})`;
+                    showBtn.style.display = 'none';
+                    hideBtn.style.display = 'inline-block';
+                    isCurrentHidden = false;
+
+                    // 刷新侧边栏计数
+                    updateSlasherSidebarCount();
+                });
+            }
 
             document.body.appendChild(popup);
         }
@@ -17828,6 +18326,9 @@
                         'ppl',
                         'ppw'
                     ],
+                    '线下收集品': [
+                        'letter_scraps'
+                    ],
                     '地点与服务': [
                         'golf_holes',
                         'metro',
@@ -17922,6 +18423,17 @@
                         label.appendChild(counter);
                         // 初始渲染一次
                         try { updateStreetDealersSidebarCount(); } catch(e) {}
+                    }
+                    // 洛圣都杀人狂计数器
+                    else if (type === 'serial_killer_slasher') {
+                        const counter = document.createElement('span');
+                        counter.className = 'slasher-counter';
+                        counter.style.marginLeft = '6px';
+                        counter.style.color = 'var(--gta-text-secondary)';
+                        counter.textContent = '';
+                        label.appendChild(counter);
+                        // 初始渲染一次
+                        try { updateSlasherSidebarCount(); } catch(e) {}
                     }
                     // 左轮寻宝计数器
                     else if (type === 'treasure_hunt_dba_revolver') {
@@ -18076,6 +18588,17 @@
                         label.appendChild(counter);
                         // 初始渲染一次
                         try { updatePlayingCardsSidebarCount(); } catch(e) {}
+                    }
+                    // 信件残片计数器
+                    else if (type === 'letter_scraps') {
+                        const counter = document.createElement('span');
+                        counter.className = 'letter-scraps-counter';
+                        counter.style.marginLeft = '6px';
+                        counter.style.color = 'var(--gta-text-secondary)';
+                        counter.textContent = '';
+                        label.appendChild(counter);
+                        // 初始渲染一次
+                        try { updateLetterScrapsSidebarCount(); } catch(e) {}
                     }
                     // 喷灌位置计数器
                     else if (type === 'spray') {
@@ -18270,6 +18793,10 @@
                         if (t === 'street_dealers') {
                             try { updateStreetDealersSidebarCount(); } catch(e) {}
                         }
+                        // 洛圣都杀人狂计数器
+                        if (t === 'serial_killer_slasher') {
+                            try { updateSlasherSidebarCount(); } catch(e) {}
+                        }
                         // 左轮寻宝计数器
                         if (t === 'treasure_hunt_dba_revolver') {
                             try { updateTreasureHuntSidebarCount(); } catch(e) {}
@@ -18432,6 +18959,7 @@
                     // 渲染完成后，刷新一次计数器
                     try { updateSmugglerPlaneSidebarCount(); } catch(e) {}
                     try { updateStreetDealersSidebarCount(); } catch(e) {}
+                    try { updateSlasherSidebarCount(); } catch(e) {}
                     try { updateTreasureHuntSidebarCount(); } catch(e) {}
                     try { updateUfoSidebarCount(); } catch(e) {}
                     try { updateGhosts3SidebarCount(); } catch(e) {}

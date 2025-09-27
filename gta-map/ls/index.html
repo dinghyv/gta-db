@@ -2828,24 +2828,25 @@
 
                 // 获取LS涂鸦标记
                 const markers = (window.lsTagsMarkers && window.lsTagsMarkers) || [];
-                let total = 5; // 固定5个
+                const total = 5; // 固定5个
                 let hidden = 0;
 
+                let hasRenderedMarker = false;
                 if (Array.isArray(markers) && markers.length > 0) {
-                    // 使用实际渲染的标记数量
-                    markers.forEach((marker) => {
+                    for (const marker of markers) {
                         if (marker && typeof marker.getElement === 'function') {
                             const el = marker.getElement();
-                            if (el && el.style.opacity === '0.3') {
-                                hidden++;
+                            if (el) {
+                                hasRenderedMarker = true;
+                                if (el.style.opacity === '0.3') hidden++;
                             }
                         }
-                    });
-                } else {
-                    // 回退：仅有数据尚未渲染 Leaflet 标记时，从缓存中获取隐藏数量
-                    const cachedCounter = CounterCache.getCounter('ls_tags');
-                    hidden = cachedCounter.hidden || 0;
+                    }
                 }
+
+                // 合并缓存，避免重新显示后计数被清零
+                const cachedCounter = CounterCache.getCounter('ls_tags');
+                hidden = Math.max(hidden, cachedCounter.hidden || 0);
 
                 // 更新缓存
                 CounterCache.updateCounter('ls_tags', hidden, total);
@@ -2924,26 +2925,25 @@
 
                 // 获取纸牌标记
                 const markers = (window.playingCardsMarkers && window.playingCardsMarkers) || [];
-                let total = 0;
+                const total = Array.isArray(window.itemData?.playing_cards) ? window.itemData.playing_cards.length : 0;
                 let hidden = 0;
 
+                let hasRenderedMarker = false;
                 if (Array.isArray(markers) && markers.length > 0) {
-                    total = markers.length;
-                    markers.forEach((marker) => {
+                    for (const marker of markers) {
                         if (marker && typeof marker.getElement === 'function') {
                             const el = marker.getElement();
-                            if (el && el.style.opacity === '0.3') {
-                                hidden++;
+                            if (el) {
+                                hasRenderedMarker = true;
+                                if (el.style.opacity === '0.3') hidden++;
                             }
                         }
-                    });
-                } else {
-                    // 回退：仅有数据尚未渲染 Leaflet 标记时
-                    total = Array.isArray(window.itemData?.playing_cards) ? window.itemData.playing_cards.length : 0;
-                    // 从缓存中获取隐藏数量
-                    const cachedCounter = CounterCache.getCounter('playing_cards');
-                    hidden = cachedCounter.hidden || 0;
+                    }
                 }
+
+                // 合并缓存
+                const cachedCounter = CounterCache.getCounter('playing_cards');
+                hidden = Math.max(hidden, cachedCounter.hidden || 0);
 
                 // 更新缓存
                 CounterCache.updateCounter('playing_cards', hidden, total);
@@ -3038,26 +3038,25 @@
 
                 // 获取陆地迷幻仙人掌标记
                 const markers = (window.pplMarkers && window.pplMarkers) || [];
-                let total = 0;
+                const total = Array.isArray(window.itemData?.ppl) ? window.itemData.ppl.length : 0;
                 let hidden = 0;
 
+                let hasRenderedMarker = false;
                 if (Array.isArray(markers) && markers.length > 0) {
-                    total = markers.length;
-                    markers.forEach((marker) => {
+                    for (const marker of markers) {
                         if (marker && typeof marker.getElement === 'function') {
                             const el = marker.getElement();
-                            if (el && el.style.opacity === '0.3') {
-                                hidden++;
+                            if (el) {
+                                hasRenderedMarker = true;
+                                if (el.style.opacity === '0.3') hidden++;
                             }
                         }
-                    });
-                } else {
-                    // 回退：仅有数据尚未渲染 Leaflet 标记时
-                    total = Array.isArray(window.itemData?.ppl) ? window.itemData.ppl.length : 0;
-                    // 从缓存中获取隐藏数量
-                    const cachedCounter = CounterCache.getCounter('ppl');
-                    hidden = cachedCounter.hidden || 0;
+                    }
                 }
+
+                // 合并缓存
+                const cachedCounter = CounterCache.getCounter('ppl');
+                hidden = Math.max(hidden, cachedCounter.hidden || 0);
 
                 // 更新缓存
                 CounterCache.updateCounter('ppl', hidden, total);
@@ -3095,26 +3094,25 @@
 
                 // 获取水下迷幻仙人掌标记
                 const markers = (window.ppwMarkers && window.ppwMarkers) || [];
-                let total = 0;
+                const total = Array.isArray(window.itemData?.ppw) ? window.itemData.ppw.length : 0;
                 let hidden = 0;
 
+                let hasRenderedMarker = false;
                 if (Array.isArray(markers) && markers.length > 0) {
-                    total = markers.length;
-                    markers.forEach((marker) => {
+                    for (const marker of markers) {
                         if (marker && typeof marker.getElement === 'function') {
                             const el = marker.getElement();
-                            if (el && el.style.opacity === '0.3') {
-                                hidden++;
+                            if (el) {
+                                hasRenderedMarker = true;
+                                if (el.style.opacity === '0.3') hidden++;
                             }
                         }
-                    });
-                } else {
-                    // 回退：仅有数据尚未渲染 Leaflet 标记时
-                    total = Array.isArray(window.itemData?.ppw) ? window.itemData.ppw.length : 0;
-                    // 从缓存中获取隐藏数量
-                    const cachedCounter = CounterCache.getCounter('ppw');
-                    hidden = cachedCounter.hidden || 0;
+                    }
                 }
+
+                // 合并缓存
+                const cachedCounter = CounterCache.getCounter('ppw');
+                hidden = Math.max(hidden, cachedCounter.hidden || 0);
 
                 // 更新缓存
                 CounterCache.updateCounter('ppw', hidden, total);
@@ -3132,26 +3130,25 @@
 
                 // 获取元宝标记
                 const markers = (window.yuanbaoMarkers && window.yuanbaoMarkers) || [];
-                let total = 0;
+                const total = Array.isArray(window.itemData?.yuanbao) ? window.itemData.yuanbao.length : 0;
                 let hidden = 0;
 
+                let hasRenderedMarker = false;
                 if (Array.isArray(markers) && markers.length > 0) {
-                    total = markers.length;
-                    markers.forEach((marker) => {
+                    for (const marker of markers) {
                         if (marker && typeof marker.getElement === 'function') {
                             const el = marker.getElement();
-                            if (el && el.style.opacity === '0.3') {
-                                hidden++;
+                            if (el) {
+                                hasRenderedMarker = true;
+                                if (el.style.opacity === '0.3') hidden++;
                             }
                         }
-                    });
-                } else {
-                    // 回退：仅有数据尚未渲染 Leaflet 标记时
-                    total = Array.isArray(window.itemData?.yuanbao) ? window.itemData.yuanbao.length : 0;
-                    // 从缓存中获取隐藏数量
-                    const cachedCounter = CounterCache.getCounter('yuanbao');
-                    hidden = cachedCounter.hidden || 0;
+                    }
                 }
+
+                // 合并缓存
+                const cachedCounter = CounterCache.getCounter('yuanbao');
+                hidden = Math.max(hidden, cachedCounter.hidden || 0);
 
                 // 更新缓存
                 CounterCache.updateCounter('yuanbao', hidden, total);
@@ -20415,18 +20412,22 @@
                         // 陆地迷幻仙人掌计数器
                         if (t === 'ppl') {
                             try { updatePplSidebarCount(); } catch(e) {}
+                            setTimeout(() => { try { updatePplSidebarCount(); } catch(e) {} }, 200);
                         }
                         // 水下迷幻仙人掌计数器
                         if (t === 'ppw') {
                             try { updatePpwSidebarCount(); } catch(e) {}
+                            setTimeout(() => { try { updatePpwSidebarCount(); } catch(e) {} }, 200);
                         }
                         // 特技跳跃点计数器
                         if (t === 'stunt_jumps') {
                             try { updateStuntJumpsSidebarCount(); } catch(e) {}
+                            setTimeout(() => { try { updateStuntJumpsSidebarCount(); } catch(e) {} }, 200);
                         }
                         // 元宝计数器
                         if (t === 'yuanbao') {
                             try { updateYuanbaoSidebarCount(); } catch(e) {}
+                            setTimeout(() => { try { updateYuanbaoSidebarCount(); } catch(e) {} }, 200);
                         }
                         // 信号干扰器计数器
                         if (t === 'signal_jammers') {
@@ -20439,6 +20440,7 @@
                         // 纸牌计数器
                         if (t === 'playing_cards') {
                             try { updatePlayingCardsSidebarCount(); } catch(e) {}
+                            setTimeout(() => { try { updatePlayingCardsSidebarCount(); } catch(e) {} }, 200);
                         }
                         // 残缺信件计数器
                         if (t === 'letter_scraps') {
@@ -20447,6 +20449,7 @@
                          // 隐藏包裹（线下）计数器
                          if (t === 'sp_hidden_packages') {
                              try { updateSpHiddenPackagesSidebarCount(); } catch(e) {}
+                             setTimeout(() => { try { updateSpHiddenPackagesSidebarCount(); } catch(e) {} }, 200);
                          }
                          // 迷幻仙人掌陆地计数器
                          if (t === 'peyote_sp_land') {
@@ -20512,6 +20515,7 @@
                         // LS涂鸦计数器
                         if (t === 'ls_tags') {
                             try { updateLSTagsSidebarCount(); } catch(e) {}
+                            setTimeout(() => { try { updateLSTagsSidebarCount(); } catch(e) {} }, 200);
                         }
                         // 沉船计数器
                         if (t === 'shipwrecked') {

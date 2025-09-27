@@ -9258,6 +9258,10 @@
             try { applySprayVisibilityCache(); } catch (e) {}
             try { applyPplVisibilityCache(); } catch (e) {}
             try { applyPpwVisibilityCache(); } catch (e) {}
+            // 补充应用可见性缓存：洛圣都的人类 与 猴子马赛克
+            // 解决问题：取消选中后再次勾选，这两类标记先前的隐藏状态会丢失，导致重新显示且计数器不同步
+            try { applyHumansOfLsVisibilityCache(); } catch (e) {}
+            try { applyMonkeyMosaicsVisibilityCache(); } catch (e) {}
             try { applyStuntJumpsVisibilityCache(); } catch (e) {}
             try { applyYuanbaoVisibilityCache(); } catch (e) {}
             try { applySignalJammersVisibilityCache(); } catch (e) {}

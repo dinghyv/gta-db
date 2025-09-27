@@ -1,5 +1,4 @@
 
-
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -5955,6 +5954,49 @@
                         console.log('隐藏包裹（线下）数据加载成功，共', itemData.sp_hidden_packages.length, '个位置');
                     }
                     
+                    // 加载peyote_sp数据
+                    if (cardsData.peyote_sp) {
+                        // 陆地迷幻仙人掌
+                        if (cardsData.peyote_sp.land) {
+                            itemData.peyote_sp_land = cardsData.peyote_sp.land.map((item, index) => ({
+                                x: item.x,
+                                y: item.y,
+                                name: `迷幻仙人掌陆地 ${index + 1}`
+                            }));
+                            console.log('迷幻仙人掌陆地数据加载成功，共', itemData.peyote_sp_land.length, '个位置');
+                        }
+                        
+                        // 鸟类迷幻仙人掌
+                        if (cardsData.peyote_sp.air) {
+                            itemData.peyote_sp_air = cardsData.peyote_sp.air.map((item, index) => ({
+                                x: item.x,
+                                y: item.y,
+                                name: `迷幻仙人掌鸟类 ${index + 1}`
+                            }));
+                            console.log('迷幻仙人掌鸟类数据加载成功，共', itemData.peyote_sp_air.length, '个位置');
+                        }
+                        
+                        // 水下迷幻仙人掌
+                        if (cardsData.peyote_sp.water) {
+                            itemData.peyote_sp_water = cardsData.peyote_sp.water.map((item, index) => ({
+                                x: item.x,
+                                y: item.y,
+                                name: `迷幻仙人掌水下 ${index + 1}`
+                            }));
+                            console.log('迷幻仙人掌水下数据加载成功，共', itemData.peyote_sp_water.length, '个位置');
+                        }
+                        
+                        // 金色迷幻仙人掌
+                        if (cardsData.peyote_sp.special) {
+                            itemData.peyote_sp_special = cardsData.peyote_sp.special.map((item, index) => ({
+                                x: item.x,
+                                y: item.y,
+                                name: `迷幻仙人掌金色 ${index + 1}`
+                            }));
+                            console.log('迷幻仙人掌金色数据加载成功，共', itemData.peyote_sp_special.length, '个位置');
+                        }
+                    }
+                    
                     // 加载submarine_pieces数据
                     if (cardsData.submarine_pieces) {
                         itemData.submarine_pieces = cardsData.submarine_pieces.map((item, index) => ({
@@ -6651,6 +6693,11 @@
                 try { updateSnowmenSidebarCount(); } catch(e) {}
                 try { updateMoviePropsSidebarCount(); } catch(e) {}
                 try { updateSpraySidebarCount(); } catch(e) {}
+                try { updateSpHiddenPackagesSidebarCount(); } catch(e) {}
+                try { updatePeyoteSpLandSidebarCount(); } catch(e) {}
+                try { updatePeyoteSpAirSidebarCount(); } catch(e) {}
+                try { updatePeyoteSpWaterSidebarCount(); } catch(e) {}
+                try { updatePeyoteSpSpecialSidebarCount(); } catch(e) {}
                 try { updateStuntJumpsSidebarCount(); } catch(e) {}
                 try { updateYuanbaoSidebarCount(); } catch(e) {}
                 try { updateSignalJammersSidebarCount(); } catch(e) {}
@@ -7916,6 +7963,26 @@
                     if (!window.spHiddenPackagesMarkers) window.spHiddenPackagesMarkers = [];
                     window.spHiddenPackagesMarkers[index] = marker;
                 }
+                // 记录 peyote_sp_land 标记以便弹窗隐藏/显示控制
+                else if (type === 'peyote_sp_land') {
+                    if (!window.peyoteSpLandMarkers) window.peyoteSpLandMarkers = [];
+                    window.peyoteSpLandMarkers[index] = marker;
+                }
+                // 记录 peyote_sp_air 标记以便弹窗隐藏/显示控制
+                else if (type === 'peyote_sp_air') {
+                    if (!window.peyoteSpAirMarkers) window.peyoteSpAirMarkers = [];
+                    window.peyoteSpAirMarkers[index] = marker;
+                }
+                // 记录 peyote_sp_water 标记以便弹窗隐藏/显示控制
+                else if (type === 'peyote_sp_water') {
+                    if (!window.peyoteSpWaterMarkers) window.peyoteSpWaterMarkers = [];
+                    window.peyoteSpWaterMarkers[index] = marker;
+                }
+                // 记录 peyote_sp_special 标记以便弹窗隐藏/显示控制
+                else if (type === 'peyote_sp_special') {
+                    if (!window.peyoteSpSpecialMarkers) window.peyoteSpSpecialMarkers = [];
+                    window.peyoteSpSpecialMarkers[index] = marker;
+                }
                 // 记录 submarine_pieces 标记以便弹窗隐藏/显示控制
                 else if (type === 'submarine_pieces') {
                     if (!window.submarinePiecesMarkers) window.submarinePiecesMarkers = [];
@@ -8065,6 +8132,22 @@
                 // 特殊处理隐藏包裹（线下），显示图片弹窗
                 else if (type === 'sp_hidden_packages') {
                     showSpHiddenPackagesImage(index);
+                }
+                // 特殊处理迷幻仙人掌陆地，显示图片弹窗
+                else if (type === 'peyote_sp_land') {
+                    showPeyoteSpLandImage(index);
+                }
+                // 特殊处理迷幻仙人掌鸟类，显示图片弹窗
+                else if (type === 'peyote_sp_air') {
+                    showPeyoteSpAirImage(index);
+                }
+                // 特殊处理迷幻仙人掌水下，显示图片弹窗
+                else if (type === 'peyote_sp_water') {
+                    showPeyoteSpWaterImage(index);
+                }
+                // 特殊处理迷幻仙人掌金色，显示图片弹窗
+                else if (type === 'peyote_sp_special') {
+                    showPeyoteSpSpecialImage(index);
                 }
                 // 特殊处理潜水艇碎片，显示图片弹窗
                 else if (type === 'submarine_pieces') {
@@ -11677,6 +11760,765 @@
                 return true;
             }
             return false;
+        }
+
+        // ==================== 迷幻仙人掌陆地弹窗模板 ====================
+        function showPeyoteSpLandImage(index) {
+            // 序号从1开始，1-9前面不要出现0
+            const sequenceNumber = index + 1;
+            const imageUrl = `https://gta-maps.antwen.com/collectibles_images/peyote_sp/land_${sequenceNumber}.webp`;
+            
+            // 关闭已存在的弹窗
+            const existingPopup = document.querySelector('.peyote-sp-land-popup');
+            if (existingPopup) existingPopup.remove();
+
+            // 统计隐藏/总数
+            const markers = (window.peyoteSpLandMarkers && window.peyoteSpLandMarkers) || [];
+            const totalCount = markers.length;
+
+            let hiddenCount = 0;
+            markers.forEach((marker) => {
+                if (marker && typeof marker.getElement === 'function') {
+                    const el = marker.getElement();
+                    if (el && el.style.opacity === '0.3') hiddenCount++;
+                }
+            });
+
+            const currentMarker = markers[index];
+            let isCurrentHidden = false;
+            if (currentMarker && typeof currentMarker.getElement === 'function') {
+                const el = currentMarker.getElement();
+                isCurrentHidden = el && el.style.opacity === '0.3';
+            }
+
+            const title = `🌵 迷幻仙人掌陆地 #${sequenceNumber} (${hiddenCount}/${totalCount})`;
+
+            // 构建弹窗
+            const popup = document.createElement('div');
+            popup.className = 'peyote-sp-land-popup';
+            popup.style.cssText = `
+                position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+                background: var(--gta-bg-medium);
+                border: 1px solid var(--gta-border);
+                border-radius: 8px;
+                box-shadow: 0 2px 15px rgba(0,0,0,0.5);
+                padding: 15px;
+                z-index: 10000;
+                width: min(92vw, 520px);
+                max-height: 80vh;
+                color: var(--gta-text);
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                overflow-y: auto;
+            `;
+
+            popup.innerHTML = `
+                <div class="popup-header" style="position: relative; margin-bottom: 14px;">
+                    <h3 style="color: var(--gta-primary); font-size: 18px; margin: 0; font-weight: bold;">${title}</h3>
+                    <span class="popup-close" style="position: absolute; top: 0; right: 0; color: var(--gta-text-secondary); font-size: 20px; cursor: pointer; transition: color 0.3s ease;">×</span>
+                </div>
+                <img src="${imageUrl}" alt="迷幻仙人掌陆地 #${sequenceNumber}" style="max-width: 100%; height: auto; border-radius: 6px; margin: 8px 0; display: block; cursor: zoom-in;"/>
+                <div style="margin: 10px 0; padding: 10px; background: rgba(156, 39, 176, 0.1); border-radius: 8px; color: var(--gta-text); font-size: 14px; line-height: 1.6;">
+                    故事模式中一共有 27 个迷幻仙人掌（21 个在陆地上，6 个在水下）。当您靠近它时，手柄会振动，迷幻仙人掌会发出类似动物叫声的声音。吃下（按下互动键）迷幻仙人掌后，您会变成随机动物中的其中一种。您会一直维持动物形态，除非您：死亡、入水/上岸、按住互动键。您食用所有迷幻仙人掌之后，吃过的迷幻仙人掌将重新启用。食用过所有陆地上的迷幻仙人掌之后，您将可在导演模式选用所有动物。选用其中一个作为演员，您将解锁两个成就。
+                </div>
+                <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
+                    <button id="hide-peyote-sp-land-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease; display: ${isCurrentHidden ? 'none' : 'inline-block'};">隐藏</button>
+                    <button id="show-peyote-sp-land-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease; display: ${isCurrentHidden ? 'inline-block' : 'none'};">显示</button>
+                    <button id="close-peyote-sp-land-btn" style="padding: 8px 16px; background: var(--gta-primary); color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease;">关闭</button>
+                </div>
+            `;
+
+            // 绑定元素
+            const closeBtn = popup.querySelector('#close-peyote-sp-land-btn');
+            const hideBtn = popup.querySelector('#hide-peyote-sp-land-btn');
+            const showBtn = popup.querySelector('#show-peyote-sp-land-btn');
+            const popupClose = popup.querySelector('.popup-close');
+            const titleElement = popup.querySelector('h3');
+
+            // 关闭弹窗
+            const removePopup = () => popup.remove();
+            closeBtn.addEventListener('click', removePopup);
+            popupClose.addEventListener('click', removePopup);
+            popup.addEventListener('click', (e) => e.stopPropagation());
+            setTimeout(() => {
+                const closePopupHandler = (e) => {
+                    if (!popup.contains(e.target)) {
+                        removePopup();
+                        document.removeEventListener('click', closePopupHandler);
+                    }
+                };
+                document.addEventListener('click', closePopupHandler);
+            }, 50);
+
+            // 图片点击放大
+            const popupImage = popup.querySelector('img');
+            if (popupImage) {
+                popupImage.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const overlay = document.createElement('div');
+                    overlay.className = 'peyote-sp-land-image-overlay';
+                    overlay.style.cssText = `
+                        position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+                        display: flex; align-items: center; justify-content: center;
+                        z-index: 10002; cursor: zoom-out;
+                    `;
+                    const bigImg = document.createElement('img');
+                    bigImg.src = popupImage.src;
+                    bigImg.alt = popupImage.alt || '';
+                    bigImg.style.cssText = `max-width: 95vw; max-height: 95vh; border-radius: 6px; box-shadow: 0 4px 24px rgba(0,0,0,0.6);`;
+                    overlay.appendChild(bigImg);
+
+                    const removeOverlay = () => {
+                        document.removeEventListener('keydown', onKey);
+                        overlay.remove();
+                    };
+                    const onKey = (ev) => { if (ev.key === 'Escape') removeOverlay(); };
+                    overlay.addEventListener('click', removeOverlay);
+                    document.addEventListener('keydown', onKey);
+                    document.body.appendChild(overlay);
+                });
+            }
+
+            // 工具：隐藏/显示当前标记
+            function setCurrentMarkerVisibility(opacity) {
+                if (currentMarker && typeof currentMarker.setOpacity === 'function') {
+                    currentMarker.setOpacity(opacity);
+                } else if (currentMarker && typeof currentMarker.setStyle === 'function') {
+                    currentMarker.setStyle({ opacity });
+                }
+                
+                // 更新缓存
+                VisibilityCache.updateItemVisibility('peyote_sp_land', index, opacity === 0.3);
+            }
+
+            // 隐藏按钮
+            if (hideBtn) {
+                hideBtn.addEventListener('click', () => {
+                    setCurrentMarkerVisibility(0.3);
+                    const newHiddenCount = hiddenCount + (isCurrentHidden ? 0 : 1);
+                    titleElement.textContent = `🌵 迷幻仙人掌陆地 #${sequenceNumber} (${newHiddenCount}/${totalCount})`;
+                    hideBtn.style.display = 'none';
+                    showBtn.style.display = 'inline-block';
+                    isCurrentHidden = true;
+                });
+            }
+
+            // 显示按钮
+            if (showBtn) {
+                showBtn.addEventListener('click', () => {
+                    setCurrentMarkerVisibility(1);
+                    const newHiddenCount = hiddenCount - (isCurrentHidden ? 1 : 0);
+                    titleElement.textContent = `🌵 迷幻仙人掌陆地 #${sequenceNumber} (${newHiddenCount}/${totalCount})`;
+                    showBtn.style.display = 'none';
+                    hideBtn.style.display = 'inline-block';
+                    isCurrentHidden = false;
+                });
+            }
+
+            document.body.appendChild(popup);
+        }
+
+        // ==================== 迷幻仙人掌鸟类弹窗模板 ====================
+        function showPeyoteSpAirImage(index) {
+            // 序号从1开始，1-9前面不要出现0
+            const sequenceNumber = index + 1;
+            const imageUrl = `https://gta-maps.antwen.com/collectibles_images/peyote_sp/air_${sequenceNumber}.webp`;
+            
+            // 关闭已存在的弹窗
+            const existingPopup = document.querySelector('.peyote-sp-air-popup');
+            if (existingPopup) existingPopup.remove();
+
+            // 统计隐藏/总数
+            const markers = (window.peyoteSpAirMarkers && window.peyoteSpAirMarkers) || [];
+            const totalCount = markers.length;
+
+            let hiddenCount = 0;
+            markers.forEach((marker) => {
+                if (marker && typeof marker.getElement === 'function') {
+                    const el = marker.getElement();
+                    if (el && el.style.opacity === '0.3') hiddenCount++;
+                }
+            });
+
+            const currentMarker = markers[index];
+            let isCurrentHidden = false;
+            if (currentMarker && typeof currentMarker.getElement === 'function') {
+                const el = currentMarker.getElement();
+                isCurrentHidden = el && el.style.opacity === '0.3';
+            }
+
+            const title = `🦅 迷幻仙人掌鸟类 #${sequenceNumber} (${hiddenCount}/${totalCount})`;
+
+            // 构建弹窗
+            const popup = document.createElement('div');
+            popup.className = 'peyote-sp-air-popup';
+            popup.style.cssText = `
+                position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+                background: var(--gta-bg-medium);
+                border: 1px solid var(--gta-border);
+                border-radius: 8px;
+                box-shadow: 0 2px 15px rgba(0,0,0,0.5);
+                padding: 15px;
+                z-index: 10000;
+                width: min(92vw, 520px);
+                max-height: 80vh;
+                color: var(--gta-text);
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                overflow-y: auto;
+            `;
+
+            popup.innerHTML = `
+                <div class="popup-header" style="position: relative; margin-bottom: 14px;">
+                    <h3 style="color: var(--gta-primary); font-size: 18px; margin: 0; font-weight: bold;">${title}</h3>
+                    <span class="popup-close" style="position: absolute; top: 0; right: 0; color: var(--gta-text-secondary); font-size: 20px; cursor: pointer; transition: color 0.3s ease;">×</span>
+                </div>
+                <img src="${imageUrl}" alt="迷幻仙人掌鸟类 #${sequenceNumber}" style="max-width: 100%; height: auto; border-radius: 6px; margin: 8px 0; display: block; cursor: zoom-in;"/>
+                <div style="margin: 10px 0; padding: 10px; background: rgba(156, 39, 176, 0.1); border-radius: 8px; color: var(--gta-text); font-size: 14px; line-height: 1.6;">
+                    故事模式中一共有 27 个迷幻仙人掌（21 个在陆地上，6 个在水下）。当您靠近它时，手柄会振动，迷幻仙人掌会发出类似动物叫声的声音。吃下（按下互动键）迷幻仙人掌后，您会变成随机动物中的其中一种。您会一直维持动物形态，除非您：死亡、入水/上岸、按住互动键。您食用所有迷幻仙人掌之后，吃过的迷幻仙人掌将重新启用。食用过所有陆地上的迷幻仙人掌之后，您将可在导演模式选用所有动物。选用其中一个作为演员，您将解锁两个成就。
+                </div>
+                <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
+                    <button id="hide-peyote-sp-air-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease; display: ${isCurrentHidden ? 'none' : 'inline-block'};">隐藏</button>
+                    <button id="show-peyote-sp-air-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease; display: ${isCurrentHidden ? 'inline-block' : 'none'};">显示</button>
+                    <button id="close-peyote-sp-air-btn" style="padding: 8px 16px; background: var(--gta-primary); color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease;">关闭</button>
+                </div>
+            `;
+
+            // 绑定元素
+            const closeBtn = popup.querySelector('#close-peyote-sp-air-btn');
+            const hideBtn = popup.querySelector('#hide-peyote-sp-air-btn');
+            const showBtn = popup.querySelector('#show-peyote-sp-air-btn');
+            const popupClose = popup.querySelector('.popup-close');
+            const titleElement = popup.querySelector('h3');
+
+            // 关闭弹窗
+            const removePopup = () => popup.remove();
+            closeBtn.addEventListener('click', removePopup);
+            popupClose.addEventListener('click', removePopup);
+            popup.addEventListener('click', (e) => e.stopPropagation());
+            setTimeout(() => {
+                const closePopupHandler = (e) => {
+                    if (!popup.contains(e.target)) {
+                        removePopup();
+                        document.removeEventListener('click', closePopupHandler);
+                    }
+                };
+                document.addEventListener('click', closePopupHandler);
+            }, 50);
+
+            // 图片点击放大
+            const popupImage = popup.querySelector('img');
+            if (popupImage) {
+                popupImage.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const overlay = document.createElement('div');
+                    overlay.className = 'peyote-sp-air-image-overlay';
+                    overlay.style.cssText = `
+                        position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+                        display: flex; align-items: center; justify-content: center;
+                        z-index: 10002; cursor: zoom-out;
+                    `;
+                    const bigImg = document.createElement('img');
+                    bigImg.src = popupImage.src;
+                    bigImg.alt = popupImage.alt || '';
+                    bigImg.style.cssText = `max-width: 95vw; max-height: 95vh; border-radius: 6px; box-shadow: 0 4px 24px rgba(0,0,0,0.6);`;
+                    overlay.appendChild(bigImg);
+
+                    const removeOverlay = () => {
+                        document.removeEventListener('keydown', onKey);
+                        overlay.remove();
+                    };
+                    const onKey = (ev) => { if (ev.key === 'Escape') removeOverlay(); };
+                    overlay.addEventListener('click', removeOverlay);
+                    document.addEventListener('keydown', onKey);
+                    document.body.appendChild(overlay);
+                });
+            }
+
+            // 工具：隐藏/显示当前标记
+            function setCurrentMarkerVisibility(opacity) {
+                if (currentMarker && typeof currentMarker.setOpacity === 'function') {
+                    currentMarker.setOpacity(opacity);
+                } else if (currentMarker && typeof currentMarker.setStyle === 'function') {
+                    currentMarker.setStyle({ opacity });
+                }
+                
+                // 更新缓存
+                VisibilityCache.updateItemVisibility('peyote_sp_air', index, opacity === 0.3);
+            }
+
+            // 隐藏按钮
+            if (hideBtn) {
+                hideBtn.addEventListener('click', () => {
+                    setCurrentMarkerVisibility(0.3);
+                    const newHiddenCount = hiddenCount + (isCurrentHidden ? 0 : 1);
+                    titleElement.textContent = `🦅 迷幻仙人掌鸟类 #${sequenceNumber} (${newHiddenCount}/${totalCount})`;
+                    hideBtn.style.display = 'none';
+                    showBtn.style.display = 'inline-block';
+                    isCurrentHidden = true;
+                });
+            }
+
+            // 显示按钮
+            if (showBtn) {
+                showBtn.addEventListener('click', () => {
+                    setCurrentMarkerVisibility(1);
+                    const newHiddenCount = hiddenCount - (isCurrentHidden ? 1 : 0);
+                    titleElement.textContent = `🦅 迷幻仙人掌鸟类 #${sequenceNumber} (${newHiddenCount}/${totalCount})`;
+                    showBtn.style.display = 'none';
+                    hideBtn.style.display = 'inline-block';
+                    isCurrentHidden = false;
+                });
+            }
+
+            document.body.appendChild(popup);
+        }
+
+        // ==================== 迷幻仙人掌水下弹窗模板 ====================
+        function showPeyoteSpWaterImage(index) {
+            // 序号从1开始，1-9前面不要出现0
+            const sequenceNumber = index + 1;
+            const imageUrl = `https://gta-maps.antwen.com/collectibles_images/peyote_sp/water_${sequenceNumber}.webp`;
+            
+            // 关闭已存在的弹窗
+            const existingPopup = document.querySelector('.peyote-sp-water-popup');
+            if (existingPopup) existingPopup.remove();
+
+            // 统计隐藏/总数
+            const markers = (window.peyoteSpWaterMarkers && window.peyoteSpWaterMarkers) || [];
+            const totalCount = markers.length;
+
+            let hiddenCount = 0;
+            markers.forEach((marker) => {
+                if (marker && typeof marker.getElement === 'function') {
+                    const el = marker.getElement();
+                    if (el && el.style.opacity === '0.3') hiddenCount++;
+                }
+            });
+
+            const currentMarker = markers[index];
+            let isCurrentHidden = false;
+            if (currentMarker && typeof currentMarker.getElement === 'function') {
+                const el = currentMarker.getElement();
+                isCurrentHidden = el && el.style.opacity === '0.3';
+            }
+
+            const title = `🌊 迷幻仙人掌水下 #${sequenceNumber} (${hiddenCount}/${totalCount})`;
+
+            // 构建弹窗
+            const popup = document.createElement('div');
+            popup.className = 'peyote-sp-water-popup';
+            popup.style.cssText = `
+                position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+                background: var(--gta-bg-medium);
+                border: 1px solid var(--gta-border);
+                border-radius: 8px;
+                box-shadow: 0 2px 15px rgba(0,0,0,0.5);
+                padding: 15px;
+                z-index: 10000;
+                width: min(92vw, 520px);
+                max-height: 80vh;
+                color: var(--gta-text);
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                overflow-y: auto;
+            `;
+
+            popup.innerHTML = `
+                <div class="popup-header" style="position: relative; margin-bottom: 14px;">
+                    <h3 style="color: var(--gta-primary); font-size: 18px; margin: 0; font-weight: bold;">${title}</h3>
+                    <span class="popup-close" style="position: absolute; top: 0; right: 0; color: var(--gta-text-secondary); font-size: 20px; cursor: pointer; transition: color 0.3s ease;">×</span>
+                </div>
+                <img src="${imageUrl}" alt="迷幻仙人掌水下 #${sequenceNumber}" style="max-width: 100%; height: auto; border-radius: 6px; margin: 8px 0; display: block; cursor: zoom-in;"/>
+                <div style="margin: 10px 0; padding: 10px; background: rgba(156, 39, 176, 0.1); border-radius: 8px; color: var(--gta-text); font-size: 14px; line-height: 1.6;">
+                    故事模式中一共有 27 个迷幻仙人掌（21 个在陆地上，6 个在水下）。当您靠近它时，手柄会振动，迷幻仙人掌会发出类似动物叫声的声音。吃下（按下互动键）迷幻仙人掌后，您会变成随机动物中的其中一种。您会一直维持动物形态，除非您：死亡、入水/上岸、按住互动键。您食用所有迷幻仙人掌之后，吃过的迷幻仙人掌将重新启用。食用过所有陆地上的迷幻仙人掌之后，您将可在导演模式选用所有动物。选用其中一个作为演员，您将解锁两个成就。
+                </div>
+                <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
+                    <button id="hide-peyote-sp-water-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease; display: ${isCurrentHidden ? 'none' : 'inline-block'};">隐藏</button>
+                    <button id="show-peyote-sp-water-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease; display: ${isCurrentHidden ? 'inline-block' : 'none'};">显示</button>
+                    <button id="close-peyote-sp-water-btn" style="padding: 8px 16px; background: var(--gta-primary); color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease;">关闭</button>
+                </div>
+            `;
+
+            // 绑定元素
+            const closeBtn = popup.querySelector('#close-peyote-sp-water-btn');
+            const hideBtn = popup.querySelector('#hide-peyote-sp-water-btn');
+            const showBtn = popup.querySelector('#show-peyote-sp-water-btn');
+            const popupClose = popup.querySelector('.popup-close');
+            const titleElement = popup.querySelector('h3');
+
+            // 关闭弹窗
+            const removePopup = () => popup.remove();
+            closeBtn.addEventListener('click', removePopup);
+            popupClose.addEventListener('click', removePopup);
+            popup.addEventListener('click', (e) => e.stopPropagation());
+            setTimeout(() => {
+                const closePopupHandler = (e) => {
+                    if (!popup.contains(e.target)) {
+                        removePopup();
+                        document.removeEventListener('click', closePopupHandler);
+                    }
+                };
+                document.addEventListener('click', closePopupHandler);
+            }, 50);
+
+            // 图片点击放大
+            const popupImage = popup.querySelector('img');
+            if (popupImage) {
+                popupImage.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const overlay = document.createElement('div');
+                    overlay.className = 'peyote-sp-water-image-overlay';
+                    overlay.style.cssText = `
+                        position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+                        display: flex; align-items: center; justify-content: center;
+                        z-index: 10002; cursor: zoom-out;
+                    `;
+                    const bigImg = document.createElement('img');
+                    bigImg.src = popupImage.src;
+                    bigImg.alt = popupImage.alt || '';
+                    bigImg.style.cssText = `max-width: 95vw; max-height: 95vh; border-radius: 6px; box-shadow: 0 4px 24px rgba(0,0,0,0.6);`;
+                    overlay.appendChild(bigImg);
+
+                    const removeOverlay = () => {
+                        document.removeEventListener('keydown', onKey);
+                        overlay.remove();
+                    };
+                    const onKey = (ev) => { if (ev.key === 'Escape') removeOverlay(); };
+                    overlay.addEventListener('click', removeOverlay);
+                    document.addEventListener('keydown', onKey);
+                    document.body.appendChild(overlay);
+                });
+            }
+
+            // 工具：隐藏/显示当前标记
+            function setCurrentMarkerVisibility(opacity) {
+                if (currentMarker && typeof currentMarker.setOpacity === 'function') {
+                    currentMarker.setOpacity(opacity);
+                } else if (currentMarker && typeof currentMarker.setStyle === 'function') {
+                    currentMarker.setStyle({ opacity });
+                }
+                
+                // 更新缓存
+                VisibilityCache.updateItemVisibility('peyote_sp_water', index, opacity === 0.3);
+            }
+
+            // 隐藏按钮
+            if (hideBtn) {
+                hideBtn.addEventListener('click', () => {
+                    setCurrentMarkerVisibility(0.3);
+                    const newHiddenCount = hiddenCount + (isCurrentHidden ? 0 : 1);
+                    titleElement.textContent = `🌊 迷幻仙人掌水下 #${sequenceNumber} (${newHiddenCount}/${totalCount})`;
+                    hideBtn.style.display = 'none';
+                    showBtn.style.display = 'inline-block';
+                    isCurrentHidden = true;
+                });
+            }
+
+            // 显示按钮
+            if (showBtn) {
+                showBtn.addEventListener('click', () => {
+                    setCurrentMarkerVisibility(1);
+                    const newHiddenCount = hiddenCount - (isCurrentHidden ? 1 : 0);
+                    titleElement.textContent = `🌊 迷幻仙人掌水下 #${sequenceNumber} (${newHiddenCount}/${totalCount})`;
+                    showBtn.style.display = 'none';
+                    hideBtn.style.display = 'inline-block';
+                    isCurrentHidden = false;
+                });
+            }
+
+            document.body.appendChild(popup);
+        }
+
+        // ==================== 迷幻仙人掌金色弹窗模板 ====================
+        function showPeyoteSpSpecialImage(index) {
+            // 序号从1开始，1-9前面不要出现0
+            const sequenceNumber = index + 1;
+            const imageUrl = `https://gta-maps.antwen.com/collectibles_images/peyote_sp/special_${sequenceNumber}.webp`;
+            
+            // 关闭已存在的弹窗
+            const existingPopup = document.querySelector('.peyote-sp-special-popup');
+            if (existingPopup) existingPopup.remove();
+
+            // 统计隐藏/总数
+            const markers = (window.peyoteSpSpecialMarkers && window.peyoteSpSpecialMarkers) || [];
+            const totalCount = markers.length;
+
+            let hiddenCount = 0;
+            markers.forEach((marker) => {
+                if (marker && typeof marker.getElement === 'function') {
+                    const el = marker.getElement();
+                    if (el && el.style.opacity === '0.3') hiddenCount++;
+                }
+            });
+
+            const currentMarker = markers[index];
+            let isCurrentHidden = false;
+            if (currentMarker && typeof currentMarker.getElement === 'function') {
+                const el = currentMarker.getElement();
+                isCurrentHidden = el && el.style.opacity === '0.3';
+            }
+
+            // 星期几的映射（按横坐标递增）
+            const weekDays = ['日', '一', '二', '三', '四', '五', '六'];
+            const currentWeekDay = weekDays[index] || '未知';
+
+            const title = `✨ 迷幻仙人掌金色 #${sequenceNumber} (${hiddenCount}/${totalCount})`;
+
+            // 构建弹窗
+            const popup = document.createElement('div');
+            popup.className = 'peyote-sp-special-popup';
+            popup.style.cssText = `
+                position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+                background: var(--gta-bg-medium);
+                border: 1px solid var(--gta-border);
+                border-radius: 8px;
+                box-shadow: 0 2px 15px rgba(0,0,0,0.5);
+                padding: 15px;
+                z-index: 10000;
+                width: min(92vw, 520px);
+                max-height: 80vh;
+                color: var(--gta-text);
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                overflow-y: auto;
+            `;
+
+            popup.innerHTML = `
+                <div class="popup-header" style="position: relative; margin-bottom: 14px;">
+                    <h3 style="color: var(--gta-primary); font-size: 18px; margin: 0; font-weight: bold;">${title}</h3>
+                    <span class="popup-close" style="position: absolute; top: 0; right: 0; color: var(--gta-text-secondary); font-size: 20px; cursor: pointer; transition: color 0.3s ease;">×</span>
+                </div>
+                <img src="${imageUrl}" alt="迷幻仙人掌金色 #${sequenceNumber}" style="max-width: 100%; height: auto; border-radius: 6px; margin: 8px 0; display: block; cursor: zoom-in;"/>
+                <div style="margin: 10px 0; padding: 10px; background: rgba(255, 193, 7, 0.1); border-radius: 8px; color: var(--gta-text); font-size: 14px; line-height: 1.6;">
+                    <div style="font-weight: bold; color: #FFC107; margin-bottom: 5px;">📅 出现时间：星期${currentWeekDay}</div>
+                    金色仙人掌在达成 100% 完成度、完成陌生人与怪咖任务末代巨兽（富兰克林），并吃完所有普通仙人掌后解锁。金色仙人掌将根据游戏中的星期几生成在地图上的不同位置，且仅在大雾天气的早上 530 到 800 期间出现。食用它们会让您变成大脚怪。您同时还会在导演模式中解锁大脚怪。依次从周日到下周六吃下金色仙人掌，您将在变身后看到一具动物或人的尸体。吃下最后一个仙人掌后，您将发现任务末代巨兽中的猎人的尸体。此时，您应该继续使用潜行模式（Ctrl）倾听并继续追踪。您将会找到更多的尸体。最终，您将在汤姆森废车场进行大脚怪大战野兽事件。如果您赢得这场战斗，您将在导演模式中解锁野兽。
+                </div>
+                <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
+                    <button id="hide-peyote-sp-special-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease; display: ${isCurrentHidden ? 'none' : 'inline-block'};">隐藏</button>
+                    <button id="show-peyote-sp-special-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease; display: ${isCurrentHidden ? 'inline-block' : 'none'};">显示</button>
+                    <button id="close-peyote-sp-special-btn" style="padding: 8px 16px; background: var(--gta-primary); color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease;">关闭</button>
+                </div>
+            `;
+
+            // 绑定元素
+            const closeBtn = popup.querySelector('#close-peyote-sp-special-btn');
+            const hideBtn = popup.querySelector('#hide-peyote-sp-special-btn');
+            const showBtn = popup.querySelector('#show-peyote-sp-special-btn');
+            const popupClose = popup.querySelector('.popup-close');
+            const titleElement = popup.querySelector('h3');
+
+            // 关闭弹窗
+            const removePopup = () => popup.remove();
+            closeBtn.addEventListener('click', removePopup);
+            popupClose.addEventListener('click', removePopup);
+            popup.addEventListener('click', (e) => e.stopPropagation());
+            setTimeout(() => {
+                const closePopupHandler = (e) => {
+                    if (!popup.contains(e.target)) {
+                        removePopup();
+                        document.removeEventListener('click', closePopupHandler);
+                    }
+                };
+                document.addEventListener('click', closePopupHandler);
+            }, 50);
+
+            // 图片点击放大
+            const popupImage = popup.querySelector('img');
+            if (popupImage) {
+                popupImage.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const overlay = document.createElement('div');
+                    overlay.className = 'peyote-sp-special-image-overlay';
+                    overlay.style.cssText = `
+                        position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+                        display: flex; align-items: center; justify-content: center;
+                        z-index: 10002; cursor: zoom-out;
+                    `;
+                    const bigImg = document.createElement('img');
+                    bigImg.src = popupImage.src;
+                    bigImg.alt = popupImage.alt || '';
+                    bigImg.style.cssText = `max-width: 95vw; max-height: 95vh; border-radius: 6px; box-shadow: 0 4px 24px rgba(0,0,0,0.6);`;
+                    overlay.appendChild(bigImg);
+
+                    const removeOverlay = () => {
+                        document.removeEventListener('keydown', onKey);
+                        overlay.remove();
+                    };
+                    const onKey = (ev) => { if (ev.key === 'Escape') removeOverlay(); };
+                    overlay.addEventListener('click', removeOverlay);
+                    document.addEventListener('keydown', onKey);
+                    document.body.appendChild(overlay);
+                });
+            }
+
+            // 工具：隐藏/显示当前标记
+            function setCurrentMarkerVisibility(opacity) {
+                if (currentMarker && typeof currentMarker.setOpacity === 'function') {
+                    currentMarker.setOpacity(opacity);
+                } else if (currentMarker && typeof currentMarker.setStyle === 'function') {
+                    currentMarker.setStyle({ opacity });
+                }
+                
+                // 更新缓存
+                VisibilityCache.updateItemVisibility('peyote_sp_special', index, opacity === 0.3);
+            }
+
+            // 隐藏按钮
+            if (hideBtn) {
+                hideBtn.addEventListener('click', () => {
+                    setCurrentMarkerVisibility(0.3);
+                    const newHiddenCount = hiddenCount + (isCurrentHidden ? 0 : 1);
+                    titleElement.textContent = `✨ 迷幻仙人掌金色 #${sequenceNumber} (${newHiddenCount}/${totalCount})`;
+                    hideBtn.style.display = 'none';
+                    showBtn.style.display = 'inline-block';
+                    isCurrentHidden = true;
+                });
+            }
+
+            // 显示按钮
+            if (showBtn) {
+                showBtn.addEventListener('click', () => {
+                    setCurrentMarkerVisibility(1);
+                    const newHiddenCount = hiddenCount - (isCurrentHidden ? 1 : 0);
+                    titleElement.textContent = `✨ 迷幻仙人掌金色 #${sequenceNumber} (${newHiddenCount}/${totalCount})`;
+                    showBtn.style.display = 'none';
+                    hideBtn.style.display = 'inline-block';
+                    isCurrentHidden = false;
+                });
+            }
+
+            document.body.appendChild(popup);
+        }
+
+        // ==================== 迷幻仙人掌计数器函数 ====================
+        
+        // 迷幻仙人掌陆地计数器
+        function updatePeyoteSpLandSidebarCount() {
+            try {
+                const counterEl = document.querySelector('#sidebar-item-peyote_sp_land + label .peyote-sp-land-counter');
+                if (!counterEl) return;
+
+                const markers = (window.peyoteSpLandMarkers && window.peyoteSpLandMarkers) || [];
+                let total = 0;
+                let hidden = 0;
+
+                if (Array.isArray(markers) && markers.length > 0) {
+                    total = markers.length;
+                    markers.forEach((marker) => {
+                        if (marker && typeof marker.getElement === 'function') {
+                            const el = marker.getElement();
+                            if (el && el.style.opacity === '0.3') {
+                                hidden++;
+                            }
+                        }
+                    });
+                } else {
+                    total = Array.isArray(window.itemData?.peyote_sp_land) ? window.itemData.peyote_sp_land.length : 0;
+                    const cachedCounter = CounterCache.getCounter('peyote_sp_land');
+                    hidden = cachedCounter.hidden || 0;
+                }
+
+                CounterCache.updateCounter('peyote_sp_land', hidden, total);
+                counterEl.textContent = total > 0 ? ` (${hidden}/${total})` : '';
+            } catch (e) {
+                console.warn('更新迷幻仙人掌陆地计数器失败:', e);
+            }
+        }
+
+        // 迷幻仙人掌鸟类计数器
+        function updatePeyoteSpAirSidebarCount() {
+            try {
+                const counterEl = document.querySelector('#sidebar-item-peyote_sp_air + label .peyote-sp-air-counter');
+                if (!counterEl) return;
+
+                const markers = (window.peyoteSpAirMarkers && window.peyoteSpAirMarkers) || [];
+                let total = 0;
+                let hidden = 0;
+
+                if (Array.isArray(markers) && markers.length > 0) {
+                    total = markers.length;
+                    markers.forEach((marker) => {
+                        if (marker && typeof marker.getElement === 'function') {
+                            const el = marker.getElement();
+                            if (el && el.style.opacity === '0.3') {
+                                hidden++;
+                            }
+                        }
+                    });
+                } else {
+                    total = Array.isArray(window.itemData?.peyote_sp_air) ? window.itemData.peyote_sp_air.length : 0;
+                    const cachedCounter = CounterCache.getCounter('peyote_sp_air');
+                    hidden = cachedCounter.hidden || 0;
+                }
+
+                CounterCache.updateCounter('peyote_sp_air', hidden, total);
+                counterEl.textContent = total > 0 ? ` (${hidden}/${total})` : '';
+            } catch (e) {
+                console.warn('更新迷幻仙人掌鸟类计数器失败:', e);
+            }
+        }
+
+        // 迷幻仙人掌水下计数器
+        function updatePeyoteSpWaterSidebarCount() {
+            try {
+                const counterEl = document.querySelector('#sidebar-item-peyote_sp_water + label .peyote-sp-water-counter');
+                if (!counterEl) return;
+
+                const markers = (window.peyoteSpWaterMarkers && window.peyoteSpWaterMarkers) || [];
+                let total = 0;
+                let hidden = 0;
+
+                if (Array.isArray(markers) && markers.length > 0) {
+                    total = markers.length;
+                    markers.forEach((marker) => {
+                        if (marker && typeof marker.getElement === 'function') {
+                            const el = marker.getElement();
+                            if (el && el.style.opacity === '0.3') {
+                                hidden++;
+                            }
+                        }
+                    });
+                } else {
+                    total = Array.isArray(window.itemData?.peyote_sp_water) ? window.itemData.peyote_sp_water.length : 0;
+                    const cachedCounter = CounterCache.getCounter('peyote_sp_water');
+                    hidden = cachedCounter.hidden || 0;
+                }
+
+                CounterCache.updateCounter('peyote_sp_water', hidden, total);
+                counterEl.textContent = total > 0 ? ` (${hidden}/${total})` : '';
+            } catch (e) {
+                console.warn('更新迷幻仙人掌水下计数器失败:', e);
+            }
+        }
+
+        // 迷幻仙人掌金色计数器
+        function updatePeyoteSpSpecialSidebarCount() {
+            try {
+                const counterEl = document.querySelector('#sidebar-item-peyote_sp_special + label .peyote-sp-special-counter');
+                if (!counterEl) return;
+
+                const markers = (window.peyoteSpSpecialMarkers && window.peyoteSpSpecialMarkers) || [];
+                let total = 0;
+                let hidden = 0;
+
+                if (Array.isArray(markers) && markers.length > 0) {
+                    total = markers.length;
+                    markers.forEach((marker) => {
+                        if (marker && typeof marker.getElement === 'function') {
+                            const el = marker.getElement();
+                            if (el && el.style.opacity === '0.3') {
+                                hidden++;
+                            }
+                        }
+                    });
+                } else {
+                    total = Array.isArray(window.itemData?.peyote_sp_special) ? window.itemData.peyote_sp_special.length : 0;
+                    const cachedCounter = CounterCache.getCounter('peyote_sp_special');
+                    hidden = cachedCounter.hidden || 0;
+                }
+
+                CounterCache.updateCounter('peyote_sp_special', hidden, total);
+                counterEl.textContent = total > 0 ? ` (${hidden}/${total})` : '';
+            } catch (e) {
+                console.warn('更新迷幻仙人掌金色计数器失败:', e);
+            }
         }
 
         // ==================== 增强版宇宙飞船部件模板（集成缓存） ====================
@@ -19226,17 +20068,61 @@
                         // 初始渲染一次
                         try { updateLetterScrapsSidebarCount(); } catch(e) {}
                     }
-                    // 隐藏包裹（线下）计数器
-                    else if (type === 'sp_hidden_packages') {
-                        const counter = document.createElement('span');
-                        counter.className = 'sp-hidden-packages-counter';
-                        counter.style.marginLeft = '6px';
-                        counter.style.color = 'var(--gta-text-secondary)';
-                        counter.textContent = '';
-                        label.appendChild(counter);
-                        // 初始渲染一次
-                        try { updateSpHiddenPackagesSidebarCount(); } catch(e) {}
-                    }
+                     // 隐藏包裹（线下）计数器
+                     else if (type === 'sp_hidden_packages') {
+                         const counter = document.createElement('span');
+                         counter.className = 'sp-hidden-packages-counter';
+                         counter.style.marginLeft = '6px';
+                         counter.style.color = 'var(--gta-text-secondary)';
+                         counter.textContent = '';
+                         label.appendChild(counter);
+                         // 初始渲染一次
+                         try { updateSpHiddenPackagesSidebarCount(); } catch(e) {}
+                     }
+                     // 迷幻仙人掌陆地计数器
+                     else if (type === 'peyote_sp_land') {
+                         const counter = document.createElement('span');
+                         counter.className = 'peyote-sp-land-counter';
+                         counter.style.marginLeft = '6px';
+                         counter.style.color = 'var(--gta-text-secondary)';
+                         counter.textContent = '';
+                         label.appendChild(counter);
+                         // 初始渲染一次
+                         try { updatePeyoteSpLandSidebarCount(); } catch(e) {}
+                     }
+                     // 迷幻仙人掌鸟类计数器
+                     else if (type === 'peyote_sp_air') {
+                         const counter = document.createElement('span');
+                         counter.className = 'peyote-sp-air-counter';
+                         counter.style.marginLeft = '6px';
+                         counter.style.color = 'var(--gta-text-secondary)';
+                         counter.textContent = '';
+                         label.appendChild(counter);
+                         // 初始渲染一次
+                         try { updatePeyoteSpAirSidebarCount(); } catch(e) {}
+                     }
+                     // 迷幻仙人掌水下计数器
+                     else if (type === 'peyote_sp_water') {
+                         const counter = document.createElement('span');
+                         counter.className = 'peyote-sp-water-counter';
+                         counter.style.marginLeft = '6px';
+                         counter.style.color = 'var(--gta-text-secondary)';
+                         counter.textContent = '';
+                         label.appendChild(counter);
+                         // 初始渲染一次
+                         try { updatePeyoteSpWaterSidebarCount(); } catch(e) {}
+                     }
+                     // 迷幻仙人掌金色计数器
+                     else if (type === 'peyote_sp_special') {
+                         const counter = document.createElement('span');
+                         counter.className = 'peyote-sp-special-counter';
+                         counter.style.marginLeft = '6px';
+                         counter.style.color = 'var(--gta-text-secondary)';
+                         counter.textContent = '';
+                         label.appendChild(counter);
+                         // 初始渲染一次
+                         try { updatePeyoteSpSpecialSidebarCount(); } catch(e) {}
+                     }
                     // 潜水艇碎片计数器
                     else if (type === 'submarine_pieces') {
                         const counter = document.createElement('span');
@@ -19531,10 +20417,26 @@
                         if (t === 'letter_scraps') {
                             try { updateLetterScrapsSidebarCount(); } catch(e) {}
                         }
-                        // 隐藏包裹（线下）计数器
-                        if (t === 'sp_hidden_packages') {
-                            try { updateSpHiddenPackagesSidebarCount(); } catch(e) {}
-                        }
+                         // 隐藏包裹（线下）计数器
+                         if (t === 'sp_hidden_packages') {
+                             try { updateSpHiddenPackagesSidebarCount(); } catch(e) {}
+                         }
+                         // 迷幻仙人掌陆地计数器
+                         if (t === 'peyote_sp_land') {
+                             try { updatePeyoteSpLandSidebarCount(); } catch(e) {}
+                         }
+                         // 迷幻仙人掌鸟类计数器
+                         if (t === 'peyote_sp_air') {
+                             try { updatePeyoteSpAirSidebarCount(); } catch(e) {}
+                         }
+                         // 迷幻仙人掌水下计数器
+                         if (t === 'peyote_sp_water') {
+                             try { updatePeyoteSpWaterSidebarCount(); } catch(e) {}
+                         }
+                         // 迷幻仙人掌金色计数器
+                         if (t === 'peyote_sp_special') {
+                             try { updatePeyoteSpSpecialSidebarCount(); } catch(e) {}
+                         }
                         // 宇宙飞船部件计数器
                         if (t === 'spaceship_parts') {
                             try { updateSpaceshipPartsSidebarCount(); } catch(e) {}
@@ -19666,8 +20568,12 @@
                     try { updateActionFiguresSidebarCount(); } catch(e) {}
                     try { updatePlayingCardsSidebarCount(); } catch(e) {}
                     try { updateLetterScrapsSidebarCount(); } catch(e) {}
-                    try { updateSpHiddenPackagesSidebarCount(); } catch(e) {}
-                    try { updateSpaceshipPartsSidebarCount(); } catch(e) {}
+                     try { updateSpHiddenPackagesSidebarCount(); } catch(e) {}
+                     try { updatePeyoteSpLandSidebarCount(); } catch(e) {}
+                     try { updatePeyoteSpAirSidebarCount(); } catch(e) {}
+                     try { updatePeyoteSpWaterSidebarCount(); } catch(e) {}
+                     try { updatePeyoteSpSpecialSidebarCount(); } catch(e) {}
+                     try { updateSpaceshipPartsSidebarCount(); } catch(e) {}
                     try { updateSpraySidebarCount(); } catch(e) {}
                     try { updateOrganicFarmSidebarCount(); } catch(e) {}
                     try { updateSkydivesSidebarCount(); } catch(e) {}

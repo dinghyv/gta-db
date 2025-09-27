@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 32" width="24" height="32">
   <defs>
     <linearGradient id="specialGradient" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" style="stop-color:#FFD700;stop-opacity:1" />
@@ -29,4 +29,14 @@
   <circle cx="14" cy="8" r="0.5" fill="#FFD700"/>
   <!-- 地面 -->
   <ellipse cx="12" cy="22" rx="8" ry="2" fill="#8D6E63" opacity="0.7"/>
+  <!-- 星期几显示区域 -->
+  <rect x="2" y="24" width="20" height="8" fill="#2C2C2C" stroke="#FFD700" stroke-width="0.5" rx="2"/>
+  <!-- 星期几文字（按横坐标递增：日、一、二、三、四、五、六） -->
+  <text x="3" y="29" font-family="Arial, sans-serif" font-size="4" fill="#FFD700" text-anchor="start">日</text>
+  <text x="6" y="29" font-family="Arial, sans-serif" font-size="4" fill="#FFD700" text-anchor="start">一</text>
+  <text x="9" y="29" font-family="Arial, sans-serif" font-size="4" fill="#FFD700" text-anchor="start">二</text>
+  <text x="12" y="29" font-family="Arial, sans-serif" font-size="4" fill="#FFD700" text-anchor="start">三</text>
+  <text x="15" y="29" font-family="Arial, sans-serif" font-size="4" fill="#FFD700" text-anchor="start">四</text>
+  <text x="18" y="29" font-family="Arial, sans-serif" font-size="4" fill="#FFD700" text-anchor="start">五</text>
+  <text x="21" y="29" font-family="Arial, sans-serif" font-size="4" fill="#FFD700" text-anchor="start">六</text>
 </svg>

@@ -1209,6 +1209,7 @@
             'nuclear_waste',
             'humans_of_ls',
             'monkey_mosaics',
+            'murder_mystery_message',
             
             // 第3组：设施服务
             'ld_organics_products',
@@ -1349,6 +1350,7 @@
             nuclear_waste: '../src/assets/nuclear_waste.svg',
             humans_of_ls: '../src/assets/humans_of_ls.svg',
             monkey_mosaics: '../src/assets/monkey_mosaics.svg',
+            murder_mystery_message: '../src/assets/murder_mystery_message.svg',
             ld_organics_products: '../src/assets/organic_farm.svg',
             signal_jammers: '../src/assets/signal_jammer.svg',
             jack_o_lanterns: '../src/assets/jack.svg',
@@ -1483,6 +1485,7 @@
             nuclear_waste: [],
             humans_of_ls: [],
             monkey_mosaics: [],
+            murder_mystery_message: [],
             ld_organics_products: [],
             signal_jammers: [],
             jack_o_lanterns: [],
@@ -3449,6 +3452,221 @@
             document.body.appendChild(popup);
         }
 
+        // 谋杀之谜信息弹窗（含隐藏/显示联动与计数器、缓存集成）
+        function showMurderMysteryMessageImage(index) {
+            const item = (itemData.murder_mystery_message && itemData.murder_mystery_message[index]) || null;
+            if (!item) return;
+
+            // 图片命名按合并后的连续序号 1..N（而不是 按组-组内序号）
+            const sequenceNumber = index + 1;
+            const group = item.group || '?';
+            const groupIndex = item.groupIndex || sequenceNumber;
+            const titleSeq = `${sequenceNumber}`; // 标题主序号使用合并序号
+            const imageUrl = `https://gta-maps.antwen.com/collectibles_images/murder_mystery_message/murder_mystery_message_${sequenceNumber}.webp`;
+
+            // 关闭已存在的同类弹窗
+            const existingPopup = document.querySelector('.murder-mystery-message-popup');
+            if (existingPopup) existingPopup.remove();
+
+            // 统计
+            const markers = (window.murderMysteryMessageMarkers && window.murderMysteryMessageMarkers) || [];
+            const totalCount = Array.isArray(itemData.murder_mystery_message) ? itemData.murder_mystery_message.length : markers.length;
+            let hiddenCount = 0;
+            markers.forEach((marker) => {
+                if (marker && typeof marker.getElement === 'function') {
+                    const el = marker.getElement();
+                    if (el && el.style.opacity === '0.3') hiddenCount++;
+                }
+            });
+
+            const currentMarker = markers[index];
+            let isCurrentHidden = false;
+            if (currentMarker && typeof currentMarker.getElement === 'function') {
+                const el = currentMarker.getElement();
+                isCurrentHidden = el && el.style.opacity === '0.3';
+            }
+
+            const title = `🕵️ 谋杀之谜信息 #${titleSeq}（组 ${group} - ${groupIndex}） (${hiddenCount}/${totalCount})`;
+
+            const popup = document.createElement('div');
+            popup.className = 'murder-mystery-message-popup';
+            popup.style.cssText = `
+                position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+                background: var(--gta-bg-medium);
+                border: 1px solid var(--gta-border);
+                border-radius: 8px;
+                box-shadow: 0 2px 15px rgba(0,0,0,0.5);
+                padding: 15px;
+                z-index: 10000;
+                width: min(92vw, 520px);
+                max-height: 80vh;
+                color: var(--gta-text);
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                overflow-y: auto;
+            `;
+
+            popup.innerHTML = `
+                <div class="popup-header" style="position: relative; margin-bottom: 14px;">
+                    <h3 style="color: var(--gta-primary); font-size: 18px; margin: 0; font-weight: bold;">${title}</h3>
+                    <span class="popup-close" style="position: absolute; top: 0; right: 0; color: var(--gta-text-secondary); font-size: 20px; cursor: pointer; transition: color 0.3s ease;">×</span>
+                </div>
+                <img src="${imageUrl}" alt="谋杀之谜信息 ${titleSeq}" style="max-width: 100%; height: auto; border-radius: 6px; margin: 8px 0; display: block; cursor: zoom-in;"/>
+                <div style="margin: 10px 0; padding: 10px; background: rgba(156, 39, 176, 0.1); border-radius: 8px; color: var(--gta-text); font-size: 14px; line-height: 1.6;">
+                    该特性仅限曾经于 PlayStation 3 或 Xbox 360 主机游玩过 GTA V 的玩家可用。受漏洞影响，全体玩家均能享受回归玩家福利——即使您并未在上世代主机上游玩过 GTA V，您也可以享受这些福利。
+                </div>
+                <div style="margin: 10px 0; padding: 12px; background: rgba(0,0,0,0.35); border-radius: 8px; color: var(--gta-text); font-size: 14px; line-height: 1.7;">
+                    <div style="font-weight: 700; color: var(--gta-primary); margin-bottom: 6px;">🕵️ 谋杀之谜流程说明</div>
+                    <div style="margin-bottom: 8px;">谋杀之谜仅能由 <b>麦克</b> 解开。</div>
+                    <ol style="padding-left: 18px; margin: 6px 0;">
+                        <li>首先，他需要找到四条刻在墙上的信息和沉没的尸体。</li>
+                        <li>之后，他需要在所罗门·理查兹的办公室阅读一封信件。要进入办公室，玩家须在完成主线任务<b>法律纠纷</b>后，再于<b>晚上 9:00 至 早上 6:00</b>前往。</li>
+                        <li>为解开谜题，他还需要找到另一具尸体。</li>
+                    </ol>
+                    <div style="margin-top: 8px;"><b>奖励</b>：2 个复古滤镜。与艾萨克的尸体互动，或打他的电话（所有角色都将获得他的电话），即可在游戏中应用复古滤镜。</div>
+                </div>
+                <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
+                    <button id="hide-mmm-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease; display: ${isCurrentHidden ? 'none' : 'inline-block'};">隐藏</button>
+                    <button id="show-mmm-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease; display: ${isCurrentHidden ? 'inline-block' : 'none'};">显示</button>
+                    <button id="close-mmm-btn" style="padding: 8px 16px; background: var(--gta-primary); color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease;">关闭</button>
+                </div>
+            `;
+
+            // 绑定元素
+            const closeBtn = popup.querySelector('#close-mmm-btn');
+            const hideBtn = popup.querySelector('#hide-mmm-btn');
+            const showBtn = popup.querySelector('#show-mmm-btn');
+            const popupClose = popup.querySelector('.popup-close');
+            const titleElement = popup.querySelector('h3');
+
+            // 关闭弹窗
+            const removePopup = () => popup.remove();
+            closeBtn && closeBtn.addEventListener('click', removePopup);
+            popupClose && popupClose.addEventListener('click', removePopup);
+            popup.addEventListener('click', (e) => e.stopPropagation());
+            setTimeout(() => {
+                const closePopupHandler = (e) => {
+                    if (!popup.contains(e.target)) {
+                        removePopup();
+                        document.removeEventListener('click', closePopupHandler);
+                    }
+                };
+                document.addEventListener('click', closePopupHandler);
+            }, 50);
+
+            // 图片点击放大
+            const popupImage = popup.querySelector('img');
+            if (popupImage) {
+                popupImage.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const overlay = document.createElement('div');
+                    overlay.style.cssText = `position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; z-index: 10002; cursor: zoom-out;`;
+                    const bigImg = document.createElement('img');
+                    bigImg.src = popupImage.src;
+                    bigImg.alt = popupImage.alt || '';
+                    bigImg.style.cssText = `max-width: 95vw; max-height: 95vh; border-radius: 6px; box-shadow: 0 4px 24px rgba(0,0,0,0.6);`;
+                    overlay.appendChild(bigImg);
+                    const removeOverlay = () => { document.removeEventListener('keydown', onKey); overlay.remove(); };
+                    const onKey = (ev) => { if (ev.key === 'Escape') removeOverlay(); };
+                    overlay.addEventListener('click', removeOverlay);
+                    document.addEventListener('keydown', onKey);
+                    document.body.appendChild(overlay);
+                });
+            }
+
+            // 工具：隐藏/显示当前标记 + 缓存
+            function setCurrentMarkerVisibility(opacity) {
+                if (currentMarker && typeof currentMarker.setOpacity === 'function') {
+                    currentMarker.setOpacity(opacity);
+                } else if (currentMarker && typeof currentMarker.setStyle === 'function') {
+                    currentMarker.setStyle({ opacity });
+                }
+                VisibilityCache.updateItemVisibility('murder_mystery_message', index, opacity === 0.3);
+            }
+
+            // 隐藏/显示按钮
+            if (hideBtn) {
+                hideBtn.addEventListener('click', () => {
+                    setCurrentMarkerVisibility(0.3);
+                    const newHiddenCount = hiddenCount + (isCurrentHidden ? 0 : 1);
+                    titleElement.textContent = `🕵️ 谋杀之谜信息 #${titleSeq}（组 ${group} - ${groupIndex}） (${newHiddenCount}/${totalCount})`;
+                    hideBtn.style.display = 'none';
+                    showBtn.style.display = 'inline-block';
+                    isCurrentHidden = true;
+                    // 刷新侧边栏计数
+                    try { updateMurderMysteryMessageSidebarCount(); } catch (e) {}
+                });
+            }
+            if (showBtn) {
+                showBtn.addEventListener('click', () => {
+                    setCurrentMarkerVisibility(1);
+                    const newHiddenCount = hiddenCount - (isCurrentHidden ? 1 : 0);
+                    titleElement.textContent = `🕵️ 谋杀之谜信息 #${titleSeq}（组 ${group} - ${groupIndex}） (${newHiddenCount}/${totalCount})`;
+                    showBtn.style.display = 'none';
+                    hideBtn.style.display = 'inline-block';
+                    isCurrentHidden = false;
+                    // 刷新侧边栏计数
+                    try { updateMurderMysteryMessageSidebarCount(); } catch (e) {}
+                });
+            }
+
+            document.body.appendChild(popup);
+        }
+
+        // 应用谋杀之谜信息可见性缓存
+        function applyMurderMysteryMessageVisibilityCache() {
+            try {
+                const markers = (window.murderMysteryMessageMarkers && window.murderMysteryMessageMarkers) || [];
+                if (!Array.isArray(markers) || markers.length === 0) return;
+                const visibilityMap = VisibilityCache.loadVisibility('murder_mystery_message') || {};
+                markers.forEach((marker, i) => {
+                    if (!marker) return;
+                    const isHidden = !!visibilityMap[i];
+                    const opacity = isHidden ? 0.3 : 1;
+                    if (typeof marker.setOpacity === 'function') marker.setOpacity(opacity);
+                    else if (typeof marker.setStyle === 'function') marker.setStyle({ opacity });
+                });
+                // 应用缓存后尝试刷新计数器
+                try { updateMurderMysteryMessageSidebarCount(); } catch (e) {}
+            } catch (e) {
+                console.warn('应用谋杀之谜信息可见性缓存失败:', e);
+            }
+        }
+
+        // 统计隐藏/总数，并更新侧边栏计数器文本（集成缓存）
+        function updateMurderMysteryMessageSidebarCount() {
+            try {
+                const counterEl = document.querySelector('#sidebar-item-murder_mystery_message + label .murder-mystery-message-counter');
+                if (!counterEl) return;
+
+                // 获取当前标记与总数
+                const markers = (window.murderMysteryMessageMarkers && window.murderMysteryMessageMarkers) || [];
+                let total = 0;
+                let hidden = 0;
+
+                if (Array.isArray(markers) && markers.length > 0) {
+                    total = markers.length;
+                    for (const marker of markers) {
+                        if (marker && typeof marker.getElement === 'function') {
+                            const el = marker.getElement();
+                            if (el && el.style.opacity === '0.3') hidden++;
+                        }
+                    }
+                } else {
+                    // 回退：仅有数据尚未渲染 Leaflet 标记时
+                    total = Array.isArray(window.itemData?.murder_mystery_message) ? window.itemData.murder_mystery_message.length : 0;
+                    // 从缓存中获取隐藏数量
+                    const cached = CounterCache.getCounter('murder_mystery_message');
+                    hidden = cached.hidden || 0;
+                }
+
+                // 更新缓存与UI
+                CounterCache.updateCounter('murder_mystery_message', hidden, total);
+                counterEl.textContent = total > 0 ? ` (${hidden}/${total})` : '';
+            } catch (e) {
+                console.warn('更新谋杀之谜信息计数器失败:', e);
+            }
+        }
+
         // 统计隐藏/总数，并更新侧边栏计数器文本（玛德拉索雇凶特殊：固定为1个）
         function updateMadrazoHitsSidebarCount() {
             try {
@@ -5029,6 +5247,7 @@
                 try { applyHiddenCachesVisibilityCache(); } catch (e) {}
                 try { applySmokeProductVisibilityCache(); } catch (e) {}
                 try { applyDeadDropVisibilityCache(); } catch (e) {}
+                try { applyMurderMysteryMessageVisibilityCache(); } catch (e) {}
 
                 // 5) 刷新计数器（如有）
                 try { updateSmugglerPlaneSidebarCount(); } catch (e) {}
@@ -5062,6 +5281,7 @@
                 try { updateSmokeProductSidebarCount(); } catch (e) {}
                 try { updateDeadDropSidebarCount(); } catch (e) {}
                 try { updateGunVanSidebarCount(); } catch (e) {}
+                try { updateMurderMysteryMessageSidebarCount(); } catch (e) {}
 
                 console.log('已按缓存恢复显示状态');
             } catch (e) {
@@ -5728,6 +5948,7 @@
             { value: 'nuclear_waste', text: '核废料' },
             { value: 'humans_of_ls', text: '洛圣都的人类', icon: '../src/assets/humans_of_ls.svg' },
             { value: 'monkey_mosaics', text: '猴子马赛克', icon: '../src/assets/monkey_mosaics.svg' },
+            { value: 'murder_mystery_message', text: '谋杀之谜', icon: '../src/assets/murder_mystery_message.svg' },
             { value: 'stunt_jumps', text: '特技跳跃点' },
             { value: 'spray', text: '喷罐位置' },
             { value: 'ld_organics_products', text: '有机坊产品' },
@@ -6291,6 +6512,25 @@
                         console.log('monkey_mosaics 数据加载成功，共', itemData.monkey_mosaics.length, '个位置');
                     } else {
                         itemData.monkey_mosaics = [];
+                    }
+
+                    // 加载 murder_mystery_message 数据（zones.json.murder_mystery_message）
+                    try {
+                        const m3 = cardsData.murder_mystery_message || {};
+                        const flattened = [];
+                        Object.keys(m3).forEach((groupKey) => {
+                            const arr = Array.isArray(m3[groupKey]) ? m3[groupKey] : [];
+                            arr.forEach((pair, idx) => {
+                                if (Array.isArray(pair) && pair.length >= 2) {
+                                    flattened.push({ x: pair[0], y: pair[1], group: String(groupKey), groupIndex: idx + 1, name: `谋杀之谜信息 ${groupKey}-${idx+1}` });
+                                }
+                            });
+                        });
+                        itemData.murder_mystery_message = flattened;
+                        console.log('murder_mystery_message 数据加载成功，共', itemData.murder_mystery_message.length, '个点');
+                    } catch (e) {
+                        console.warn('加载 murder_mystery_message 失败:', e);
+                        itemData.murder_mystery_message = [];
                     }
                     
                     // 加载其他物品数据
@@ -7505,6 +7745,41 @@
                 return marker;
             }
 
+            // 特殊处理 murder_mystery_message - 图标叠加数字徽章（显示组号 1/2/3）
+            if (type === 'murder_mystery_message') {
+                const badge = (item && item.group) ? String(item.group) : '?';
+                const customIcon = L.divIcon({
+                    html: `
+                        <div style="position: relative; display: inline-block;">
+                          <img src="${itemIcons[type]}" style="width: 32px; height: 32px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));">
+                          <div style="position: absolute; right: -6px; top: -6px; background: #E53935; color: #fff; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; text-shadow: 0 1px 2px rgba(0,0,0,0.6);">${badge}</div>
+                        </div>
+                    `,
+                    className: 'custom-div-icon',
+                    iconSize: [32, 32],
+                    iconAnchor: [16, 16],
+                    popupAnchor: [0, -16]
+                });
+
+                const marker = L.marker(latlng, {
+                    icon: customIcon,
+                    interactive: true,
+                    zIndexOffset: 1000
+                }).addTo(map);
+
+                marker.on('click', function(e) {
+                    showMurderMysteryMessageImage(index);
+                });
+
+                // 记录谋杀之谜信息标记（用于隐藏/显示控制与可见性缓存）
+                try {
+                    if (!window.murderMysteryMessageMarkers) window.murderMysteryMessageMarkers = [];
+                    window.murderMysteryMessageMarkers[index] = marker;
+                } catch (e) {}
+
+                return marker;
+            }
+
             // 特殊处理media_sticks - 带文字标签
             if (type === 'media_sticks') {
                 const customIcon = L.divIcon({
@@ -8445,6 +8720,10 @@
                 else if (type === 'monkey_mosaics') {
                     showMonkeyMosaicsImage(index);
                 }
+                // 特殊处理谋杀之谜信息，显示图片弹窗
+                else if (type === 'murder_mystery_message') {
+                    showMurderMysteryMessageImage(index);
+                }
                 // 特殊处理吞云吐雾馆产品，显示图片弹窗
                 else if (type === 'smoke_on_the_water_product') {
                     showSmokeProductPopup(item, index);
@@ -9272,6 +9551,7 @@
             try { applyOrganicFarmVisibilityCache(); } catch (e) {}
             try { applySkydivesVisibilityCache(); } catch (e) {}
             try { applyJackOLanternsVisibilityCache(); } catch (e) {}
+            try { applyMurderMysteryMessageVisibilityCache(); } catch (e) {}
             try { applyRCTimeTrialVisibilityCache(); } catch (e) {}
             try { applyBikeTimeTrialVisibilityCache(); } catch (e) {}
             try { applyMadrazoHitsVisibilityCache(); } catch (e) {}
@@ -20109,9 +20389,10 @@
                     'spaceship_parts',
                     'nuclear_waste',
                     'humans_of_ls',
-                    'monkey_mosaics'
-                    ],
-                    '地点与服务': [
+                    'monkey_mosaics',
+                    'murder_mystery_message'
+                ],
+        '地点与服务': [
                         'golf_holes',
                         'metro',
                         'police',
@@ -20492,6 +20773,17 @@
                         // 初始渲染一次
                         try { updateMonkeyMosaicsSidebarCount(); } catch(e) {}
                     }
+                    // 谋杀之谜信息计数器
+                    else if (type === 'murder_mystery_message') {
+                        const counter = document.createElement('span');
+                        counter.className = 'murder-mystery-message-counter';
+                        counter.style.marginLeft = '6px';
+                        counter.style.color = 'var(--gta-text-secondary)';
+                        counter.textContent = '';
+                        label.appendChild(counter);
+                        // 初始渲染一次
+                        try { updateMurderMysteryMessageSidebarCount(); } catch(e) {}
+                    }
                     // 喷灌位置计数器
                     else if (type === 'spray') {
                         const counter = document.createElement('span');
@@ -20701,6 +20993,11 @@
                         if (t === 'monkey_mosaics') {
                             try { updateMonkeyMosaicsSidebarCount(); } catch(e) {}
                             setTimeout(() => { try { updateMonkeyMosaicsSidebarCount(); } catch(e) {} }, 200);
+                        }
+                        // 谋杀之谜信息计数器
+                        if (t === 'murder_mystery_message') {
+                            try { updateMurderMysteryMessageSidebarCount(); } catch(e) {}
+                            setTimeout(() => { try { updateMurderMysteryMessageSidebarCount(); } catch(e) {} }, 200);
                         }
                         // 洛圣都杀人狂计数器
                         if (t === 'serial_killer_slasher') {

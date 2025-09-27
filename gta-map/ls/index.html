@@ -1208,6 +1208,7 @@
             'spaceship_parts',
             'nuclear_waste',
             'humans_of_ls',
+            'monkey_mosaics',
             
             // 第3组：设施服务
             'ld_organics_products',
@@ -1347,6 +1348,7 @@
             spaceship_parts: '../src/assets/spaceship_parts.svg',
             nuclear_waste: '../src/assets/nuclear_waste.svg',
             humans_of_ls: '../src/assets/humans_of_ls.svg',
+            monkey_mosaics: '../src/assets/monkey_mosaics.svg',
             ld_organics_products: '../src/assets/organic_farm.svg',
             signal_jammers: '../src/assets/signal_jammer.svg',
             jack_o_lanterns: '../src/assets/jack.svg',
@@ -1480,6 +1482,7 @@
             spaceship_parts: [],
             nuclear_waste: [],
             humans_of_ls: [],
+            monkey_mosaics: [],
             ld_organics_products: [],
             signal_jammers: [],
             jack_o_lanterns: [],
@@ -3954,6 +3957,236 @@
             return false;
         }
 
+        // ==================== 猴子马赛克：计数器、弹窗、缓存 ====================
+        // 统计隐藏/总数，并更新侧边栏计数器文本（集成缓存）
+        function updateMonkeyMosaicsSidebarCount() {
+            try {
+                const counterEl = document.querySelector('#sidebar-item-monkey_mosaics + label .monkey-mosaics-counter');
+                if (!counterEl) return;
+
+                const markers = (window.monkeyMosaicsMarkers && window.monkeyMosaicsMarkers) || [];
+                const total = Array.isArray(window.itemData?.monkey_mosaics) ? window.itemData.monkey_mosaics.length : 0;
+                let hidden = 0;
+
+                if (Array.isArray(markers) && markers.length > 0) {
+                    for (const marker of markers) {
+                        if (marker && typeof marker.getElement === 'function') {
+                            const el = marker.getElement();
+                            if (el && el.style.opacity === '0.3') hidden++;
+                        }
+                    }
+                }
+
+                // 与缓存合并
+                const cachedCounter = CounterCache.getCounter('monkey_mosaics');
+                hidden = Math.max(hidden, cachedCounter.hidden || 0);
+
+                // 更新缓存与UI
+                CounterCache.updateCounter('monkey_mosaics', hidden, total);
+                counterEl.textContent = total > 0 ? ` (${hidden}/${total})` : '';
+            } catch (e) {
+                console.warn('更新猴子马赛克计数器失败:', e);
+            }
+        }
+
+        // 猴子马赛克弹窗（样式与核废料/洛圣都的人类一致），含奖励图片弹出
+        function showMonkeyMosaicsImage(index) {
+            const sequenceNumber = index + 1;
+            const imageUrl = `https://gta-maps.antwen.com/collectibles_images/monkey_mosaics/monkey_mosaics_${sequenceNumber}.webp`;
+
+            // 关闭已存在的同类弹窗
+            const existingPopup = document.querySelector('.monkey-mosaics-popup');
+            if (existingPopup) existingPopup.remove();
+
+            // 统计
+            const markers = (window.monkeyMosaicsMarkers && window.monkeyMosaicsMarkers) || [];
+            const totalCount = markers.length;
+            let hiddenCount = 0;
+            markers.forEach((marker) => {
+                if (marker && typeof marker.getElement === 'function') {
+                    const el = marker.getElement();
+                    if (el && el.style.opacity === '0.3') hiddenCount++;
+                }
+            });
+
+            const currentMarker = markers[index];
+            let isCurrentHidden = false;
+            if (currentMarker && typeof currentMarker.getElement === 'function') {
+                const el = currentMarker.getElement();
+                isCurrentHidden = el && el.style.opacity === '0.3';
+            }
+
+            const title = `🐒 猴子马赛克 #${sequenceNumber} (${hiddenCount}/${totalCount})`;
+
+            const popup = document.createElement('div');
+            popup.className = 'monkey-mosaics-popup';
+            popup.style.cssText = `
+                position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+                background: var(--gta-bg-medium);
+                border: 1px solid var(--gta-border);
+                border-radius: 8px;
+                box-shadow: 0 2px 15px rgba(0,0,0,0.5);
+                padding: 15px;
+                z-index: 10000;
+                width: min(92vw, 520px);
+                max-height: 80vh;
+                color: var(--gta-text);
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                overflow-y: auto;
+            `;
+
+            const awardsTip = `游戏中共有 50 个马赛克可以通过操控任意角色进行拍摄。完成收藏品，您将获得 <a href="#" class="award-outfit">崔佛的一套衣服</a>，并解锁与猴子马赛克相关的事件。完成此事件，您还将获得一辆 <a href="#" class="award-vehicle">冲冲猴旅行家</a>。`;
+
+            popup.innerHTML = `
+                <div class="popup-header" style="position: relative; margin-bottom: 14px;">
+                    <h3 style="color: var(--gta-primary); font-size: 18px; margin: 0; font-weight: bold;">${title}</h3>
+                    <span class="popup-close" style="position: absolute; top: 0; right: 0; color: var(--gta-text-secondary); font-size: 20px; cursor: pointer; transition: color 0.3s ease;">×</span>
+                </div>
+                <img src="${imageUrl}" alt="猴子马赛克 #${sequenceNumber}" style="max-width: 100%; height: auto; border-radius: 6px; margin: 8px 0; display: block; cursor: zoom-in;"/>
+                <div style="margin: 10px 0; padding: 10px; background: rgba(156, 39, 176, 0.1); border-radius: 8px; color: var(--gta-text); font-size: 14px; line-height: 1.6;">
+                    ${awardsTip}
+                </div>
+                <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
+                    <button id="hide-monkey-mosaics-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease; display: ${isCurrentHidden ? 'none' : 'inline-block'};">隐藏</button>
+                    <button id="show-monkey-mosaics-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease; display: ${isCurrentHidden ? 'inline-block' : 'none'};">显示</button>
+                    <button id="close-monkey-mosaics-btn" style="padding: 8px 16px; background: var(--gta-primary); color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease;">关闭</button>
+                </div>
+            `;
+
+            // 绑定元素
+            const closeBtn = popup.querySelector('#close-monkey-mosaics-btn');
+            const hideBtn = popup.querySelector('#hide-monkey-mosaics-btn');
+            const showBtn = popup.querySelector('#show-monkey-mosaics-btn');
+            const popupClose = popup.querySelector('.popup-close');
+            const titleElement = popup.querySelector('h3');
+
+            // 奖励图片弹出
+            const outfitLink = popup.querySelector('.award-outfit');
+            const vehicleLink = popup.querySelector('.award-vehicle');
+            function showAwardOverlay(url) {
+                const overlay = document.createElement('div');
+                overlay.style.cssText = `position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; z-index: 10002; cursor: zoom-out;`;
+                const img = document.createElement('img');
+                img.src = url;
+                img.style.cssText = 'max-width: 95vw; max-height: 95vh; border-radius: 6px; box-shadow: 0 4px 24px rgba(0,0,0,0.6);';
+                overlay.appendChild(img);
+                const remove = () => { document.removeEventListener('keydown', onKey); overlay.remove(); };
+                const onKey = (ev) => { if (ev.key === 'Escape') remove(); };
+                overlay.addEventListener('click', remove);
+                document.addEventListener('keydown', onKey);
+                document.body.appendChild(overlay);
+            }
+            if (outfitLink) {
+                outfitLink.addEventListener('click', (e) => {
+                    e.preventDefault(); e.stopPropagation();
+                    showAwardOverlay('https://gtaweb.eu/_sources/maps_gtao/tips/monkey_mosaics_awards.webp');
+                });
+            }
+            if (vehicleLink) {
+                vehicleLink.addEventListener('click', (e) => {
+                    e.preventDefault(); e.stopPropagation();
+                    showAwardOverlay('https://gtaweb.eu/_sources/maps_gtao/tips/monkey_mosaics_random_event_award.webp');
+                });
+            }
+
+            // 关闭弹窗
+            const removePopup = () => popup.remove();
+            closeBtn.addEventListener('click', removePopup);
+            popupClose.addEventListener('click', removePopup);
+            popup.addEventListener('click', (e) => e.stopPropagation());
+            setTimeout(() => {
+                const closePopupHandler = (e) => {
+                    if (!popup.contains(e.target)) {
+                        removePopup();
+                        document.removeEventListener('click', closePopupHandler);
+                    }
+                };
+                document.addEventListener('click', closePopupHandler);
+            }, 50);
+
+            // 图片点击放大
+            const popupImage = popup.querySelector('img');
+            if (popupImage) {
+                popupImage.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const overlay = document.createElement('div');
+                    overlay.className = 'monkey-mosaics-image-overlay';
+                    overlay.style.cssText = `
+                        position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+                        display: flex; align-items: center; justify-content: center;
+                        z-index: 10002; cursor: zoom-out;
+                    `;
+                    const bigImg = document.createElement('img');
+                    bigImg.src = popupImage.src;
+                    bigImg.alt = popupImage.alt || '';
+                    bigImg.style.cssText = `max-width: 95vw; max-height: 95vh; border-radius: 6px; box-shadow: 0 4px 24px rgba(0,0,0,0.6);`;
+                    overlay.appendChild(bigImg);
+                    const removeOverlay = () => { document.removeEventListener('keydown', onKey); overlay.remove(); };
+                    const onKey = (ev) => { if (ev.key === 'Escape') removeOverlay(); };
+                    overlay.addEventListener('click', removeOverlay);
+                    document.addEventListener('keydown', onKey);
+                    document.body.appendChild(overlay);
+                });
+            }
+
+            // 工具：隐藏/显示当前标记 + 缓存
+            function setCurrentMarkerVisibility(opacity) {
+                if (currentMarker && typeof currentMarker.setOpacity === 'function') {
+                    currentMarker.setOpacity(opacity);
+                } else if (currentMarker && typeof currentMarker.setStyle === 'function') {
+                    currentMarker.setStyle({ opacity });
+                }
+                VisibilityCache.updateItemVisibility('monkey_mosaics', index, opacity === 0.3);
+            }
+
+            // 隐藏/显示按钮
+            if (hideBtn) {
+                hideBtn.addEventListener('click', () => {
+                    setCurrentMarkerVisibility(0.3);
+                    const newHiddenCount = hiddenCount + (isCurrentHidden ? 0 : 1);
+                    titleElement.textContent = `🐒 猴子马赛克 #${sequenceNumber} (${newHiddenCount}/${totalCount})`;
+                    hideBtn.style.display = 'none';
+                    showBtn.style.display = 'inline-block';
+                    isCurrentHidden = true;
+                    updateMonkeyMosaicsSidebarCount();
+                });
+            }
+            if (showBtn) {
+                showBtn.addEventListener('click', () => {
+                    setCurrentMarkerVisibility(1);
+                    const newHiddenCount = hiddenCount - (isCurrentHidden ? 1 : 0);
+                    titleElement.textContent = `🐒 猴子马赛克 #${sequenceNumber} (${newHiddenCount}/${totalCount})`;
+                    showBtn.style.display = 'none';
+                    hideBtn.style.display = 'inline-block';
+                    isCurrentHidden = false;
+                    updateMonkeyMosaicsSidebarCount();
+                });
+            }
+
+            document.body.appendChild(popup);
+        }
+
+        // 应用缓存的可见性状态到 monkey_mosaics 标记
+        function applyMonkeyMosaicsVisibilityCache() {
+            const markers = (window.monkeyMosaicsMarkers && window.monkeyMosaicsMarkers) || [];
+            if (markers.length > 0) {
+                const visibilityMap = VisibilityCache.loadVisibility('monkey_mosaics');
+                markers.forEach((marker, index) => {
+                    const isHidden = visibilityMap[index];
+                    if (isHidden && marker) {
+                        if (typeof marker.setOpacity === 'function') {
+                            marker.setOpacity(0.3);
+                        } else if (typeof marker.setStyle === 'function') {
+                            marker.setStyle({ opacity: 0.3 });
+                        }
+                    }
+                });
+                console.log('已应用猴子马赛克可见性缓存');
+                return true;
+            }
+            return false;
+        }
+
         // 沉船弹窗模板（含隐藏/显示联动与计数器、缓存集成）
         function showShipwreckedPopup(item, index) {
             // 从API消息中提取沉船编号
@@ -4784,6 +5017,7 @@
                 try { applyPplVisibilityCache(); } catch (e) {}
                 try { applyPpwVisibilityCache(); } catch (e) {}
                 try { applyHumansOfLsVisibilityCache(); } catch (e) {}
+                try { applyMonkeyMosaicsVisibilityCache(); } catch (e) {}
                 try { applyOrganicFarmVisibilityCache(); } catch (e) {}
                 try { applySkydivesVisibilityCache(); } catch (e) {}
                 try { applyRCTimeTrialVisibilityCache(); } catch (e) {}
@@ -4817,6 +5051,7 @@
                 try { updatePplSidebarCount(); } catch (e) {}
                 try { updatePpwSidebarCount(); } catch (e) {}
                 try { updateHumansOfLsSidebarCount(); } catch (e) {}
+                try { updateMonkeyMosaicsSidebarCount(); } catch (e) {}
                 try { updateOrganicFarmSidebarCount(); } catch (e) {}
                 try { updateSkydivesSidebarCount(); } catch (e) {}
                 try { updateMadrazoHitsSidebarCount(); } catch (e) {}
@@ -5492,6 +5727,7 @@
             { value: 'spaceship_parts', text: '宇宙飞船部件' },
             { value: 'nuclear_waste', text: '核废料' },
             { value: 'humans_of_ls', text: '洛圣都的人类', icon: '../src/assets/humans_of_ls.svg' },
+            { value: 'monkey_mosaics', text: '猴子马赛克', icon: '../src/assets/monkey_mosaics.svg' },
             { value: 'stunt_jumps', text: '特技跳跃点' },
             { value: 'spray', text: '喷罐位置' },
             { value: 'ld_organics_products', text: '有机坊产品' },
@@ -6043,6 +6279,18 @@
                         console.log('humans_of_ls 数据加载成功，共', itemData.humans_of_ls.length, '个位置');
                     } else {
                         itemData.humans_of_ls = [];
+                    }
+                    
+                    // 加载 monkey_mosaics 数据（数组元素为对象：{x:..., y:...}）
+                    if (Array.isArray(cardsData.monkey_mosaics)) {
+                        itemData.monkey_mosaics = cardsData.monkey_mosaics.map((obj, index) => ({
+                            x: obj.x,
+                            y: obj.y,
+                            name: `猴子马赛克 ${index + 1}`
+                        }));
+                        console.log('monkey_mosaics 数据加载成功，共', itemData.monkey_mosaics.length, '个位置');
+                    } else {
+                        itemData.monkey_mosaics = [];
                     }
                     
                     // 加载其他物品数据
@@ -8021,6 +8269,11 @@
                     if (!window.humansOfLsMarkers) window.humansOfLsMarkers = [];
                     window.humansOfLsMarkers[index] = marker;
                 }
+                // 记录 monkey_mosaics 标记以便弹窗隐藏/显示控制
+                else if (type === 'monkey_mosaics') {
+                    if (!window.monkeyMosaicsMarkers) window.monkeyMosaicsMarkers = [];
+                    window.monkeyMosaicsMarkers[index] = marker;
+                }
                 // 记录 skydives 标记以便弹窗隐藏/显示控制
                 else if (type === 'skydives') {
                     if (!window.skydivesMarkers) window.skydivesMarkers = [];
@@ -8187,6 +8440,10 @@
                 // 特殊处理洛圣都的人类，显示图片弹窗
                 else if (type === 'humans_of_ls') {
                     showHumansOfLsImage(index);
+                }
+                // 特殊处理猴子马赛克，显示图片弹窗
+                else if (type === 'monkey_mosaics') {
+                    showMonkeyMosaicsImage(index);
                 }
                 // 特殊处理吞云吐雾馆产品，显示图片弹窗
                 else if (type === 'smoke_on_the_water_product') {
@@ -19847,7 +20104,8 @@
                     'submarine_pieces',
                     'spaceship_parts',
                     'nuclear_waste',
-                    'humans_of_ls'
+                    'humans_of_ls',
+                    'monkey_mosaics'
                     ],
                     '地点与服务': [
                         'golf_holes',
@@ -20219,6 +20477,17 @@
                         // 初始渲染一次
                         try { updateHumansOfLsSidebarCount(); } catch(e) {}
                     }
+                    // 猴子马赛克计数器
+                    else if (type === 'monkey_mosaics') {
+                        const counter = document.createElement('span');
+                        counter.className = 'monkey-mosaics-counter';
+                        counter.style.marginLeft = '6px';
+                        counter.style.color = 'var(--gta-text-secondary)';
+                        counter.textContent = '';
+                        label.appendChild(counter);
+                        // 初始渲染一次
+                        try { updateMonkeyMosaicsSidebarCount(); } catch(e) {}
+                    }
                     // 喷灌位置计数器
                     else if (type === 'spray') {
                         const counter = document.createElement('span');
@@ -20423,6 +20692,11 @@
                         // 洛圣都的人类计数器
                         if (t === 'humans_of_ls') {
                             try { updateHumansOfLsSidebarCount(); } catch(e) {}
+                        }
+                        // 猴子马赛克计数器
+                        if (t === 'monkey_mosaics') {
+                            try { updateMonkeyMosaicsSidebarCount(); } catch(e) {}
+                            setTimeout(() => { try { updateMonkeyMosaicsSidebarCount(); } catch(e) {} }, 200);
                         }
                         // 洛圣都杀人狂计数器
                         if (t === 'serial_killer_slasher') {

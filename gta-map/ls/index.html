@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -1198,6 +1200,11 @@
             'action_figures',
             'yuanbao',
             'letter_scraps',
+            'sp_hidden_packages',
+            'peyote_sp_land',
+            'peyote_sp_air',
+            'peyote_sp_water',
+            'peyote_sp_special',
             'submarine_pieces',
             'spaceship_parts',
             'nuclear_waste',
@@ -1331,6 +1338,11 @@
             action_figures: '../src/assets/action_figures.svg',
             yuanbao: '../src/assets/yuanbao.svg',
             letter_scraps: '../src/assets/letter.svg',
+            sp_hidden_packages: '../src/assets/sp_hidden_packages.svg',
+            peyote_sp_land: '../src/assets/peyote_sp_land.svg',
+            peyote_sp_air: '../src/assets/peyote_sp_air.svg',
+            peyote_sp_water: '../src/assets/peyote_sp_water.svg',
+            peyote_sp_special: '../src/assets/peyote_sp_special.svg',
             submarine_pieces: '../src/assets/submarine_pieces.svg',
             spaceship_parts: '../src/assets/spaceship_parts.svg',
             nuclear_waste: '../src/assets/nuclear_waste.svg',
@@ -1458,6 +1470,11 @@
             action_figures: [],
             yuanbao: [],
             letter_scraps: [],
+            sp_hidden_packages: [],
+            peyote_sp_land: [],
+            peyote_sp_air: [],
+            peyote_sp_water: [],
+            peyote_sp_special: [],
             submarine_pieces: [],
             spaceship_parts: [],
             nuclear_waste: [],
@@ -5466,6 +5483,11 @@
             { value: 'action_figures', text: '手办' },
             { value: 'yuanbao', text: '元宝' },
             { value: 'letter_scraps', text: '残缺信件' },
+            { value: 'sp_hidden_packages', text: '隐藏包裹（线下）' },
+            { value: 'peyote_sp_land', text: '迷幻仙人掌陆地' },
+            { value: 'peyote_sp_air', text: '迷幻仙人掌鸟类' },
+            { value: 'peyote_sp_water', text: '迷幻仙人掌水下' },
+            { value: 'peyote_sp_special', text: '迷幻仙人掌金色' },
             { value: 'submarine_pieces', text: '潜水艇碎片' },
             { value: 'spaceship_parts', text: '宇宙飞船部件' },
             { value: 'nuclear_waste', text: '核废料' },
@@ -5920,6 +5942,17 @@
                             name: `信件残片 ${index + 1}`
                         }));
                         console.log('信件残片数据加载成功，共', itemData.letter_scraps.length, '个位置');
+                    }
+                    
+                    // 加载sp_hidden_packages数据
+                    if (cardsData.sp_hidden_packages) {
+                        itemData.sp_hidden_packages = cardsData.sp_hidden_packages.map((item, index) => ({
+                            x: item[0],
+                            y: item[1],
+                            description: item[2] || '',
+                            name: `隐藏包裹 ${index + 1}`
+                        }));
+                        console.log('隐藏包裹（线下）数据加载成功，共', itemData.sp_hidden_packages.length, '个位置');
                     }
                     
                     // 加载submarine_pieces数据
@@ -7878,6 +7911,11 @@
                     if (!window.letterScrapsMarkers) window.letterScrapsMarkers = [];
                     window.letterScrapsMarkers[index] = marker;
                 }
+                // 记录 sp_hidden_packages 标记以便弹窗隐藏/显示控制
+                else if (type === 'sp_hidden_packages') {
+                    if (!window.spHiddenPackagesMarkers) window.spHiddenPackagesMarkers = [];
+                    window.spHiddenPackagesMarkers[index] = marker;
+                }
                 // 记录 submarine_pieces 标记以便弹窗隐藏/显示控制
                 else if (type === 'submarine_pieces') {
                     if (!window.submarinePiecesMarkers) window.submarinePiecesMarkers = [];
@@ -8023,6 +8061,10 @@
                 // 特殊处理残缺信件，显示图片弹窗
                 else if (type === 'letter_scraps') {
                     showLetterScrapsImage(index);
+                }
+                // 特殊处理隐藏包裹（线下），显示图片弹窗
+                else if (type === 'sp_hidden_packages') {
+                    showSpHiddenPackagesImage(index);
                 }
                 // 特殊处理潜水艇碎片，显示图片弹窗
                 else if (type === 'submarine_pieces') {
@@ -11379,6 +11421,259 @@
                     }
                 });
                 console.log('已应用残缺信件可见性缓存');
+                return true;
+            }
+            return false;
+        }
+
+        // ==================== 增强版隐藏包裹（线下）模板（集成缓存） ====================
+        
+        // 创建侧边栏条目时，为 sp_hidden_packages 增加一个计数器占位
+        function attachSpHiddenPackagesCounterToLabel(sidebarCheckboxId) {
+            const label = document.querySelector(`#${sidebarCheckboxId} + label`);
+            if (!label) return;
+
+            let counter = label.querySelector('.sp-hidden-packages-counter');
+            if (!counter) {
+                counter = document.createElement('span');
+                counter.className = 'sp-hidden-packages-counter';
+                counter.style.marginLeft = '6px';
+                counter.style.color = 'var(--gta-text-secondary)';
+                label.appendChild(counter);
+            }
+
+            // 初次渲染计数
+            updateSpHiddenPackagesSidebarCount();
+        }
+
+        // 统计隐藏/总数，并更新侧边栏计数器文本（集成缓存）
+        function updateSpHiddenPackagesSidebarCount() {
+            try {
+                const counterEl = document.querySelector('#sidebar-item-sp_hidden_packages + label .sp-hidden-packages-counter');
+                if (!counterEl) return;
+
+                // 获取隐藏包裹标记
+                const markers = (window.spHiddenPackagesMarkers && window.spHiddenPackagesMarkers) || [];
+                let total = 0;
+                let hidden = 0;
+
+                if (Array.isArray(markers) && markers.length > 0) {
+                    total = markers.length;
+                    markers.forEach((marker) => {
+                        if (marker && typeof marker.getElement === 'function') {
+                            const el = marker.getElement();
+                            if (el && el.style.opacity === '0.3') {
+                                hidden++;
+                            }
+                        }
+                    });
+                } else {
+                    // 回退：仅有数据尚未渲染 Leaflet 标记时
+                    total = Array.isArray(window.itemData?.sp_hidden_packages) ? window.itemData.sp_hidden_packages.length : 0;
+                    // 从缓存中获取隐藏数量
+                    const cachedCounter = CounterCache.getCounter('sp_hidden_packages');
+                    hidden = cachedCounter.hidden || 0;
+                }
+
+                // 更新缓存
+                CounterCache.updateCounter('sp_hidden_packages', hidden, total);
+                counterEl.textContent = total > 0 ? ` (${hidden}/${total})` : '';
+            } catch (e) {
+                console.warn('更新隐藏包裹（线下）计数器失败:', e);
+            }
+        }
+
+        // 隐藏包裹（线下）弹窗模板（含隐藏/显示联动与计数器、缓存集成）
+        function showSpHiddenPackagesImage(index) {
+            // 序号从1开始
+            const sequenceNumber = index + 1;
+            const imageUrl = `https://gta-maps.antwen.com/collectibles_images/sp_hidden_packages/sp_hidden_packages_${sequenceNumber}.webp`;
+            
+            // 关闭已存在的弹窗
+            const existingPopup = document.querySelector('.sp-hidden-packages-popup');
+            if (existingPopup) existingPopup.remove();
+
+            // 统计隐藏/总数
+            const markers = (window.spHiddenPackagesMarkers && window.spHiddenPackagesMarkers) || [];
+            const totalCount = markers.length;
+
+            let hiddenCount = 0;
+            markers.forEach((marker) => {
+                if (marker && typeof marker.getElement === 'function') {
+                    const el = marker.getElement();
+                    if (el && el.style.opacity === '0.3') hiddenCount++;
+                }
+            });
+
+            const currentMarker = markers[index];
+            let isCurrentHidden = false;
+            if (currentMarker && typeof currentMarker.getElement === 'function') {
+                const el = currentMarker.getElement();
+                isCurrentHidden = el && el.style.opacity === '0.3';
+            }
+
+            // 获取当前包裹的描述信息
+            const item = window.itemData?.sp_hidden_packages?.[index];
+            const description = item?.description || '';
+            let contentText = description;
+            
+            // 如果描述包含trevor，添加特殊说明
+            if (description.toLowerCase().includes('trevor')) {
+                contentText += '\n\n在崔佛带过 4 名搭车人（不是带人 4 次。一次带来 2 人，进度加 2）到利他营地后，与邪教徒发生枪战后解锁。';
+            }
+
+            const title = `📦 隐藏包裹（线下） #${sequenceNumber} (${hiddenCount}/${totalCount})`;
+
+            // 构建弹窗
+            const popup = document.createElement('div');
+            popup.className = 'sp-hidden-packages-popup';
+            popup.style.cssText = `
+                position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+                background: var(--gta-bg-medium);
+                border: 1px solid var(--gta-border);
+                border-radius: 8px;
+                box-shadow: 0 2px 15px rgba(0,0,0,0.5);
+                padding: 15px;
+                z-index: 10000;
+                width: min(92vw, 520px);
+                max-height: 80vh;
+                color: var(--gta-text);
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                overflow-y: auto;
+            `;
+
+            popup.innerHTML = `
+                <div class="popup-header" style="position: relative; margin-bottom: 14px;">
+                    <h3 style="color: var(--gta-primary); font-size: 18px; margin: 0; font-weight: bold;" id="sp-hidden-packages-title">${title}</h3>
+                    <span class="popup-close" style="position: absolute; top: 0; right: 0; color: var(--gta-text-secondary); font-size: 20px; cursor: pointer; transition: color 0.3s ease;">×</span>
+                </div>
+                <img src="${imageUrl}" alt="隐藏包裹（线下） #${sequenceNumber}" style="max-width: 100%; height: auto; border-radius: 6px; margin: 8px 0; display: block; cursor: zoom-in;" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"/>
+                <div style="display: none; padding: 40px; color: var(--gta-text-secondary); font-style: italic; text-align: center;">
+                    图片加载失败
+                </div>
+                <div style="margin: 10px 0; padding: 10px; background: rgba(33, 150, 243, 0.1); border-radius: 8px; color: var(--gta-text); font-size: 14px; line-height: 1.6;">
+                    <div style="font-weight: bold; color: #1976D2; margin-bottom: 5px;">📍 位置信息</div>
+                    ${contentText || '可在上图位置找到！'}
+                </div>
+                <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
+                    <button id="sp-hidden-packages-hide-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease; display: ${isCurrentHidden ? 'none' : 'inline-block'};">隐藏</button>
+                    <button id="sp-hidden-packages-show-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease; display: ${isCurrentHidden ? 'inline-block' : 'none'};">显示</button>
+                    <button id="sp-hidden-packages-close-btn" style="padding: 8px 16px; background: var(--gta-primary); color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease;">关闭</button>
+                </div>
+            `;
+
+            // 绑定元素
+            const closeBtn = popup.querySelector('#sp-hidden-packages-close-btn');
+            const hideBtn = popup.querySelector('#sp-hidden-packages-hide-btn');
+            const showBtn = popup.querySelector('#sp-hidden-packages-show-btn');
+            const popupClose = popup.querySelector('.popup-close');
+            const titleElement = popup.querySelector('#sp-hidden-packages-title');
+
+            // 关闭弹窗
+            const removePopup = () => popup.remove();
+            closeBtn.addEventListener('click', removePopup);
+            popupClose.addEventListener('click', removePopup);
+            popup.addEventListener('click', (e) => e.stopPropagation());
+            setTimeout(() => {
+                const closePopupHandler = (e) => {
+                    if (!popup.contains(e.target)) {
+                        removePopup();
+                        document.removeEventListener('click', closePopupHandler);
+                    }
+                };
+                document.addEventListener('click', closePopupHandler);
+            }, 50);
+
+            // 图片点击放大
+            const popupImage = popup.querySelector('img');
+            if (popupImage) {
+                popupImage.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const overlay = document.createElement('div');
+                    overlay.className = 'sp-hidden-packages-image-overlay';
+                    overlay.style.cssText = `
+                        position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+                        display: flex; align-items: center; justify-content: center;
+                        z-index: 10002; cursor: zoom-out;
+                    `;
+                    const bigImg = document.createElement('img');
+                    bigImg.src = popupImage.src;
+                    bigImg.alt = popupImage.alt || '';
+                    bigImg.style.cssText = `max-width: 95vw; max-height: 95vh; border-radius: 6px; box-shadow: 0 4px 24px rgba(0,0,0,0.6);`;
+                    overlay.appendChild(bigImg);
+
+                    const removeOverlay = () => {
+                        document.removeEventListener('keydown', onKey);
+                        overlay.remove();
+                    };
+                    const onKey = (ev) => { if (ev.key === 'Escape') removeOverlay(); };
+                    overlay.addEventListener('click', removeOverlay);
+                    document.addEventListener('keydown', onKey);
+                    document.body.appendChild(overlay);
+                });
+            }
+
+            // 工具：隐藏/显示当前标记
+            function setCurrentMarkerVisibility(opacity) {
+                if (currentMarker && typeof currentMarker.setOpacity === 'function') {
+                    currentMarker.setOpacity(opacity);
+                } else if (currentMarker && typeof currentMarker.setStyle === 'function') {
+                    currentMarker.setStyle({ opacity });
+                }
+                
+                // 更新缓存
+                VisibilityCache.updateItemVisibility('sp_hidden_packages', index, opacity === 0.3);
+            }
+
+            // 隐藏按钮
+            if (hideBtn) {
+                hideBtn.addEventListener('click', () => {
+                    setCurrentMarkerVisibility(0.3);
+                    const newHiddenCount = hiddenCount + (isCurrentHidden ? 0 : 1);
+                    titleElement.textContent = `📦 隐藏包裹（线下） #${sequenceNumber} (${newHiddenCount}/${totalCount})`;
+                    hideBtn.style.display = 'none';
+                    showBtn.style.display = 'inline-block';
+                    isCurrentHidden = true;
+
+                    // 刷新侧边栏计数
+                    updateSpHiddenPackagesSidebarCount();
+                });
+            }
+
+            // 显示按钮
+            if (showBtn) {
+                showBtn.addEventListener('click', () => {
+                    setCurrentMarkerVisibility(1);
+                    const newHiddenCount = hiddenCount - (isCurrentHidden ? 1 : 0);
+                    titleElement.textContent = `📦 隐藏包裹（线下） #${sequenceNumber} (${newHiddenCount}/${totalCount})`;
+                    showBtn.style.display = 'none';
+                    hideBtn.style.display = 'inline-block';
+                    isCurrentHidden = false;
+
+                    // 刷新侧边栏计数
+                    updateSpHiddenPackagesSidebarCount();
+                });
+            }
+
+            document.body.appendChild(popup);
+        }
+
+        // 应用缓存的可见性状态到隐藏包裹（线下）标记
+        function applySpHiddenPackagesVisibilityCache() {
+            const markers = (window.spHiddenPackagesMarkers && window.spHiddenPackagesMarkers) || [];
+            if (markers.length > 0) {
+                const visibilityMap = VisibilityCache.loadVisibility('sp_hidden_packages');
+                markers.forEach((marker, index) => {
+                    const isHidden = visibilityMap[index];
+                    if (isHidden && marker) {
+                        if (typeof marker.setOpacity === 'function') {
+                            marker.setOpacity(0.3);
+                        } else if (typeof marker.setStyle === 'function') {
+                            marker.setStyle({ opacity: 0.3 });
+                        }
+                    }
+                });
+                console.log('已应用隐藏包裹（线下）可见性缓存');
                 return true;
             }
             return false;
@@ -18651,6 +18946,11 @@
                     ],
                     '线下收集品': [
                         'letter_scraps',
+                        'sp_hidden_packages',
+                        'peyote_sp_land',
+                        'peyote_sp_air',
+                        'peyote_sp_water',
+                        'peyote_sp_special',
                         'submarine_pieces',
                         'spaceship_parts',
                         'nuclear_waste'
@@ -18925,6 +19225,17 @@
                         label.appendChild(counter);
                         // 初始渲染一次
                         try { updateLetterScrapsSidebarCount(); } catch(e) {}
+                    }
+                    // 隐藏包裹（线下）计数器
+                    else if (type === 'sp_hidden_packages') {
+                        const counter = document.createElement('span');
+                        counter.className = 'sp-hidden-packages-counter';
+                        counter.style.marginLeft = '6px';
+                        counter.style.color = 'var(--gta-text-secondary)';
+                        counter.textContent = '';
+                        label.appendChild(counter);
+                        // 初始渲染一次
+                        try { updateSpHiddenPackagesSidebarCount(); } catch(e) {}
                     }
                     // 潜水艇碎片计数器
                     else if (type === 'submarine_pieces') {
@@ -19220,6 +19531,10 @@
                         if (t === 'letter_scraps') {
                             try { updateLetterScrapsSidebarCount(); } catch(e) {}
                         }
+                        // 隐藏包裹（线下）计数器
+                        if (t === 'sp_hidden_packages') {
+                            try { updateSpHiddenPackagesSidebarCount(); } catch(e) {}
+                        }
                         // 宇宙飞船部件计数器
                         if (t === 'spaceship_parts') {
                             try { updateSpaceshipPartsSidebarCount(); } catch(e) {}
@@ -19351,6 +19666,7 @@
                     try { updateActionFiguresSidebarCount(); } catch(e) {}
                     try { updatePlayingCardsSidebarCount(); } catch(e) {}
                     try { updateLetterScrapsSidebarCount(); } catch(e) {}
+                    try { updateSpHiddenPackagesSidebarCount(); } catch(e) {}
                     try { updateSpaceshipPartsSidebarCount(); } catch(e) {}
                     try { updateSpraySidebarCount(); } catch(e) {}
                     try { updateOrganicFarmSidebarCount(); } catch(e) {}
@@ -19729,6 +20045,255 @@
             } catch (e) {
                 console.warn('更新核废料计数器失败:', e);
             }
+        }
+
+        // ==================== 增强版隐藏包裹（线下）模板（集成缓存） ====================
+        
+        // 创建侧边栏条目时，为 sp_hidden_packages 增加一个计数器占位
+        function attachSpHiddenPackagesCounterToLabel(sidebarCheckboxId) {
+            const label = document.querySelector(`#${sidebarCheckboxId} + label`);
+            if (!label) return;
+
+            let counter = label.querySelector('.sp-hidden-packages-counter');
+            if (!counter) {
+                counter = document.createElement('span');
+                counter.className = 'sp-hidden-packages-counter';
+                counter.style.marginLeft = '6px';
+                counter.style.color = 'var(--gta-text-secondary)';
+                label.appendChild(counter);
+            }
+
+            // 初次渲染计数
+            updateSpHiddenPackagesSidebarCount();
+        }
+
+        // 统计隐藏/总数，并更新侧边栏计数器文本（集成缓存）
+        function updateSpHiddenPackagesSidebarCount() {
+            try {
+                const counterEl = document.querySelector('#sidebar-item-sp_hidden_packages + label .sp-hidden-packages-counter');
+                if (!counterEl) return;
+
+                // 获取隐藏包裹标记
+                const markers = (window.spHiddenPackagesMarkers && window.spHiddenPackagesMarkers) || [];
+                let total = 0;
+                let hidden = 0;
+
+                if (Array.isArray(markers) && markers.length > 0) {
+                    total = markers.length;
+                    markers.forEach((marker) => {
+                        if (marker && typeof marker.getElement === 'function') {
+                            const el = marker.getElement();
+                            if (el && el.style.opacity === '0.3') {
+                                hidden++;
+                            }
+                        }
+                    });
+                } else {
+                    // 回退：仅有数据尚未渲染 Leaflet 标记时
+                    total = Array.isArray(window.itemData?.sp_hidden_packages) ? window.itemData.sp_hidden_packages.length : 0;
+                    // 从缓存中获取隐藏数量
+                    const cachedCounter = CounterCache.getCounter('sp_hidden_packages');
+                    hidden = cachedCounter.hidden || 0;
+                }
+
+                // 更新缓存
+                CounterCache.updateCounter('sp_hidden_packages', hidden, total);
+                counterEl.textContent = total > 0 ? ` (${hidden}/${total})` : '';
+            } catch (e) {
+                console.warn('更新隐藏包裹（线下）计数器失败:', e);
+            }
+        }
+
+        // 隐藏包裹（线下）弹窗模板（含隐藏/显示联动与计数器、缓存集成）
+        function showSpHiddenPackagesImage(index) {
+            // 序号从1开始
+            const sequenceNumber = index + 1;
+            const imageUrl = `https://gta-maps.antwen.com/collectibles_images/sp_hidden_packages/sp_hidden_packages_${sequenceNumber}.webp`;
+            
+            // 关闭已存在的弹窗
+            const existingPopup = document.querySelector('.sp-hidden-packages-popup');
+            if (existingPopup) existingPopup.remove();
+
+            // 统计隐藏/总数
+            const markers = (window.spHiddenPackagesMarkers && window.spHiddenPackagesMarkers) || [];
+            const totalCount = markers.length;
+
+            let hiddenCount = 0;
+            markers.forEach((marker) => {
+                if (marker && typeof marker.getElement === 'function') {
+                    const el = marker.getElement();
+                    if (el && el.style.opacity === '0.3') hiddenCount++;
+                }
+            });
+
+            const currentMarker = markers[index];
+            let isCurrentHidden = false;
+            if (currentMarker && typeof currentMarker.getElement === 'function') {
+                const el = currentMarker.getElement();
+                isCurrentHidden = el && el.style.opacity === '0.3';
+            }
+
+            // 获取描述信息
+            const item = window.itemData?.sp_hidden_packages?.[index];
+            const description = item?.description || '';
+            let displayDescription = description;
+            
+            // 如果描述包含trevor，添加额外信息
+            if (description.toLowerCase().includes('trevor')) {
+                displayDescription += ' 在崔佛带过 4 名搭车人 （不是带人 4 次。一次带来 2 人，进度加 2）到利他营地后，与邪教徒发生枪战  后解锁。';
+            }
+
+            const title = `📦 隐藏包裹（线下） #${sequenceNumber} (${hiddenCount}/${totalCount})`;
+
+            // 构建弹窗
+            const popup = document.createElement('div');
+            popup.className = 'sp-hidden-packages-popup';
+            popup.style.cssText = `
+                position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+                background: var(--gta-bg-medium);
+                border: 1px solid var(--gta-border);
+                border-radius: 8px;
+                box-shadow: 0 2px 15px rgba(0,0,0,0.5);
+                padding: 15px;
+                z-index: 10000;
+                width: min(92vw, 520px);
+                max-height: 80vh;
+                color: var(--gta-text);
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                overflow-y: auto;
+            `;
+
+            popup.innerHTML = `
+                <div class="popup-header" style="position: relative; margin-bottom: 14px;">
+                    <h3 style="color: var(--gta-primary); font-size: 18px; margin: 0; font-weight: bold;">${title}</h3>
+                    <span class="popup-close" style="position: absolute; top: 0; right: 0; color: var(--gta-text-secondary); font-size: 20px; cursor: pointer; transition: color 0.3s ease;">×</span>
+                </div>
+                <img src="${imageUrl}" alt="隐藏包裹（线下） #${sequenceNumber}" style="max-width: 100%; height: auto; border-radius: 6px; margin: 8px 0; display: block; cursor: zoom-in;"/>
+                <div style="margin: 10px 0; padding: 10px; background: rgba(156, 39, 176, 0.1); border-radius: 8px; color: var(--gta-text); font-size: 14px; line-height: 1.6;">
+                    ${displayDescription || '可在上图位置找到！'}
+                </div>
+                <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
+                    <button id="hide-sp-hidden-packages-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease; display: ${isCurrentHidden ? 'none' : 'inline-block'};">隐藏</button>
+                    <button id="show-sp-hidden-packages-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease; display: ${isCurrentHidden ? 'inline-block' : 'none'};">显示</button>
+                    <button id="close-sp-hidden-packages-btn" style="padding: 8px 16px; background: var(--gta-primary); color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease;">关闭</button>
+                </div>
+            `;
+
+            // 绑定元素
+            const closeBtn = popup.querySelector('#close-sp-hidden-packages-btn');
+            const hideBtn = popup.querySelector('#hide-sp-hidden-packages-btn');
+            const showBtn = popup.querySelector('#show-sp-hidden-packages-btn');
+            const popupClose = popup.querySelector('.popup-close');
+            const titleElement = popup.querySelector('h3');
+
+            // 关闭弹窗
+            const removePopup = () => popup.remove();
+            closeBtn.addEventListener('click', removePopup);
+            popupClose.addEventListener('click', removePopup);
+            popup.addEventListener('click', (e) => e.stopPropagation());
+            setTimeout(() => {
+                const closePopupHandler = (e) => {
+                    if (!popup.contains(e.target)) {
+                        removePopup();
+                        document.removeEventListener('click', closePopupHandler);
+                    }
+                };
+                document.addEventListener('click', closePopupHandler);
+            }, 50);
+
+            // 图片点击放大
+            const popupImage = popup.querySelector('img');
+            if (popupImage) {
+                popupImage.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const overlay = document.createElement('div');
+                    overlay.className = 'sp-hidden-packages-image-overlay';
+                    overlay.style.cssText = `
+                        position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+                        display: flex; align-items: center; justify-content: center;
+                        z-index: 10002; cursor: zoom-out;
+                    `;
+                    const bigImg = document.createElement('img');
+                    bigImg.src = popupImage.src;
+                    bigImg.alt = popupImage.alt || '';
+                    bigImg.style.cssText = `max-width: 95vw; max-height: 95vh; border-radius: 6px; box-shadow: 0 4px 24px rgba(0,0,0,0.6);`;
+                    overlay.appendChild(bigImg);
+
+                    const removeOverlay = () => {
+                        document.removeEventListener('keydown', onKey);
+                        overlay.remove();
+                    };
+                    const onKey = (ev) => { if (ev.key === 'Escape') removeOverlay(); };
+                    overlay.addEventListener('click', removeOverlay);
+                    document.addEventListener('keydown', onKey);
+                    document.body.appendChild(overlay);
+                });
+            }
+
+            // 工具：隐藏/显示当前标记
+            function setCurrentMarkerVisibility(opacity) {
+                if (currentMarker && typeof currentMarker.setOpacity === 'function') {
+                    currentMarker.setOpacity(opacity);
+                } else if (currentMarker && typeof currentMarker.setStyle === 'function') {
+                    currentMarker.setStyle({ opacity });
+                }
+                
+                // 更新缓存
+                VisibilityCache.updateItemVisibility('sp_hidden_packages', index, opacity === 0.3);
+            }
+
+            // 隐藏按钮
+            if (hideBtn) {
+                hideBtn.addEventListener('click', () => {
+                    setCurrentMarkerVisibility(0.3);
+                    const newHiddenCount = hiddenCount + (isCurrentHidden ? 0 : 1);
+                    titleElement.textContent = `📦 隐藏包裹（线下） #${sequenceNumber} (${newHiddenCount}/${totalCount})`;
+                    hideBtn.style.display = 'none';
+                    showBtn.style.display = 'inline-block';
+                    isCurrentHidden = true;
+
+                    // 刷新侧边栏计数
+                    updateSpHiddenPackagesSidebarCount();
+                });
+            }
+
+            // 显示按钮
+            if (showBtn) {
+                showBtn.addEventListener('click', () => {
+                    setCurrentMarkerVisibility(1);
+                    const newHiddenCount = hiddenCount - (isCurrentHidden ? 1 : 0);
+                    titleElement.textContent = `📦 隐藏包裹（线下） #${sequenceNumber} (${newHiddenCount}/${totalCount})`;
+                    showBtn.style.display = 'none';
+                    hideBtn.style.display = 'inline-block';
+                    isCurrentHidden = false;
+
+                    // 刷新侧边栏计数
+                    updateSpHiddenPackagesSidebarCount();
+                });
+            }
+
+            document.body.appendChild(popup);
+        }
+
+        // 应用缓存的可见性状态到隐藏包裹（线下）标记
+        function applySpHiddenPackagesVisibilityCache() {
+            const markers = (window.spHiddenPackagesMarkers && window.spHiddenPackagesMarkers) || [];
+            if (markers.length > 0) {
+                const visibilityMap = VisibilityCache.loadVisibility('sp_hidden_packages');
+                markers.forEach((marker, index) => {
+                    const isHidden = visibilityMap[index];
+                    if (isHidden && marker) {
+                        if (typeof marker.setOpacity === 'function') {
+                            marker.setOpacity(0.3);
+                        } else if (typeof marker.setStyle === 'function') {
+                            marker.setStyle({ opacity: 0.3 });
+                        }
+                    }
+                });
+                console.log('已应用隐藏包裹（线下）可见性缓存');
+                return true;
+            }
+            return false;
         }
 
         // ==================== 增强版潜水艇碎片模板（集成缓存） ====================

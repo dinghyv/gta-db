@@ -1198,6 +1198,8 @@
             'action_figures',
             'yuanbao',
             'letter_scraps',
+            'spaceship_parts',
+            'nuclear_waste',
             
             // 第3组：设施服务
             'ld_organics_products',
@@ -1328,6 +1330,8 @@
             action_figures: '../src/assets/action_figures.svg',
             yuanbao: '../src/assets/yuanbao.svg',
             letter_scraps: '../src/assets/letter.svg',
+            spaceship_parts: '../src/assets/spaceship_parts.svg',
+            nuclear_waste: '../src/assets/nuclear_waste.svg',
             ld_organics_products: '../src/assets/organic_farm.svg',
             signal_jammers: '../src/assets/signal_jammer.svg',
             jack_o_lanterns: '../src/assets/jack.svg',
@@ -1452,6 +1456,8 @@
             action_figures: [],
             yuanbao: [],
             letter_scraps: [],
+            spaceship_parts: [],
+            nuclear_waste: [],
             ld_organics_products: [],
             signal_jammers: [],
             jack_o_lanterns: [],
@@ -4753,6 +4759,7 @@
                 try { applyActionFiguresVisibilityCache(); } catch (e) {}
                 try { applyPlayingCardsVisibilityCache(); } catch (e) {}
                 try { applyLetterScrapsVisibilityCache(); } catch (e) {}
+                try { applySpaceshipPartsVisibilityCache(); } catch (e) {}
                 try { applySprayVisibilityCache(); } catch (e) {}
                 try { applyPplVisibilityCache(); } catch (e) {}
                 try { applyPpwVisibilityCache(); } catch (e) {}
@@ -4782,6 +4789,7 @@
                 try { updateActionFiguresSidebarCount(); } catch (e) {}
                 try { updatePlayingCardsSidebarCount(); } catch (e) {}
                 try { updateLetterScrapsSidebarCount(); } catch (e) {}
+                try { updateSpaceshipPartsSidebarCount(); } catch (e) {}
                 try { updateSpraySidebarCount(); } catch (e) {}
                 try { updatePplSidebarCount(); } catch (e) {}
                 try { updatePpwSidebarCount(); } catch (e) {}
@@ -5450,7 +5458,9 @@
             { value: 'smoke_on_the_water_product', text: '吞云吐雾馆产品（测试）' },
             { value: 'action_figures', text: '手办' },
             { value: 'yuanbao', text: '元宝' },
-            { value: 'letter_scraps', text: '信件残片' },
+            { value: 'letter_scraps', text: '残缺信件' },
+            { value: 'spaceship_parts', text: '宇宙飞船部件' },
+            { value: 'nuclear_waste', text: '核废料' },
             { value: 'stunt_jumps', text: '特技跳跃点' },
             { value: 'spray', text: '喷罐位置' },
             { value: 'ld_organics_products', text: '有机坊产品' },
@@ -5902,6 +5912,26 @@
                             name: `信件残片 ${index + 1}`
                         }));
                         console.log('信件残片数据加载成功，共', itemData.letter_scraps.length, '个位置');
+                    }
+                    
+                    // 加载spaceship_parts数据
+                    if (cardsData.spaceship_parts) {
+                        itemData.spaceship_parts = cardsData.spaceship_parts.map((item, index) => ({
+                            x: item.x,
+                            y: item.y,
+                            name: `宇宙飞船部件 ${index + 1}`
+                        }));
+                        console.log('宇宙飞船部件数据加载成功，共', itemData.spaceship_parts.length, '个位置');
+                    }
+                    
+                    // 加载nuclear_waste数据
+                    if (cardsData.nuclear_waste) {
+                        itemData.nuclear_waste = cardsData.nuclear_waste.map((item, index) => ({
+                            x: item.x,
+                            y: item.y,
+                            name: `核废料 ${index + 1}`
+                        }));
+                        console.log('核废料数据加载成功，共', itemData.nuclear_waste.length, '个位置');
                     }
                     
                     // 加载其他物品数据
@@ -7830,6 +7860,16 @@
                     if (!window.letterScrapsMarkers) window.letterScrapsMarkers = [];
                     window.letterScrapsMarkers[index] = marker;
                 }
+                // 记录 spaceship_parts 标记以便弹窗隐藏/显示控制
+                else if (type === 'spaceship_parts') {
+                    if (!window.spaceshipPartsMarkers) window.spaceshipPartsMarkers = [];
+                    window.spaceshipPartsMarkers[index] = marker;
+                }
+                // 记录 nuclear_waste 标记以便弹窗隐藏/显示控制
+                else if (type === 'nuclear_waste') {
+                    if (!window.nuclearWasteMarkers) window.nuclearWasteMarkers = [];
+                    window.nuclearWasteMarkers[index] = marker;
+                }
                 // 记录 skydives 标记以便弹窗隐藏/显示控制
                 else if (type === 'skydives') {
                     if (!window.skydivesMarkers) window.skydivesMarkers = [];
@@ -7957,9 +7997,17 @@
                 else if (type === 'playing_cards') {
                     showPlayingCardsImage(index);
                 }
-                // 特殊处理信件残片，显示图片弹窗
+                // 特殊处理残缺信件，显示图片弹窗
                 else if (type === 'letter_scraps') {
                     showLetterScrapsImage(index);
+                }
+                // 特殊处理宇宙飞船部件，显示图片弹窗
+                else if (type === 'spaceship_parts') {
+                    showSpaceshipPartsImage(index);
+                }
+                // 特殊处理核废料，显示图片弹窗
+                else if (type === 'nuclear_waste') {
+                    showNuclearWasteImage(index);
                 }
                 // 特殊处理吞云吐雾馆产品，显示图片弹窗
                 else if (type === 'smoke_on_the_water_product') {
@@ -8180,7 +8228,7 @@
             // 有计数器的标记需要保持状态，不清除：
             // - streetDealersMarkers (街头毒贩)
             // - playingCardsMarkers (纸牌)
-            // - letterScrapsMarkers (信件残片)
+            // - letterScrapsMarkers (残缺信件)
             // - yuanbaoMarkers (元宝)
             // - pplMarkers (陆地迷幻仙人掌)
             // - ppwMarkers (水下迷幻仙人掌)
@@ -8778,6 +8826,7 @@
             try { applyActionFiguresVisibilityCache(); } catch (e) {}
             try { applyPlayingCardsVisibilityCache(); } catch (e) {}
             try { applyLetterScrapsVisibilityCache(); } catch (e) {}
+            try { applySpaceshipPartsVisibilityCache(); } catch (e) {}
             try { applyOrganicFarmVisibilityCache(); } catch (e) {}
             try { applySkydivesVisibilityCache(); } catch (e) {}
             try { applyJackOLanternsVisibilityCache(); } catch (e) {}
@@ -11068,7 +11117,7 @@
             document.body.appendChild(popup);
         }
 
-        // ==================== 增强版信件残片模板（集成缓存） ====================
+        // ==================== 增强版残缺信件模板（集成缓存） ====================
         
         // 创建侧边栏条目时，为 letter_scraps 增加一个计数器占位
         function attachLetterScrapsCounterToLabel(sidebarCheckboxId) {
@@ -11094,7 +11143,7 @@
                 const counterEl = document.querySelector('#sidebar-item-letter_scraps + label .letter-scraps-counter');
                 if (!counterEl) return;
 
-                // 获取信件残片标记
+                // 获取残缺信件标记
                 const markers = (window.letterScrapsMarkers && window.letterScrapsMarkers) || [];
                 let total = 0;
                 let hidden = 0;
@@ -11121,11 +11170,11 @@
                 CounterCache.updateCounter('letter_scraps', hidden, total);
                 counterEl.textContent = total > 0 ? ` (${hidden}/${total})` : '';
             } catch (e) {
-                console.warn('更新信件残片计数器失败:', e);
+                console.warn('更新残缺信件计数器失败:', e);
             }
         }
 
-        // 信件残片弹窗模板（含隐藏/显示联动与计数器、缓存集成）
+        // 残缺信件弹窗模板（含隐藏/显示联动与计数器、缓存集成）
         function showLetterScrapsImage(index) {
             // 序号从1开始
             const sequenceNumber = index + 1;
@@ -11154,7 +11203,7 @@
                 isCurrentHidden = el && el.style.opacity === '0.3';
             }
 
-            const title = `📜 信件残片 #${sequenceNumber} (${hiddenCount}/${totalCount})`;
+            const title = `📜 残缺信件 #${sequenceNumber} (${hiddenCount}/${totalCount})`;
 
             // 构建弹窗
             const popup = document.createElement('div');
@@ -11179,15 +11228,15 @@
                     <h3 style="color: var(--gta-primary); font-size: 18px; margin: 0; font-weight: bold;">${title}</h3>
                     <span class="popup-close" style="position: absolute; top: 0; right: 0; color: var(--gta-text-secondary); font-size: 20px; cursor: pointer; transition: color 0.3s ease;">×</span>
                 </div>
-                <img src="${imageUrl}" alt="信件残片 #${sequenceNumber}" style="max-width: 100%; height: auto; border-radius: 6px; margin: 8px 0; display: block; cursor: zoom-in;"/>
+                <img src="${imageUrl}" alt="残缺信件 #${sequenceNumber}" style="max-width: 100%; height: auto; border-radius: 6px; margin: 8px 0; display: block; cursor: zoom-in;"/>
                 <div style="margin: 10px 0; padding: 10px; background: rgba(156, 39, 176, 0.1); border-radius: 8px; color: var(--gta-text); font-size: 14px; line-height: 1.6;">
                     可在上图位置找到！
                 </div>
                 <div style="margin: 10px 0; padding: 10px; background: rgba(156, 39, 176, 0.1); border-radius: 8px; color: var(--gta-text); font-size: 14px; line-height: 1.6;">
                     <div style="font-weight: bold; color: #7B1FA2; margin-bottom: 5px;">🎯 收集奖励</div>
-                    游戏中总共有 50 个信件残片。要收集这些信件，您必须完成主线任务有借有还。<br>
-                    每个角色都可以拾取残片。小查还可以帮助富兰克林找到它附近的残片。收集所有 50 个信件残片是 100% 完成度的要求之一。<br><br>
-                    集齐信件残片，揭示女演员里奥诺拉·约翰逊谋杀案的真相。您将解锁陌生人与怪咖任务好麦坞明日之星（富兰克林）。完成后，您将获得一个成就。完成此任务是 100% 完成度的要求之一。
+                    游戏中总共有 50 个残缺信件。要收集这些信件，您必须完成主线任务有借有还。<br>
+                    每个角色都可以拾取残片。小查还可以帮助富兰克林找到它附近的残片。收集所有 50 个残缺信件是 100% 完成度的要求之一。<br><br>
+                    集齐残缺信件，揭示女演员里奥诺拉·约翰逊谋杀案的真相。您将解锁陌生人与怪咖任务好麦坞明日之星（富兰克林）。完成后，您将获得一个成就。完成此任务是 100% 完成度的要求之一。
                 </div>
                 <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
                     <button id="hide-letter-scraps-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease; display: ${isCurrentHidden ? 'none' : 'inline-block'};">隐藏</button>
@@ -11257,7 +11306,7 @@
                 hideBtn.addEventListener('click', () => {
                     setCurrentMarkerVisibility(0.3);
                     const newHiddenCount = hiddenCount + (isCurrentHidden ? 0 : 1);
-                    titleElement.textContent = `📜 信件残片 #${sequenceNumber} (${newHiddenCount}/${totalCount})`;
+                    titleElement.textContent = `📜 残缺信件 #${sequenceNumber} (${newHiddenCount}/${totalCount})`;
                     hideBtn.style.display = 'none';
                     showBtn.style.display = 'inline-block';
                     isCurrentHidden = true;
@@ -11272,7 +11321,7 @@
                 showBtn.addEventListener('click', () => {
                     setCurrentMarkerVisibility(1);
                     const newHiddenCount = hiddenCount - (isCurrentHidden ? 1 : 0);
-                    titleElement.textContent = `📜 信件残片 #${sequenceNumber} (${newHiddenCount}/${totalCount})`;
+                    titleElement.textContent = `📜 残缺信件 #${sequenceNumber} (${newHiddenCount}/${totalCount})`;
                     showBtn.style.display = 'none';
                     hideBtn.style.display = 'inline-block';
                     isCurrentHidden = false;
@@ -11285,7 +11334,7 @@
             document.body.appendChild(popup);
         }
 
-        // 应用缓存的可见性状态到信件残片标记
+        // 应用缓存的可见性状态到残缺信件标记
         function applyLetterScrapsVisibilityCache() {
             const markers = (window.letterScrapsMarkers && window.letterScrapsMarkers) || [];
             if (markers.length > 0) {
@@ -11300,7 +11349,252 @@
                         }
                     }
                 });
-                console.log('已应用信件残片可见性缓存');
+                console.log('已应用残缺信件可见性缓存');
+                return true;
+            }
+            return false;
+        }
+
+        // ==================== 增强版宇宙飞船部件模板（集成缓存） ====================
+        
+        // 创建侧边栏条目时，为 spaceship_parts 增加一个计数器占位
+        function attachSpaceshipPartsCounterToLabel(sidebarCheckboxId) {
+            const label = document.querySelector(`#${sidebarCheckboxId} + label`);
+            if (!label) return;
+
+            let counter = label.querySelector('.spaceship-parts-counter');
+            if (!counter) {
+                counter = document.createElement('span');
+                counter.className = 'spaceship-parts-counter';
+                counter.style.marginLeft = '6px';
+                counter.style.color = 'var(--gta-text-secondary)';
+                label.appendChild(counter);
+            }
+
+            // 初次渲染计数
+            updateSpaceshipPartsSidebarCount();
+        }
+
+        // 统计隐藏/总数，并更新侧边栏计数器文本（集成缓存）
+        function updateSpaceshipPartsSidebarCount() {
+            try {
+                const counterEl = document.querySelector('#sidebar-item-spaceship_parts + label .spaceship-parts-counter');
+                if (!counterEl) return;
+
+                // 获取宇宙飞船部件标记
+                const markers = (window.spaceshipPartsMarkers && window.spaceshipPartsMarkers) || [];
+                let total = 0;
+                let hidden = 0;
+
+                if (Array.isArray(markers) && markers.length > 0) {
+                    total = markers.length;
+                    markers.forEach((marker) => {
+                        if (marker && typeof marker.getElement === 'function') {
+                            const el = marker.getElement();
+                            if (el && el.style.opacity === '0.3') {
+                                hidden++;
+                            }
+                        }
+                    });
+                } else {
+                    // 回退：仅有数据尚未渲染 Leaflet 标记时
+                    total = Array.isArray(window.itemData?.spaceship_parts) ? window.itemData.spaceship_parts.length : 0;
+                    // 从缓存中获取隐藏数量
+                    const cachedCounter = CounterCache.getCounter('spaceship_parts');
+                    hidden = cachedCounter.hidden || 0;
+                }
+
+                // 更新缓存
+                CounterCache.updateCounter('spaceship_parts', hidden, total);
+                counterEl.textContent = total > 0 ? ` (${hidden}/${total})` : '';
+            } catch (e) {
+                console.warn('更新宇宙飞船部件计数器失败:', e);
+            }
+        }
+
+        // 宇宙飞船部件弹窗模板（含隐藏/显示联动与计数器、缓存集成）
+        function showSpaceshipPartsImage(index) {
+            // 序号从1开始
+            const sequenceNumber = index + 1;
+            const imageUrl = `https://gta-maps.antwen.com/collectibles_images/spaceship_parts/spaceship_parts_${sequenceNumber}.webp`;
+            
+            // 关闭已存在的弹窗
+            const existingPopup = document.querySelector('.spaceship-parts-popup');
+            if (existingPopup) existingPopup.remove();
+
+            // 统计隐藏/总数
+            const markers = (window.spaceshipPartsMarkers && window.spaceshipPartsMarkers) || [];
+            const totalCount = markers.length;
+
+            let hiddenCount = 0;
+            markers.forEach((marker) => {
+                if (marker && typeof marker.getElement === 'function') {
+                    const el = marker.getElement();
+                    if (el && el.style.opacity === '0.3') hiddenCount++;
+                }
+            });
+
+            const currentMarker = markers[index];
+            let isCurrentHidden = false;
+            if (currentMarker && typeof currentMarker.getElement === 'function') {
+                const el = currentMarker.getElement();
+                isCurrentHidden = el && el.style.opacity === '0.3';
+            }
+
+            const title = `🛸 宇宙飞船部件 #${sequenceNumber} (${hiddenCount}/${totalCount})`;
+
+            // 构建弹窗
+            const popup = document.createElement('div');
+            popup.className = 'spaceship-parts-popup';
+            popup.style.cssText = `
+                position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+                background: var(--gta-bg-medium);
+                border: 1px solid var(--gta-border);
+                border-radius: 8px;
+                box-shadow: 0 2px 15px rgba(0,0,0,0.5);
+                padding: 15px;
+                z-index: 10000;
+                width: min(92vw, 520px);
+                max-height: 80vh;
+                color: var(--gta-text);
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                overflow-y: auto;
+            `;
+
+            popup.innerHTML = `
+                <div class="popup-header" style="position: relative; margin-bottom: 14px;">
+                    <h3 style="color: var(--gta-primary); font-size: 18px; margin: 0; font-weight: bold;">${title}</h3>
+                    <span class="popup-close" style="position: absolute; top: 0; right: 0; color: var(--gta-text-secondary); font-size: 20px; cursor: pointer; transition: color 0.3s ease;">×</span>
+                </div>
+                <img src="${imageUrl}" alt="宇宙飞船部件 #${sequenceNumber}" style="max-width: 100%; height: auto; border-radius: 6px; margin: 8px 0; display: block; cursor: zoom-in;"/>
+                <div style="margin: 10px 0; padding: 10px; background: rgba(156, 39, 176, 0.1); border-radius: 8px; color: var(--gta-text); font-size: 14px; line-height: 1.6;">
+                    可在上图位置找到！
+                </div>
+                <div style="margin: 10px 0; padding: 10px; background: rgba(156, 39, 176, 0.1); border-radius: 8px; color: var(--gta-text); font-size: 14px; line-height: 1.6;">
+                    <div style="font-weight: bold; color: #7B1FA2; margin-bottom: 5px;">🎯 收集奖励</div>
+                    游戏中总共有 50 个宇宙飞船部件，要收集这些部件，您必须完成陌生人与怪咖任务有朋自远方来（富兰克林）。<br>
+                    每个角色都可以拾取部件。小查还可以帮助富兰克林找到它附近的部件。收集所有 50 个宇宙飞船部件是 100% 完成度的要求之一。<br><br>
+                    收集所有宇宙飞船碎片，您将解锁陌生人与怪咖任务冲向外太空（富兰克林）。完成此任务将解锁一个成就，以及载具太空码头工。此载具会在任意角色车库中的特殊载具菜单中解锁。完成此任务是 100% 完成度的要求之一。
+                </div>
+                <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
+                    <button id="hide-spaceship-parts-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease; display: ${isCurrentHidden ? 'none' : 'inline-block'};">隐藏</button>
+                    <button id="show-spaceship-parts-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease; display: ${isCurrentHidden ? 'inline-block' : 'none'};">显示</button>
+                    <button id="close-spaceship-parts-btn" style="padding: 8px 16px; background: var(--gta-primary); color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease;">关闭</button>
+                </div>
+            `;
+
+            // 绑定元素
+            const closeBtn = popup.querySelector('#close-spaceship-parts-btn');
+            const hideBtn = popup.querySelector('#hide-spaceship-parts-btn');
+            const showBtn = popup.querySelector('#show-spaceship-parts-btn');
+            const popupClose = popup.querySelector('.popup-close');
+            const titleElement = popup.querySelector('h3');
+
+            // 关闭弹窗
+            const removePopup = () => popup.remove();
+            closeBtn.addEventListener('click', removePopup);
+            popupClose.addEventListener('click', removePopup);
+            popup.addEventListener('click', (e) => e.stopPropagation());
+            setTimeout(() => {
+                const closePopupHandler = (e) => {
+                    if (!popup.contains(e.target)) {
+                        removePopup();
+                        document.removeEventListener('click', closePopupHandler);
+                    }
+                };
+                document.addEventListener('click', closePopupHandler);
+            }, 50);
+
+            // 图片点击放大
+            const popupImage = popup.querySelector('img');
+            if (popupImage) {
+                popupImage.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const overlay = document.createElement('div');
+                    overlay.className = 'spaceship-parts-image-overlay';
+                    overlay.style.cssText = `
+                        position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+                        display: flex; align-items: center; justify-content: center;
+                        z-index: 10002; cursor: zoom-out;
+                    `;
+                    const bigImg = document.createElement('img');
+                    bigImg.src = popupImage.src;
+                    bigImg.alt = popupImage.alt || '';
+                    bigImg.style.cssText = `max-width: 95vw; max-height: 95vh; border-radius: 6px; box-shadow: 0 4px 24px rgba(0,0,0,0.6);`;
+                    overlay.appendChild(bigImg);
+
+                    const removeOverlay = () => {
+                        document.removeEventListener('keydown', onKey);
+                        overlay.remove();
+                    };
+                    const onKey = (ev) => { if (ev.key === 'Escape') removeOverlay(); };
+                    overlay.addEventListener('click', removeOverlay);
+                    document.addEventListener('keydown', onKey);
+                    document.body.appendChild(overlay);
+                });
+            }
+
+            // 工具：隐藏/显示当前标记
+            function setCurrentMarkerVisibility(opacity) {
+                if (currentMarker && typeof currentMarker.setOpacity === 'function') {
+                    currentMarker.setOpacity(opacity);
+                } else if (currentMarker && typeof currentMarker.setStyle === 'function') {
+                    currentMarker.setStyle({ opacity });
+                }
+                
+                // 更新缓存
+                VisibilityCache.updateItemVisibility('spaceship_parts', index, opacity === 0.3);
+            }
+
+            // 隐藏按钮
+            if (hideBtn) {
+                hideBtn.addEventListener('click', () => {
+                    setCurrentMarkerVisibility(0.3);
+                    const newHiddenCount = hiddenCount + (isCurrentHidden ? 0 : 1);
+                    titleElement.textContent = `🛸 宇宙飞船部件 #${sequenceNumber} (${newHiddenCount}/${totalCount})`;
+                    hideBtn.style.display = 'none';
+                    showBtn.style.display = 'inline-block';
+                    isCurrentHidden = true;
+
+                    // 刷新侧边栏计数
+                    updateSpaceshipPartsSidebarCount();
+                });
+            }
+
+            // 显示按钮
+            if (showBtn) {
+                showBtn.addEventListener('click', () => {
+                    setCurrentMarkerVisibility(1);
+                    const newHiddenCount = hiddenCount - (isCurrentHidden ? 1 : 0);
+                    titleElement.textContent = `🛸 宇宙飞船部件 #${sequenceNumber} (${newHiddenCount}/${totalCount})`;
+                    showBtn.style.display = 'none';
+                    hideBtn.style.display = 'inline-block';
+                    isCurrentHidden = false;
+
+                    // 刷新侧边栏计数
+                    updateSpaceshipPartsSidebarCount();
+                });
+            }
+
+            document.body.appendChild(popup);
+        }
+
+        // 应用缓存的可见性状态到宇宙飞船部件标记
+        function applySpaceshipPartsVisibilityCache() {
+            const markers = (window.spaceshipPartsMarkers && window.spaceshipPartsMarkers) || [];
+            if (markers.length > 0) {
+                const visibilityMap = VisibilityCache.loadVisibility('spaceship_parts');
+                markers.forEach((marker, index) => {
+                    const isHidden = visibilityMap[index];
+                    if (isHidden && marker) {
+                        if (typeof marker.setOpacity === 'function') {
+                            marker.setOpacity(0.3);
+                        } else if (typeof marker.setStyle === 'function') {
+                            marker.setStyle({ opacity: 0.3 });
+                        }
+                    }
+                });
+                console.log('已应用宇宙飞船部件可见性缓存');
                 return true;
             }
             return false;
@@ -18327,7 +18621,9 @@
                         'ppw'
                     ],
                     '线下收集品': [
-                        'letter_scraps'
+                        'letter_scraps',
+                        'spaceship_parts',
+                        'nuclear_waste'
                     ],
                     '地点与服务': [
                         'golf_holes',
@@ -18589,7 +18885,7 @@
                         // 初始渲染一次
                         try { updatePlayingCardsSidebarCount(); } catch(e) {}
                     }
-                    // 信件残片计数器
+                    // 残缺信件计数器
                     else if (type === 'letter_scraps') {
                         const counter = document.createElement('span');
                         counter.className = 'letter-scraps-counter';
@@ -18599,6 +18895,28 @@
                         label.appendChild(counter);
                         // 初始渲染一次
                         try { updateLetterScrapsSidebarCount(); } catch(e) {}
+                    }
+                    // 宇宙飞船部件计数器
+                    else if (type === 'spaceship_parts') {
+                        const counter = document.createElement('span');
+                        counter.className = 'spaceship-parts-counter';
+                        counter.style.marginLeft = '6px';
+                        counter.style.color = 'var(--gta-text-secondary)';
+                        counter.textContent = '';
+                        label.appendChild(counter);
+                        // 初始渲染一次
+                        try { updateSpaceshipPartsSidebarCount(); } catch(e) {}
+                    }
+                    // 核废料计数器
+                    else if (type === 'nuclear_waste') {
+                        const counter = document.createElement('span');
+                        counter.className = 'nuclear-waste-counter';
+                        counter.style.marginLeft = '6px';
+                        counter.style.color = 'var(--gta-text-secondary)';
+                        counter.textContent = '';
+                        label.appendChild(counter);
+                        // 初始渲染一次
+                        try { updateNuclearWasteSidebarCount(); } catch(e) {}
                     }
                     // 喷灌位置计数器
                     else if (type === 'spray') {
@@ -18849,6 +19167,14 @@
                         if (t === 'playing_cards') {
                             try { updatePlayingCardsSidebarCount(); } catch(e) {}
                         }
+                        // 残缺信件计数器
+                        if (t === 'letter_scraps') {
+                            try { updateLetterScrapsSidebarCount(); } catch(e) {}
+                        }
+                        // 宇宙飞船部件计数器
+                        if (t === 'spaceship_parts') {
+                            try { updateSpaceshipPartsSidebarCount(); } catch(e) {}
+                        }
                         // 南瓜灯计数器
                         if (t === 'jack_o_lanterns') {
                             try { updateJackOLanternsSidebarCount(); } catch(e) {}
@@ -18973,6 +19299,8 @@
                     try { updateSignalJammersSidebarCount(); } catch(e) {}
                     try { updateActionFiguresSidebarCount(); } catch(e) {}
                     try { updatePlayingCardsSidebarCount(); } catch(e) {}
+                    try { updateLetterScrapsSidebarCount(); } catch(e) {}
+                    try { updateSpaceshipPartsSidebarCount(); } catch(e) {}
                     try { updateSpraySidebarCount(); } catch(e) {}
                     try { updateOrganicFarmSidebarCount(); } catch(e) {}
                     try { updateSkydivesSidebarCount(); } catch(e) {}
@@ -19293,6 +19621,251 @@
                 }
             }, { passive: false });
         })();
+
+        // ==================== 增强版核废料模板（集成缓存） ====================
+        
+        // 创建侧边栏条目时，为 nuclear_waste 增加一个计数器占位
+        function attachNuclearWasteCounterToLabel(sidebarCheckboxId) {
+            const label = document.querySelector(`#${sidebarCheckboxId} + label`);
+            if (!label) return;
+
+            let counter = label.querySelector('.nuclear-waste-counter');
+            if (!counter) {
+                counter = document.createElement('span');
+                counter.className = 'nuclear-waste-counter';
+                counter.style.marginLeft = '6px';
+                counter.style.color = 'var(--gta-text-secondary)';
+                label.appendChild(counter);
+            }
+
+            // 初次渲染计数
+            updateNuclearWasteSidebarCount();
+        }
+
+        // 统计隐藏/总数，并更新侧边栏计数器文本（集成缓存）
+        function updateNuclearWasteSidebarCount() {
+            try {
+                const counterEl = document.querySelector('#sidebar-item-nuclear_waste + label .nuclear-waste-counter');
+                if (!counterEl) return;
+
+                // 获取核废料标记
+                const markers = (window.nuclearWasteMarkers && window.nuclearWasteMarkers) || [];
+                let total = 0;
+                let hidden = 0;
+
+                if (Array.isArray(markers) && markers.length > 0) {
+                    total = markers.length;
+                    markers.forEach((marker) => {
+                        if (marker && typeof marker.getElement === 'function') {
+                            const el = marker.getElement();
+                            if (el && el.style.opacity === '0.3') {
+                                hidden++;
+                            }
+                        }
+                    });
+                } else {
+                    // 回退：仅有数据尚未渲染 Leaflet 标记时
+                    total = Array.isArray(window.itemData?.nuclear_waste) ? window.itemData.nuclear_waste.length : 0;
+                    // 从缓存中获取隐藏数量
+                    const cachedCounter = CounterCache.getCounter('nuclear_waste');
+                    hidden = cachedCounter.hidden || 0;
+                }
+
+                // 更新缓存
+                CounterCache.updateCounter('nuclear_waste', hidden, total);
+                counterEl.textContent = total > 0 ? ` (${hidden}/${total})` : '';
+            } catch (e) {
+                console.warn('更新核废料计数器失败:', e);
+            }
+        }
+
+        // 核废料弹窗模板（含隐藏/显示联动与计数器、缓存集成）
+        function showNuclearWasteImage(index) {
+            // 序号从1开始
+            const sequenceNumber = index + 1;
+            const imageUrl = `https://gta-maps.antwen.com/collectibles_images/nuclear_waste/nuclear_waste_${sequenceNumber}.webp`;
+            
+            // 关闭已存在的弹窗
+            const existingPopup = document.querySelector('.nuclear-waste-popup');
+            if (existingPopup) existingPopup.remove();
+
+            // 统计隐藏/总数
+            const markers = (window.nuclearWasteMarkers && window.nuclearWasteMarkers) || [];
+            const totalCount = markers.length;
+
+            let hiddenCount = 0;
+            markers.forEach((marker) => {
+                if (marker && typeof marker.getElement === 'function') {
+                    const el = marker.getElement();
+                    if (el && el.style.opacity === '0.3') hiddenCount++;
+                }
+            });
+
+            const currentMarker = markers[index];
+            let isCurrentHidden = false;
+            if (currentMarker && typeof currentMarker.getElement === 'function') {
+                const el = currentMarker.getElement();
+                isCurrentHidden = el && el.style.opacity === '0.3';
+            }
+
+            const title = `☢️ 核废料 #${sequenceNumber} (${hiddenCount}/${totalCount})`;
+
+            // 构建弹窗
+            const popup = document.createElement('div');
+            popup.className = 'nuclear-waste-popup';
+            popup.style.cssText = `
+                position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+                background: var(--gta-bg-medium);
+                border: 1px solid var(--gta-border);
+                border-radius: 8px;
+                box-shadow: 0 2px 15px rgba(0,0,0,0.5);
+                padding: 15px;
+                z-index: 10000;
+                width: min(92vw, 520px);
+                max-height: 80vh;
+                color: var(--gta-text);
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                overflow-y: auto;
+            `;
+
+            popup.innerHTML = `
+                <div class="popup-header" style="position: relative; margin-bottom: 14px;">
+                    <h3 style="color: var(--gta-primary); font-size: 18px; margin: 0; font-weight: bold;">${title}</h3>
+                    <span class="popup-close" style="position: absolute; top: 0; right: 0; color: var(--gta-text-secondary); font-size: 20px; cursor: pointer; transition: color 0.3s ease;">×</span>
+                </div>
+                <img src="${imageUrl}" alt="核废料 #${sequenceNumber}" style="max-width: 100%; height: auto; border-radius: 6px; margin: 8px 0; display: block; cursor: zoom-in;"/>
+                <div style="margin: 10px 0; padding: 10px; background: rgba(156, 39, 176, 0.1); border-radius: 8px; color: var(--gta-text); font-size: 14px; line-height: 1.6;">
+                    可在上图位置找到！
+                </div>
+                <div style="margin: 10px 0; padding: 10px; background: rgba(156, 39, 176, 0.1); border-radius: 8px; color: var(--gta-text); font-size: 14px; line-height: 1.6;">
+                    <div style="font-weight: bold; color: #7B1FA2; margin-bottom: 5px;">🎯 收集奖励</div>
+                    总共有 30 个核废料桶，要想收集这些核废料，您必须完成主线任务 抢劫梅利威瑟，并用任意角色购买 声呐打捞码头 (250.000 GTA$)。<br>
+                    每个角色都可以拾取核废料桶，但只有拥有码头的角色才可以获得现金奖励。您可以使用购买码头附赠的 潜水艇/海怪。驾驶该载具时，您可以使用 Trackify APP，它可以指示核废料的位置。此外，有些核废料桶的位置确实很深。<br><br>
+                    每个核废料的奖励是 23.000 GTA$ ，完成该收集将获得 250.000 GTA$ 和一个成就。
+                </div>
+                <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
+                    <button id="hide-nuclear-waste-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease; display: ${isCurrentHidden ? 'none' : 'inline-block'};">隐藏</button>
+                    <button id="show-nuclear-waste-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease; display: ${isCurrentHidden ? 'inline-block' : 'none'};">显示</button>
+                    <button id="close-nuclear-waste-btn" style="padding: 8px 16px; background: var(--gta-primary); color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease;">关闭</button>
+                </div>
+            `;
+
+            // 绑定元素
+            const closeBtn = popup.querySelector('#close-nuclear-waste-btn');
+            const hideBtn = popup.querySelector('#hide-nuclear-waste-btn');
+            const showBtn = popup.querySelector('#show-nuclear-waste-btn');
+            const popupClose = popup.querySelector('.popup-close');
+            const titleElement = popup.querySelector('h3');
+
+            // 关闭弹窗
+            const removePopup = () => popup.remove();
+            closeBtn.addEventListener('click', removePopup);
+            popupClose.addEventListener('click', removePopup);
+            popup.addEventListener('click', (e) => e.stopPropagation());
+            setTimeout(() => {
+                const closePopupHandler = (e) => {
+                    if (!popup.contains(e.target)) {
+                        removePopup();
+                        document.removeEventListener('click', closePopupHandler);
+                    }
+                };
+                document.addEventListener('click', closePopupHandler);
+            }, 50);
+
+            // 图片点击放大
+            const popupImage = popup.querySelector('img');
+            if (popupImage) {
+                popupImage.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const overlay = document.createElement('div');
+                    overlay.className = 'nuclear-waste-image-overlay';
+                    overlay.style.cssText = `
+                        position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+                        display: flex; align-items: center; justify-content: center;
+                        z-index: 10002; cursor: zoom-out;
+                    `;
+                    const bigImg = document.createElement('img');
+                    bigImg.src = popupImage.src;
+                    bigImg.alt = popupImage.alt || '';
+                    bigImg.style.cssText = `max-width: 95vw; max-height: 95vh; border-radius: 6px; box-shadow: 0 4px 24px rgba(0,0,0,0.6);`;
+                    overlay.appendChild(bigImg);
+
+                    const removeOverlay = () => {
+                        document.removeEventListener('keydown', onKey);
+                        overlay.remove();
+                    };
+                    const onKey = (ev) => { if (ev.key === 'Escape') removeOverlay(); };
+                    overlay.addEventListener('click', removeOverlay);
+                    document.addEventListener('keydown', onKey);
+                    document.body.appendChild(overlay);
+                });
+            }
+
+            // 工具：隐藏/显示当前标记
+            function setCurrentMarkerVisibility(opacity) {
+                if (currentMarker && typeof currentMarker.setOpacity === 'function') {
+                    currentMarker.setOpacity(opacity);
+                } else if (currentMarker && typeof currentMarker.setStyle === 'function') {
+                    currentMarker.setStyle({ opacity });
+                }
+                
+                // 更新缓存
+                VisibilityCache.updateItemVisibility('nuclear_waste', index, opacity === 0.3);
+            }
+
+            // 隐藏按钮
+            if (hideBtn) {
+                hideBtn.addEventListener('click', () => {
+                    setCurrentMarkerVisibility(0.3);
+                    const newHiddenCount = hiddenCount + (isCurrentHidden ? 0 : 1);
+                    titleElement.textContent = `☢️ 核废料 #${sequenceNumber} (${newHiddenCount}/${totalCount})`;
+                    hideBtn.style.display = 'none';
+                    showBtn.style.display = 'inline-block';
+                    isCurrentHidden = true;
+
+                    // 刷新侧边栏计数
+                    updateNuclearWasteSidebarCount();
+                });
+            }
+
+            // 显示按钮
+            if (showBtn) {
+                showBtn.addEventListener('click', () => {
+                    setCurrentMarkerVisibility(1);
+                    const newHiddenCount = hiddenCount - (isCurrentHidden ? 1 : 0);
+                    titleElement.textContent = `☢️ 核废料 #${sequenceNumber} (${newHiddenCount}/${totalCount})`;
+                    showBtn.style.display = 'none';
+                    hideBtn.style.display = 'inline-block';
+                    isCurrentHidden = false;
+
+                    // 刷新侧边栏计数
+                    updateNuclearWasteSidebarCount();
+                });
+            }
+
+            document.body.appendChild(popup);
+        }
+
+        // 应用缓存的可见性状态到核废料标记
+        function applyNuclearWasteVisibilityCache() {
+            const markers = (window.nuclearWasteMarkers && window.nuclearWasteMarkers) || [];
+            if (markers.length > 0) {
+                const visibilityMap = VisibilityCache.loadVisibility('nuclear_waste');
+                markers.forEach((marker, index) => {
+                    const isHidden = visibilityMap[index];
+                    if (isHidden && marker) {
+                        if (typeof marker.setOpacity === 'function') {
+                            marker.setOpacity(0.3);
+                        } else if (typeof marker.setStyle === 'function') {
+                            marker.setStyle({ opacity: 0.3 });
+                        }
+                    }
+                });
+                console.log('已应用核废料可见性缓存');
+                return true;
+            }
+            return false;
+        }
     </script>
 
 </body>

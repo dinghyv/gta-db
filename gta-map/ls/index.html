@@ -2563,26 +2563,25 @@
 
                 // 获取UFO观光标记
                 const markers = (window.ufoMarkers && window.ufoMarkers) || [];
-                let total = 0;
+                const total = Array.isArray(window.itemData?.ufo) ? window.itemData.ufo.length : 0;
                 let hidden = 0;
 
+                let hasRenderedMarker = false;
                 if (Array.isArray(markers) && markers.length > 0) {
-                    total = markers.length;
-                    markers.forEach((marker) => {
+                    for (const marker of markers) {
                         if (marker && typeof marker.getElement === 'function') {
                             const el = marker.getElement();
-                            if (el && el.style.opacity === '0.3') {
-                                hidden++;
+                            if (el) {
+                                hasRenderedMarker = true;
+                                if (el.style.opacity === '0.3') hidden++;
                             }
                         }
-                    });
-                } else {
-                    // 回退：仅有数据尚未渲染 Leaflet 标记时
-                    total = Array.isArray(window.itemData?.ufo) ? window.itemData.ufo.length : 0;
-                    // 从缓存中获取隐藏数量
-                    const cachedCounter = CounterCache.getCounter('ufo');
-                    hidden = cachedCounter.hidden || 0;
+                    }
                 }
+
+                // 合并缓存，避免重新显示后计数被清零
+                const cachedCounter = CounterCache.getCounter('ufo');
+                hidden = Math.max(hidden, cachedCounter.hidden || 0);
 
                 // 更新缓存
                 CounterCache.updateCounter('ufo', hidden, total);
@@ -2961,24 +2960,25 @@
                 if (!counterEl) return;
 
                 const markers = (window.jackOLanternMarkers && window.jackOLanternMarkers) || [];
-                let total = 0;
+                const total = Array.isArray(window.itemData?.jack_o_lanterns) ? window.itemData.jack_o_lanterns.length : 0;
                 let hidden = 0;
 
-                // 总数以物品总数为准
-                total = Array.isArray(window.itemData?.jack_o_lanterns) ? window.itemData.jack_o_lanterns.length : 0;
-
+                let hasRenderedMarker = false;
                 if (Array.isArray(markers) && markers.length > 0) {
-                    markers.forEach((marker) => {
+                    for (const marker of markers) {
                         if (marker && typeof marker.getElement === 'function') {
                             const el = marker.getElement();
-                            if (el && el.style.opacity === '0.3') hidden++;
+                            if (el) {
+                                hasRenderedMarker = true;
+                                if (el.style.opacity === '0.3') hidden++;
+                            }
                         }
-                    });
-                } else {
-                    // 从缓存中获取隐藏数量
-                    const cachedCounter = CounterCache.getCounter('jack_o_lanterns');
-                    hidden = cachedCounter.hidden || 0;
+                    }
                 }
+
+                // 合并缓存，避免重新显示后计数被清零
+                const cachedCounter = CounterCache.getCounter('jack_o_lanterns');
+                hidden = Math.max(hidden, cachedCounter.hidden || 0);
 
                 // 更新缓存
                 CounterCache.updateCounter('jack_o_lanterns', hidden, total);
@@ -3206,26 +3206,25 @@
 
                 // 获取雪人标记
                 const markers = (window.snowmenMarkers && window.snowmenMarkers) || [];
-                let total = 0;
+                const total = Array.isArray(window.itemData?.snowmen) ? window.itemData.snowmen.length : 0;
                 let hidden = 0;
 
+                let hasRenderedMarker = false;
                 if (Array.isArray(markers) && markers.length > 0) {
-                    total = markers.length;
-                    markers.forEach((marker) => {
+                    for (const marker of markers) {
                         if (marker && typeof marker.getElement === 'function') {
                             const el = marker.getElement();
-                            if (el && el.style.opacity === '0.3') {
-                                hidden++;
+                            if (el) {
+                                hasRenderedMarker = true;
+                                if (el.style.opacity === '0.3') hidden++;
                             }
                         }
-                    });
-                } else {
-                    // 回退：仅有数据尚未渲染 Leaflet 标记时
-                    total = Array.isArray(window.itemData?.snowmen) ? window.itemData.snowmen.length : 0;
-                    // 从缓存中获取隐藏数量
-                    const cachedCounter = CounterCache.getCounter('snowmen');
-                    hidden = cachedCounter.hidden || 0;
+                    }
                 }
+
+                // 合并缓存，避免重新显示后计数被清零
+                const cachedCounter = CounterCache.getCounter('snowmen');
+                hidden = Math.max(hidden, cachedCounter.hidden || 0);
 
                 // 更新缓存
                 CounterCache.updateCounter('snowmen', hidden, total);
@@ -11299,30 +11298,28 @@
                 const counterEl = document.querySelector('#sidebar-item-letter_scraps + label .letter-scraps-counter');
                 if (!counterEl) return;
 
-                // 获取残缺信件标记
                 const markers = (window.letterScrapsMarkers && window.letterScrapsMarkers) || [];
-                let total = 0;
+                const total = Array.isArray(window.itemData?.letter_scraps) ? window.itemData.letter_scraps.length : 0;
                 let hidden = 0;
 
+                let hasRenderedMarker = false;
                 if (Array.isArray(markers) && markers.length > 0) {
-                    total = markers.length;
-                    markers.forEach((marker) => {
+                    for (const marker of markers) {
                         if (marker && typeof marker.getElement === 'function') {
                             const el = marker.getElement();
-                            if (el && el.style.opacity === '0.3') {
-                                hidden++;
+                            if (el) {
+                                hasRenderedMarker = true;
+                                if (el.style.opacity === '0.3') hidden++;
                             }
                         }
-                    });
-                } else {
-                    // 回退：仅有数据尚未渲染 Leaflet 标记时
-                    total = Array.isArray(window.itemData?.letter_scraps) ? window.itemData.letter_scraps.length : 0;
-                    // 从缓存中获取隐藏数量
+                    }
+                }
+
+                if (!hasRenderedMarker) {
                     const cachedCounter = CounterCache.getCounter('letter_scraps');
                     hidden = cachedCounter.hidden || 0;
                 }
 
-                // 更新缓存
                 CounterCache.updateCounter('letter_scraps', hidden, total);
                 counterEl.textContent = total > 0 ? ` (${hidden}/${total})` : '';
             } catch (e) {
@@ -11539,26 +11536,25 @@
 
                 // 获取隐藏包裹标记
                 const markers = (window.spHiddenPackagesMarkers && window.spHiddenPackagesMarkers) || [];
-                let total = 0;
+                const total = Array.isArray(window.itemData?.sp_hidden_packages) ? window.itemData.sp_hidden_packages.length : 0;
                 let hidden = 0;
 
+                let hasRenderedMarker = false;
                 if (Array.isArray(markers) && markers.length > 0) {
-                    total = markers.length;
-                    markers.forEach((marker) => {
+                    for (const marker of markers) {
                         if (marker && typeof marker.getElement === 'function') {
                             const el = marker.getElement();
-                            if (el && el.style.opacity === '0.3') {
-                                hidden++;
+                            if (el) {
+                                hasRenderedMarker = true;
+                                if (el.style.opacity === '0.3') hidden++;
                             }
                         }
-                    });
-                } else {
-                    // 回退：仅有数据尚未渲染 Leaflet 标记时
-                    total = Array.isArray(window.itemData?.sp_hidden_packages) ? window.itemData.sp_hidden_packages.length : 0;
-                    // 从缓存中获取隐藏数量
-                    const cachedCounter = CounterCache.getCounter('sp_hidden_packages');
-                    hidden = cachedCounter.hidden || 0;
+                    }
                 }
+
+                // 与缓存合并，防止重新显示后隐藏计数被清零
+                const cachedCounter = CounterCache.getCounter('sp_hidden_packages');
+                hidden = Math.max(hidden, cachedCounter.hidden || 0);
 
                 // 更新缓存
                 CounterCache.updateCounter('sp_hidden_packages', hidden, total);
@@ -11901,6 +11897,9 @@
                     hideBtn.style.display = 'none';
                     showBtn.style.display = 'inline-block';
                     isCurrentHidden = true;
+
+                    // 刷新侧边栏计数
+                    updatePeyoteSpLandSidebarCount();
                 });
             }
 
@@ -11913,6 +11912,9 @@
                     showBtn.style.display = 'none';
                     hideBtn.style.display = 'inline-block';
                     isCurrentHidden = false;
+
+                    // 刷新侧边栏计数
+                    updatePeyoteSpLandSidebarCount();
                 });
             }
 
@@ -12056,6 +12058,9 @@
                     hideBtn.style.display = 'none';
                     showBtn.style.display = 'inline-block';
                     isCurrentHidden = true;
+
+                    // 刷新侧边栏计数
+                    updatePeyoteSpAirSidebarCount();
                 });
             }
 
@@ -12068,6 +12073,9 @@
                     showBtn.style.display = 'none';
                     hideBtn.style.display = 'inline-block';
                     isCurrentHidden = false;
+
+                    // 刷新侧边栏计数
+                    updatePeyoteSpAirSidebarCount();
                 });
             }
 
@@ -12211,6 +12219,9 @@
                     hideBtn.style.display = 'none';
                     showBtn.style.display = 'inline-block';
                     isCurrentHidden = true;
+
+                    // 刷新侧边栏计数
+                    updatePeyoteSpWaterSidebarCount();
                 });
             }
 
@@ -12223,6 +12234,9 @@
                     showBtn.style.display = 'none';
                     hideBtn.style.display = 'inline-block';
                     isCurrentHidden = false;
+
+                    // 刷新侧边栏计数
+                    updatePeyoteSpWaterSidebarCount();
                 });
             }
 
@@ -12371,6 +12385,9 @@
                     hideBtn.style.display = 'none';
                     showBtn.style.display = 'inline-block';
                     isCurrentHidden = true;
+
+                    // 刷新侧边栏计数
+                    updatePeyoteSpSpecialSidebarCount();
                 });
             }
 
@@ -12383,6 +12400,9 @@
                     showBtn.style.display = 'none';
                     hideBtn.style.display = 'inline-block';
                     isCurrentHidden = false;
+
+                    // 刷新侧边栏计数
+                    updatePeyoteSpSpecialSidebarCount();
                 });
             }
 
@@ -12398,24 +12418,25 @@
                 if (!counterEl) return;
 
                 const markers = (window.peyoteSpLandMarkers && window.peyoteSpLandMarkers) || [];
-                let total = 0;
+                const total = Array.isArray(window.itemData?.peyote_sp_land) ? window.itemData.peyote_sp_land.length : 0;
                 let hidden = 0;
 
+                let hasRenderedMarker = false;
                 if (Array.isArray(markers) && markers.length > 0) {
-                    total = markers.length;
-                    markers.forEach((marker) => {
+                    for (const marker of markers) {
                         if (marker && typeof marker.getElement === 'function') {
                             const el = marker.getElement();
-                            if (el && el.style.opacity === '0.3') {
-                                hidden++;
+                            if (el) {
+                                hasRenderedMarker = true;
+                                if (el.style.opacity === '0.3') hidden++;
                             }
                         }
-                    });
-                } else {
-                    total = Array.isArray(window.itemData?.peyote_sp_land) ? window.itemData.peyote_sp_land.length : 0;
-                    const cachedCounter = CounterCache.getCounter('peyote_sp_land');
-                    hidden = cachedCounter.hidden || 0;
+                    }
                 }
+
+                // 与缓存合并，防止重新显示后隐藏计数被清零
+                const cachedCounter = CounterCache.getCounter('peyote_sp_land');
+                hidden = Math.max(hidden, cachedCounter.hidden || 0);
 
                 CounterCache.updateCounter('peyote_sp_land', hidden, total);
                 counterEl.textContent = total > 0 ? ` (${hidden}/${total})` : '';
@@ -12431,24 +12452,25 @@
                 if (!counterEl) return;
 
                 const markers = (window.peyoteSpAirMarkers && window.peyoteSpAirMarkers) || [];
-                let total = 0;
+                const total = Array.isArray(window.itemData?.peyote_sp_air) ? window.itemData.peyote_sp_air.length : 0;
                 let hidden = 0;
 
+                let hasRenderedMarker = false;
                 if (Array.isArray(markers) && markers.length > 0) {
-                    total = markers.length;
-                    markers.forEach((marker) => {
+                    for (const marker of markers) {
                         if (marker && typeof marker.getElement === 'function') {
                             const el = marker.getElement();
-                            if (el && el.style.opacity === '0.3') {
-                                hidden++;
+                            if (el) {
+                                hasRenderedMarker = true;
+                                if (el.style.opacity === '0.3') hidden++;
                             }
                         }
-                    });
-                } else {
-                    total = Array.isArray(window.itemData?.peyote_sp_air) ? window.itemData.peyote_sp_air.length : 0;
-                    const cachedCounter = CounterCache.getCounter('peyote_sp_air');
-                    hidden = cachedCounter.hidden || 0;
+                    }
                 }
+
+                // 与缓存合并，防止重新显示后隐藏计数被清零
+                const cachedCounter = CounterCache.getCounter('peyote_sp_air');
+                hidden = Math.max(hidden, cachedCounter.hidden || 0);
 
                 CounterCache.updateCounter('peyote_sp_air', hidden, total);
                 counterEl.textContent = total > 0 ? ` (${hidden}/${total})` : '';
@@ -12464,24 +12486,25 @@
                 if (!counterEl) return;
 
                 const markers = (window.peyoteSpWaterMarkers && window.peyoteSpWaterMarkers) || [];
-                let total = 0;
+                const total = Array.isArray(window.itemData?.peyote_sp_water) ? window.itemData.peyote_sp_water.length : 0;
                 let hidden = 0;
 
+                let hasRenderedMarker = false;
                 if (Array.isArray(markers) && markers.length > 0) {
-                    total = markers.length;
-                    markers.forEach((marker) => {
+                    for (const marker of markers) {
                         if (marker && typeof marker.getElement === 'function') {
                             const el = marker.getElement();
-                            if (el && el.style.opacity === '0.3') {
-                                hidden++;
+                            if (el) {
+                                hasRenderedMarker = true;
+                                if (el.style.opacity === '0.3') hidden++;
                             }
                         }
-                    });
-                } else {
-                    total = Array.isArray(window.itemData?.peyote_sp_water) ? window.itemData.peyote_sp_water.length : 0;
-                    const cachedCounter = CounterCache.getCounter('peyote_sp_water');
-                    hidden = cachedCounter.hidden || 0;
+                    }
                 }
+
+                // 与缓存合并，防止重新显示后隐藏计数被清零
+                const cachedCounter = CounterCache.getCounter('peyote_sp_water');
+                hidden = Math.max(hidden, cachedCounter.hidden || 0);
 
                 CounterCache.updateCounter('peyote_sp_water', hidden, total);
                 counterEl.textContent = total > 0 ? ` (${hidden}/${total})` : '';
@@ -12497,24 +12520,25 @@
                 if (!counterEl) return;
 
                 const markers = (window.peyoteSpSpecialMarkers && window.peyoteSpSpecialMarkers) || [];
-                let total = 0;
+                const total = Array.isArray(window.itemData?.peyote_sp_special) ? window.itemData.peyote_sp_special.length : 0;
                 let hidden = 0;
 
+                let hasRenderedMarker = false;
                 if (Array.isArray(markers) && markers.length > 0) {
-                    total = markers.length;
-                    markers.forEach((marker) => {
+                    for (const marker of markers) {
                         if (marker && typeof marker.getElement === 'function') {
                             const el = marker.getElement();
-                            if (el && el.style.opacity === '0.3') {
-                                hidden++;
+                            if (el) {
+                                hasRenderedMarker = true;
+                                if (el.style.opacity === '0.3') hidden++;
                             }
                         }
-                    });
-                } else {
-                    total = Array.isArray(window.itemData?.peyote_sp_special) ? window.itemData.peyote_sp_special.length : 0;
-                    const cachedCounter = CounterCache.getCounter('peyote_sp_special');
-                    hidden = cachedCounter.hidden || 0;
+                    }
                 }
+
+                // 与缓存合并，防止重新显示后隐藏计数被清零
+                const cachedCounter = CounterCache.getCounter('peyote_sp_special');
+                hidden = Math.max(hidden, cachedCounter.hidden || 0);
 
                 CounterCache.updateCounter('peyote_sp_special', hidden, total);
                 counterEl.textContent = total > 0 ? ` (${hidden}/${total})` : '';
@@ -12551,26 +12575,25 @@
 
                 // 获取宇宙飞船部件标记
                 const markers = (window.spaceshipPartsMarkers && window.spaceshipPartsMarkers) || [];
-                let total = 0;
+                const total = Array.isArray(window.itemData?.spaceship_parts) ? window.itemData.spaceship_parts.length : 0;
                 let hidden = 0;
 
+                let hasRenderedMarker = false;
                 if (Array.isArray(markers) && markers.length > 0) {
-                    total = markers.length;
-                    markers.forEach((marker) => {
+                    for (const marker of markers) {
                         if (marker && typeof marker.getElement === 'function') {
                             const el = marker.getElement();
-                            if (el && el.style.opacity === '0.3') {
-                                hidden++;
+                            if (el) {
+                                hasRenderedMarker = true;
+                                if (el.style.opacity === '0.3') hidden++;
                             }
                         }
-                    });
-                } else {
-                    // 回退：仅有数据尚未渲染 Leaflet 标记时
-                    total = Array.isArray(window.itemData?.spaceship_parts) ? window.itemData.spaceship_parts.length : 0;
-                    // 从缓存中获取隐藏数量
-                    const cachedCounter = CounterCache.getCounter('spaceship_parts');
-                    hidden = cachedCounter.hidden || 0;
+                    }
                 }
+
+                // 与缓存合并，防止重新显示后隐藏计数被清零
+                const cachedCounter = CounterCache.getCounter('spaceship_parts');
+                hidden = Math.max(hidden, cachedCounter.hidden || 0);
 
                 // 更新缓存
                 CounterCache.updateCounter('spaceship_parts', hidden, total);
@@ -20370,6 +20393,7 @@
                         // UFO观光计数器
                         if (t === 'ufo') {
                             try { updateUfoSidebarCount(); } catch(e) {}
+                            setTimeout(() => { try { updateUfoSidebarCount(); } catch(e) {} }, 200);
                         }
                         // 幽灵曝光2025计数器
                         if (t === 'ghosts3') {
@@ -20378,6 +20402,7 @@
                         // 雪人计数器
                         if (t === 'snowmen') {
                             try { updateSnowmenSidebarCount(); } catch(e) {}
+                            setTimeout(() => { try { updateSnowmenSidebarCount(); } catch(e) {} }, 200);
                         }
                         // 电影道具计数器
                         if (t === 'movie_props') {
@@ -20446,6 +20471,7 @@
                         // 南瓜灯计数器
                         if (t === 'jack_o_lanterns') {
                             try { updateJackOLanternsSidebarCount(); } catch(e) {}
+                            setTimeout(() => { try { updateJackOLanternsSidebarCount(); } catch(e) {} }, 200);
                         }
                         // 喷灌位置计数器
                         if (t === 'spray') {
@@ -20925,27 +20951,25 @@
 
                 // 获取核废料标记
                 const markers = (window.nuclearWasteMarkers && window.nuclearWasteMarkers) || [];
-                let total = 0;
+                const total = Array.isArray(window.itemData?.nuclear_waste) ? window.itemData.nuclear_waste.length : 0;
                 let hidden = 0;
 
-                // 始终使用数据总数，不管是否有标记
-                total = Array.isArray(window.itemData?.nuclear_waste) ? window.itemData.nuclear_waste.length : 0;
-
+                let hasRenderedMarker = false;
                 if (Array.isArray(markers) && markers.length > 0) {
-                    // 如果有标记，统计隐藏的标记
-                    markers.forEach((marker) => {
+                    for (const marker of markers) {
                         if (marker && typeof marker.getElement === 'function') {
                             const el = marker.getElement();
-                            if (el && el.style.opacity === '0.3') {
-                                hidden++;
+                            if (el) {
+                                hasRenderedMarker = true;
+                                if (el.style.opacity === '0.3') hidden++;
                             }
                         }
-                    });
-                } else {
-                    // 如果没有标记，从缓存中获取隐藏数量
-                    const cachedCounter = CounterCache.getCounter('nuclear_waste');
-                    hidden = cachedCounter.hidden || 0;
+                    }
                 }
+
+                // 与缓存合并，防止重新显示后隐藏计数被清零
+                const cachedCounter = CounterCache.getCounter('nuclear_waste');
+                hidden = Math.max(hidden, cachedCounter.hidden || 0);
 
                 // 更新缓存
                 CounterCache.updateCounter('nuclear_waste', hidden, total);
@@ -20983,26 +21007,25 @@
 
                 // 获取隐藏包裹标记
                 const markers = (window.spHiddenPackagesMarkers && window.spHiddenPackagesMarkers) || [];
-                let total = 0;
+                const total = Array.isArray(window.itemData?.sp_hidden_packages) ? window.itemData.sp_hidden_packages.length : 0;
                 let hidden = 0;
 
+                let hasRenderedMarker = false;
                 if (Array.isArray(markers) && markers.length > 0) {
-                    total = markers.length;
-                    markers.forEach((marker) => {
+                    for (const marker of markers) {
                         if (marker && typeof marker.getElement === 'function') {
                             const el = marker.getElement();
-                            if (el && el.style.opacity === '0.3') {
-                                hidden++;
+                            if (el) {
+                                hasRenderedMarker = true;
+                                if (el.style.opacity === '0.3') hidden++;
                             }
                         }
-                    });
-                } else {
-                    // 回退：仅有数据尚未渲染 Leaflet 标记时
-                    total = Array.isArray(window.itemData?.sp_hidden_packages) ? window.itemData.sp_hidden_packages.length : 0;
-                    // 从缓存中获取隐藏数量
-                    const cachedCounter = CounterCache.getCounter('sp_hidden_packages');
-                    hidden = cachedCounter.hidden || 0;
+                    }
                 }
+
+                // 与缓存合并，防止重新显示后隐藏计数被清零
+                const cachedCounter = CounterCache.getCounter('sp_hidden_packages');
+                hidden = Math.max(hidden, cachedCounter.hidden || 0);
 
                 // 更新缓存
                 CounterCache.updateCounter('sp_hidden_packages', hidden, total);
@@ -21232,26 +21255,25 @@
 
                 // 获取潜水艇碎片标记
                 const markers = (window.submarinePiecesMarkers && window.submarinePiecesMarkers) || [];
-                let total = 0;
+                const total = Array.isArray(window.itemData?.submarine_pieces) ? window.itemData.submarine_pieces.length : 0;
                 let hidden = 0;
 
+                let hasRenderedMarker = false;
                 if (Array.isArray(markers) && markers.length > 0) {
-                    total = markers.length;
-                    markers.forEach((marker) => {
+                    for (const marker of markers) {
                         if (marker && typeof marker.getElement === 'function') {
                             const el = marker.getElement();
-                            if (el && el.style.opacity === '0.3') {
-                                hidden++;
+                            if (el) {
+                                hasRenderedMarker = true;
+                                if (el.style.opacity === '0.3') hidden++;
                             }
                         }
-                    });
-                } else {
-                    // 回退：仅有数据尚未渲染 Leaflet 标记时
-                    total = Array.isArray(window.itemData?.submarine_pieces) ? window.itemData.submarine_pieces.length : 0;
-                    // 从缓存中获取隐藏数量
-                    const cachedCounter = CounterCache.getCounter('submarine_pieces');
-                    hidden = cachedCounter.hidden || 0;
+                    }
                 }
+
+                // 与缓存合并，防止重新显示后隐藏计数被清零
+                const cachedCounter = CounterCache.getCounter('submarine_pieces');
+                hidden = Math.max(hidden, cachedCounter.hidden || 0);
 
                 // 更新缓存
                 CounterCache.updateCounter('submarine_pieces', hidden, total);

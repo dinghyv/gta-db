@@ -1210,6 +1210,10 @@
             'humans_of_ls',
             'monkey_mosaics',
             'murder_mystery_message',
+            'assuming_the_truth',
+            'epsilon_tracts',
+            'for_sale_sign',
+            'chasing_the_truth',
             
             // 第3组：设施服务
             'ld_organics_products',
@@ -1325,6 +1329,24 @@
             };
         }
 
+        // 应用 assuming_the_truth 可见性缓存
+        function applyAssumingTheTruthVisibilityCache() {
+            const markers = (window.assumingTheTruthMarkers && window.assumingTheTruthMarkers) || [];
+            if (markers.length > 0) {
+                const visibilityMap = VisibilityCache.loadVisibility('assuming_the_truth') || {};
+                markers.forEach((marker, index) => {
+                    const hidden = !!visibilityMap[index];
+                    if (!marker) return;
+                    if (marker.setOpacity) {
+                        marker.setOpacity(hidden ? 0.3 : 1);
+                    } else if (marker.getElement) {
+                        const el = marker.getElement();
+                        if (el) el.style.opacity = hidden ? '0.3' : '1';
+                    }
+                });
+            }
+        }
+
         // 物品图标路径映射
         const itemIcons = {
             hidden_caches: '../src/assets/cache.png',
@@ -1339,6 +1361,12 @@
             smoke_on_the_water_product: '../src/assets/smoke_product.svg',
             action_figures: '../src/assets/action_figures.svg',
             yuanbao: '../src/assets/yuanbao.svg',
+            ld_organics_products: '../src/assets/organic_farm.svg',
+            signal_jammers: '../src/assets/signal_jammer.svg',
+            jack_o_lanterns: '../src/assets/jack.svg',
+            payphone_hits: '../src/assets/payphone.svg',
+            golf_holes: '../src/assets/golf.svg',
+            snowmen: '../src/assets/snowmen.svg',
             letter_scraps: '../src/assets/letter.svg',
             sp_hidden_packages: '../src/assets/sp_hidden_packages.svg',
             peyote_sp_land: '../src/assets/peyote_sp_land.svg',
@@ -1351,12 +1379,10 @@
             humans_of_ls: '../src/assets/humans_of_ls.svg',
             monkey_mosaics: '../src/assets/monkey_mosaics.svg',
             murder_mystery_message: '../src/assets/murder_mystery_message.svg',
-            ld_organics_products: '../src/assets/organic_farm.svg',
-            signal_jammers: '../src/assets/signal_jammer.svg',
-            jack_o_lanterns: '../src/assets/jack.svg',
-            payphone_hits: '../src/assets/payphone.svg',
-            golf_holes: '../src/assets/golf.svg',
-            snowmen: '../src/assets/snowmen.svg',
+            assuming_the_truth: '../src/assets/assuming_the_truth_car.svg',
+            chasing_the_truth: '../src/assets/chasing_the_truth.svg',
+            epsilon_tracts: '../src/assets/epsilon_tracts.svg',
+            for_sale_sign: '../src/assets/for_sale_sign.svg',
             rc_time_trial: '../src/assets/rctt.png',
             bike_time_trial: '../src/assets/btt.png',
             skydives: '../src/assets/skydive.png',
@@ -1486,6 +1512,10 @@
             humans_of_ls: [],
             monkey_mosaics: [],
             murder_mystery_message: [],
+            assuming_the_truth: [],
+            chasing_the_truth: [],
+            epsilon_tracts: [],
+            for_sale_sign: [],
             ld_organics_products: [],
             signal_jammers: [],
             jack_o_lanterns: [],
@@ -3452,6 +3482,133 @@
             document.body.appendChild(popup);
         }
 
+        // 待售标志弹窗（含隐藏/显示与可见性缓存）
+        function showForSaleSignPopup(item, index) {
+            const sequenceNumber = index + 1;
+            const imageUrl = `https://gta-maps.antwen.com/collectibles_images/for_sale_sign/for_sale_sign_${sequenceNumber}.webp`;
+
+            const existing = document.querySelector('.for-sale-sign-popup');
+            if (existing) existing.remove();
+
+            const popup = document.createElement('div');
+            popup.className = 'for-sale-sign-popup';
+            popup.style.cssText = `
+                position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+                background: var(--gta-bg-medium);
+                border: 1px solid var(--gta-border);
+                border-radius: 8px;
+                box-shadow: 0 2px 15px rgba(0,0,0,0.5);
+                padding: 15px; z-index: 10000; width: min(92vw, 520px); max-height: 80vh;
+                color: var(--gta-text); font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; overflow-y: auto;`;
+
+            const title = `🪧 待售标志 #${sequenceNumber}`;
+            const content = `在陌生人和怪胎任务额外佣金（崔佛）中，您需要摧毁这些“待售”标志以推进任务。`;
+
+            // 当前标记句柄
+            const markers = (window.forSaleSignMarkers && window.forSaleSignMarkers) || [];
+            const currentMarker = markers[index];
+
+            // 是否隐藏（来自缓存）
+            const vm = VisibilityCache.loadVisibility('for_sale_sign') || {};
+            let isHidden = vm[index] === true;
+
+            popup.innerHTML = `
+                <div class="popup-header" style="position: relative; margin-bottom: 14px;">
+                    <h3 style="color: var(--gta-primary); font-size: 18px; margin: 0; font-weight: bold;">${title}</h3>
+                </div>
+                <img src="${imageUrl}" alt="for_sale_sign #${sequenceNumber}" style="max-width: 100%; height: auto; border-radius: 6px; margin: 8px 0; display: block; cursor: zoom-in;"/>
+                <div style="margin: 10px 0; padding: 10px; background: rgba(33, 150, 243, 0.1); border-radius: 8px; color: var(--gta-text); font-size: 14px; line-height: 1.6;">
+                    ${content}
+                </div>
+                <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
+                    <button id="hide-fss-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; display: ${isHidden ? 'none' : 'inline-block'};">隐藏</button>
+                    <button id="show-fss-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; display: ${isHidden ? 'inline-block' : 'none'};">显示</button>
+                    <button id="close-fss-btn" style="padding: 8px 16px; background: var(--gta-primary); color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 500;">关闭</button>
+                </div>
+            `;
+
+            const closeBtn = popup.querySelector('#close-fss-btn');
+            const hideBtn = popup.querySelector('#hide-fss-btn');
+            const showBtn = popup.querySelector('#show-fss-btn');
+
+            const setOpacity = (opacity) => {
+                if (!currentMarker) return;
+                if (typeof currentMarker.setOpacity === 'function') currentMarker.setOpacity(opacity);
+                else if (typeof currentMarker.setStyle === 'function') currentMarker.setStyle({ opacity });
+                else if (typeof currentMarker.getElement === 'function') {
+                    const el = currentMarker.getElement();
+                    if (el) el.style.opacity = String(opacity);
+                }
+            };
+
+            if (hideBtn) hideBtn.addEventListener('click', () => {
+                setOpacity(0.3);
+                VisibilityCache.updateItemVisibility('for_sale_sign', index, true);
+                if (hideBtn) hideBtn.style.display = 'none';
+                if (showBtn) showBtn.style.display = 'inline-block';
+                isHidden = true;
+                try { updateForSaleSignSidebarCount(); } catch (e) {}
+            });
+            if (showBtn) showBtn.addEventListener('click', () => {
+                setOpacity(1);
+                VisibilityCache.updateItemVisibility('for_sale_sign', index, false);
+                if (showBtn) showBtn.style.display = 'none';
+                if (hideBtn) hideBtn.style.display = 'inline-block';
+                isHidden = false;
+                try { updateForSaleSignSidebarCount(); } catch (e) {}
+            });
+
+            // 关闭弹窗与外部点击关闭
+            const removePopup = () => popup.remove();
+            closeBtn && closeBtn.addEventListener('click', removePopup);
+            popup.addEventListener('click', (e) => e.stopPropagation());
+            setTimeout(() => {
+                const closePopupHandler = (e) => { if (!popup.contains(e.target)) { removePopup(); document.removeEventListener('click', closePopupHandler); } };
+                document.addEventListener('click', closePopupHandler);
+            }, 50);
+
+            // 图片点击新窗口打开
+            const popupImage = popup.querySelector('img');
+            if (popupImage) popupImage.addEventListener('click', () => window.open(imageUrl, '_blank'));
+
+            document.body.appendChild(popup);
+        }
+
+        // 侧边栏计数器：for_sale_sign（基于 VisibilityCache 统计隐藏/总数）
+        function updateForSaleSignSidebarCount() {
+            try {
+                const counterEl = document.querySelector('#sidebar-item-for_sale_sign + label .for-sale-sign-counter');
+                if (!counterEl) return;
+
+                const total = Array.isArray(window.itemData?.for_sale_sign) ? window.itemData.for_sale_sign.length : 0;
+                const visibilityMap = VisibilityCache.loadVisibility('for_sale_sign') || {};
+                let hidden = 0;
+                for (let i = 0; i < total; i++) if (visibilityMap[i] === true) hidden++;
+
+                CounterCache.updateCounter('for_sale_sign', hidden, total);
+                counterEl.textContent = total > 0 ? ` (${hidden}/${total})` : '';
+            } catch (e) {
+                console.warn('更新 for_sale_sign 计数器失败:', e);
+            }
+        }
+
+        // 应用 for_sale_sign 可见性缓存（设置透明度）
+        function applyForSaleSignVisibilityCache() {
+            try {
+                const markers = (window.forSaleSignMarkers && window.forSaleSignMarkers) || [];
+                if (!Array.isArray(markers) || markers.length === 0) return;
+                const vm = VisibilityCache.loadVisibility('for_sale_sign') || {};
+                markers.forEach((marker, i) => {
+                    const isHidden = !!vm[i];
+                    const opacity = isHidden ? 0.3 : 1;
+                    if (!marker) return;
+                    if (typeof marker.setOpacity === 'function') marker.setOpacity(opacity);
+                    else if (typeof marker.setStyle === 'function') marker.setStyle({ opacity });
+                    else if (typeof marker.getElement === 'function') { const el = marker.getElement(); if (el) el.style.opacity = String(opacity); }
+                });
+                try { updateForSaleSignSidebarCount(); } catch (e) {}
+            } catch (e) { console.warn('应用 for_sale_sign 可见性缓存失败:', e); }
+        }
         // 谋杀之谜信息弹窗（含隐藏/显示联动与计数器、缓存集成）
         function showMurderMysteryMessageImage(index) {
             const item = (itemData.murder_mystery_message && itemData.murder_mystery_message[index]) || null;
@@ -5255,12 +5412,20 @@
                 try { applySmokeProductVisibilityCache(); } catch (e) {}
                 try { applyDeadDropVisibilityCache(); } catch (e) {}
                 try { applyMurderMysteryMessageVisibilityCache(); } catch (e) {}
+                try { applyAssumingTheTruthVisibilityCache(); } catch (e) {}
+                try { applyChasingTheTruthVisibilityCache(); } catch (e) {}
+                try { applyEpsilonTractsVisibilityCache(); } catch (e) {}
+                try { applyForSaleSignVisibilityCache(); } catch (e) {}
 
                 // 5) 刷新计数器（如有）
                 try { updateSmugglerPlaneSidebarCount(); } catch (e) {}
                 try { updateStreetDealersSidebarCount(); } catch (e) {}
                 try { updateSubmarinePiecesSidebarCount(); } catch (e) {}
                 try { updateNuclearWasteSidebarCount(); } catch (e) {}
+                try { updateAssumingTheTruthSidebarCount(); } catch (e) {}
+                try { updateChasingTheTruthSidebarCount(); } catch (e) {}
+                try { updateEpsilonTractsSidebarCount(); } catch (e) {}
+                try { updateForSaleSignSidebarCount(); } catch (e) {}
                 try { updateSlasherSidebarCount(); } catch (e) {}
                 try { updateTreasureHuntSidebarCount(); } catch (e) {}
                 try { updateUfoSidebarCount(); } catch (e) {}
@@ -5956,6 +6121,10 @@
             { value: 'humans_of_ls', text: '洛圣都的人类', icon: '../src/assets/humans_of_ls.svg' },
             { value: 'monkey_mosaics', text: '猴子马赛克', icon: '../src/assets/monkey_mosaics.svg' },
             { value: 'murder_mystery_message', text: '谋杀之谜', icon: '../src/assets/murder_mystery_message.svg' },
+            { value: 'assuming_the_truth', text: '埃普西隆质疑真理-载具', icon: '../src/assets/assuming_the_truth_car.svg' },
+            { value: 'epsilon_tracts', text: '埃普西隆传单', icon: '../src/assets/epsilon_tracts.svg' },
+            { value: 'for_sale_sign', text: '待售标志', icon: '../src/assets/for_sale_sign.svg' },
+            { value: 'chasing_the_truth', text: '埃普斯隆追求真理-神器', icon: '../src/assets/chasing_the_truth.svg' },
             { value: 'stunt_jumps', text: '特技跳跃点' },
             { value: 'spray', text: '喷罐位置' },
             { value: 'ld_organics_products', text: '有机坊产品' },
@@ -6540,6 +6709,59 @@
                         itemData.murder_mystery_message = [];
                     }
                     
+                    // 加载 assuming_the_truth 数据（zones.json.assuming_the_truth）
+                    try {
+                        if (Array.isArray(cardsData.assuming_the_truth)) {
+                            itemData.assuming_the_truth = cardsData.assuming_the_truth.map((arr, index) => {
+                                const x = arr[0];
+                                const y = arr[1];
+                                const name = Array.isArray(arr[2]) && arr[2][0] ? String(arr[2][0]) : '';
+                                return { x, y, name };
+                            });
+                            console.log('assuming_the_truth 数据加载成功，共', itemData.assuming_the_truth.length, '个位置');
+                        } else {
+                            itemData.assuming_the_truth = [];
+                        }
+                    } catch (e) {
+                        console.warn('加载 assuming_the_truth 失败:', e);
+                        itemData.assuming_the_truth = [];
+                    }
+                    
+                    // 加载 chasing_the_truth 数据（zones.json.chasing_the_truth）
+                    try {
+                        if (Array.isArray(cardsData.chasing_the_truth)) {
+                            itemData.chasing_the_truth = cardsData.chasing_the_truth.map((arr, index) => {
+                                const x = arr[0];
+                                const y = arr[1];
+                                const name = Array.isArray(arr[2]) && arr[2][0] ? String(arr[2][0]) : '';
+                                return { x, y, name };
+                            });
+                            console.log('chasing_the_truth 数据加载成功，共', itemData.chasing_the_truth.length, '个位置');
+                        } else {
+                            itemData.chasing_the_truth = [];
+                        }
+                    } catch (e) {
+                        console.warn('加载 chasing_the_truth 失败:', e);
+                        itemData.chasing_the_truth = [];
+                    }
+
+                    // 加载 epsilon_tracts 数据（zones.json.epsilon_tracts）
+                    try {
+                        if (Array.isArray(cardsData.epsilon_tracts)) {
+                            itemData.epsilon_tracts = cardsData.epsilon_tracts.map((arr, index) => {
+                                const x = arr[0];
+                                const y = arr[1];
+                                const name = Array.isArray(arr[2]) && arr[2][0] ? String(arr[2][0]) : '';
+                                return { x, y, name };
+                            });
+                            console.log('epsilon_tracts 数据加载成功，共', itemData.epsilon_tracts.length, '个位置');
+                        } else {
+                            itemData.epsilon_tracts = [];
+                        }
+                    } catch (e) {
+                        console.warn('加载 epsilon_tracts 失败:', e);
+                        itemData.epsilon_tracts = [];
+                    }
                     // 加载其他物品数据
                     const itemTypes = [
                         'smoke_on_the_water_product',
@@ -6552,6 +6774,7 @@
                         'golf_holes',
                         'snowmen',
                         'spray',
+                        'for_sale_sign',
                         // 杀人狂单独加载，不走通用分支
                     ];
                     
@@ -7752,6 +7975,52 @@
                 return marker;
             }
 
+            // 特殊处理 epsilon_tracts - 传单图标（带序号）
+            if (type === 'epsilon_tracts') {
+                const sequenceNumber = index + 1;
+
+                const customIcon = L.divIcon({
+                    html: `
+                        <div style="position: relative; display: flex; flex-direction: column; align-items: center;">
+                            <img src="../src/assets/epsilon_tracts.svg" style="width: 32px; height: 32px;" />
+                            <div style="
+                                position: absolute;
+                                top: 34px;
+                                background: rgba(0, 0, 0, 0.8);
+                                color: white;
+                                font-size: 12px;
+                                font-weight: bold;
+                                padding: 2px 6px;
+                                border-radius: 10px;
+                                min-width: 16px;
+                                text-align: center;
+                                border: 1px solid #fff;
+                            ">${sequenceNumber}</div>
+                        </div>
+                    `,
+                    className: 'epsilon-tracts-marker',
+                    iconSize: [32, 50],
+                    iconAnchor: [16, 25],
+                    popupAnchor: [0, -25]
+                });
+
+                const marker = L.marker(latlng, {
+                    icon: customIcon,
+                    interactive: true,
+                    zIndexOffset: 1000
+                }).addTo(map);
+
+                marker.on('click', () => {
+                    showEpsilonTractsPopup(item, index);
+                });
+
+                // 记录 epsilon_tracts 标记
+                if (!window.epsilonTractsMarkers) window.epsilonTractsMarkers = [];
+                window.epsilonTractsMarkers[index] = marker;
+
+                return marker;
+            }
+
             // 特殊处理 murder_mystery_message - 图标叠加数字徽章（显示组号 1/2/3）
             if (type === 'murder_mystery_message') {
                 const badge = (item && item.group) ? String(item.group) : '?';
@@ -8427,6 +8696,84 @@
                 return marker;
             }
             
+            // 特殊处理 assuming_the_truth - 车/摩托动态图标（双T 用摩托）
+            if (type === 'assuming_the_truth') {
+                const isBike = (item && item.name === '双T');
+                const iconUrl = isBike
+                    ? '../src/assets/assuming_the_truth_bike.svg'
+                    : '../src/assets/assuming_the_truth_car.svg';
+
+                const customIcon = L.icon({
+                    iconUrl,
+                    iconSize: [32, 32],
+                    iconAnchor: [16, 16],
+                    popupAnchor: [0, -16]
+                });
+
+                const marker = L.marker(latlng, {
+                    icon: customIcon,
+                    interactive: true,
+                    zIndexOffset: 1000
+                }).addTo(map);
+
+                marker.on('click', () => {
+                    showAssumingTheTruthPopup(item, index);
+                });
+
+                // 记录 assuming_the_truth 标记
+                if (!window.assumingTheTruthMarkers) window.assumingTheTruthMarkers = [];
+                window.assumingTheTruthMarkers[index] = marker;
+
+                return marker;
+            }
+            
+            // 特殊处理 chasing_the_truth - 神器图标（带序号）
+            if (type === 'chasing_the_truth') {
+                const sequenceNumber = index + 1;
+                
+                // 使用 divIcon 来同时显示图标和序号
+                const customIcon = L.divIcon({
+                    html: `
+                        <div style="position: relative; display: flex; flex-direction: column; align-items: center;">
+                            <img src="../src/assets/chasing_the_truth.svg" style="width: 32px; height: 32px;" />
+                            <div style="
+                                position: absolute;
+                                top: 34px;
+                                background: rgba(0, 0, 0, 0.8);
+                                color: white;
+                                font-size: 12px;
+                                font-weight: bold;
+                                padding: 2px 6px;
+                                border-radius: 10px;
+                                min-width: 16px;
+                                text-align: center;
+                                border: 1px solid #fff;
+                            ">${sequenceNumber}</div>
+                        </div>
+                    `,
+                    className: 'chasing-the-truth-marker',
+                    iconSize: [32, 50], // 增加高度以容纳序号
+                    iconAnchor: [16, 25],
+                    popupAnchor: [0, -25]
+                });
+
+                const marker = L.marker(latlng, {
+                    icon: customIcon,
+                    interactive: true,
+                    zIndexOffset: 1000
+                }).addTo(map);
+
+                marker.on('click', () => {
+                    showChasingTheTruthPopup(item, index);
+                });
+
+                // 记录 chasing_the_truth 标记
+                if (!window.chasingTheTruthMarkers) window.chasingTheTruthMarkers = [];
+                window.chasingTheTruthMarkers[index] = marker;
+
+                return marker;
+            }
+            
             // 特殊处理cerberus - 地狱犬（只显示图标，无圆圈）
             if (type === 'cerberus') {
                 const customIcon = L.icon({
@@ -8636,6 +8983,11 @@
                     if (!window.sprayMarkers) window.sprayMarkers = [];
                     window.sprayMarkers[index] = marker;
                 }
+                // 记录 for_sale_sign 标记以便弹窗隐藏/显示控制
+                else if (type === 'for_sale_sign') {
+                    if (!window.forSaleSignMarkers) window.forSaleSignMarkers = [];
+                    window.forSaleSignMarkers[index] = marker;
+                }
                 // 记录 ghosts3 标记以便弹窗隐藏/显示控制
                 else if (type === 'ghosts3') {
                     if (!window.ghosts3Markers) window.ghosts3Markers = [];
@@ -8815,6 +9167,10 @@
                 else if (type === 'ls_tags') {
                     showLSTagsPopup(item, index);
                 }
+                // 新增：特殊处理待售标志，显示弹窗
+                else if (type === 'for_sale_sign') {
+                    showForSaleSignPopup(item, index);
+                }
                 // 特殊处理车行标记，使用专门的车辆展示函数
                 else if (['casino', 'car_meet', 'premium_deluxe_motorsport', 'luxury_autos'].includes(type)) {
                     showDealershipVehicles(type, item.name);
@@ -8954,6 +9310,8 @@
             // - yuanbaoMarkers (元宝)
             // - pplMarkers (陆地迷幻仙人掌)
             // - ppwMarkers (水下迷幻仙人掌)
+            // - assumingTheTruthMarkers (埃普西隆质疑真理-载具)
+            // - chasingTheTruthMarkers (埃普斯隆追求真理-神器)
             
             if (window.gunVanMarkers) {
                 window.gunVanMarkers = [];
@@ -8975,6 +9333,9 @@
             }
             if (window.organicFarmMarkers) {
                 window.organicFarmMarkers = [];
+            }
+            if (window.forSaleSignMarkers) {
+                window.forSaleSignMarkers = [];
             }
             // 不清除特技跳跃点标记，保持其状态
             // if (window.stuntJumpsMarkers) {
@@ -9559,6 +9920,9 @@
             try { applySkydivesVisibilityCache(); } catch (e) {}
             try { applyJackOLanternsVisibilityCache(); } catch (e) {}
             try { applyMurderMysteryMessageVisibilityCache(); } catch (e) {}
+            try { applyAssumingTheTruthVisibilityCache(); } catch (e) {}
+            try { applyChasingTheTruthVisibilityCache(); } catch (e) {}
+            try { applyEpsilonTractsVisibilityCache(); } catch (e) {}
             try { applyRCTimeTrialVisibilityCache(); } catch (e) {}
             try { applyBikeTimeTrialVisibilityCache(); } catch (e) {}
             try { applyMadrazoHitsVisibilityCache(); } catch (e) {}
@@ -9568,6 +9932,11 @@
             try { applyHiddenCachesVisibilityCache(); } catch (e) {}
             try { applySmokeProductVisibilityCache(); } catch (e) {}
             try { applyDeadDropVisibilityCache(); } catch (e) {}
+            try { applyMurderMysteryMessageVisibilityCache(); } catch (e) {}
+            try { applyAssumingTheTruthVisibilityCache(); } catch (e) {}
+            try { applyChasingTheTruthVisibilityCache(); } catch (e) {}
+            try { applyEpsilonTractsVisibilityCache(); } catch (e) {}
+            try { applyForSaleSignVisibilityCache(); } catch (e) {}
 
             // 特殊：左轮寻宝两个子类型分别渲染（DOM版保留兼容，若Leaflet已处理则跳过）
             if (false && activeItemTypes.has('treasure_hunt_dba_revolver') && !pilotMarkerTypes.has('treasure_hunt_dba_revolver')) {
@@ -20392,14 +20761,20 @@
                         'peyote_sp_air',
                         'peyote_sp_water',
                         'peyote_sp_special',
-                    'submarine_pieces',
-                    'spaceship_parts',
-                    'nuclear_waste',
-                    'humans_of_ls',
-                    'monkey_mosaics',
-                    'murder_mystery_message'
-                ],
-        '地点与服务': [
+                        'submarine_pieces',
+                        'spaceship_parts',
+                        'nuclear_waste',
+                        'humans_of_ls',
+                        'monkey_mosaics',
+                        'murder_mystery_message'
+                    ],
+                    '线下支线任务': [
+                        'assuming_the_truth',
+                        'chasing_the_truth',
+                        'epsilon_tracts',
+                        'for_sale_sign'
+                    ],
+                    '地点与服务': [
                         'golf_holes',
                         'metro',
                         'police',
@@ -20736,6 +21111,17 @@
                         // 初始渲染一次
                         try { updateSubmarinePiecesSidebarCount(); } catch(e) {}
                     }
+                    // assuming_the_truth 计数器
+                    else if (type === 'assuming_the_truth') {
+                    const counter = document.createElement('span');
+                    counter.className = 'assuming-the-truth-counter';
+                    counter.style.marginLeft = '6px';
+                    counter.style.color = 'var(--gta-text-secondary)';
+                    counter.textContent = '';
+                    label.appendChild(counter);
+                    // 初始渲染一次
+                    try { updateAssumingTheTruthSidebarCount(); } catch(e) {}
+                    }
                     // 宇宙飞船部件计数器
                     else if (type === 'spaceship_parts') {
                         const counter = document.createElement('span');
@@ -20746,6 +21132,19 @@
                         label.appendChild(counter);
                         // 初始渲染一次
                         try { updateSpaceshipPartsSidebarCount(); } catch(e) {}
+                    }
+                    // assuming_the_truth 计数器
+                    else if (type === 'assuming_the_truth') {
+                        const counter = document.createElement('span');
+                        counter.className = 'assuming-the-truth-counter';
+                        counter.style.marginLeft = '6px';
+                        counter.style.color = 'var(--gta-text-secondary)';
+                        counter.textContent = '';
+                        label.appendChild(counter);
+                        // 初始渲染一次
+                        try { updateAssumingTheTruthSidebarCount(); } catch(e) {}
+                        // 延迟再次渲染，防止首次构建时数据/缓存尚未到位
+                        setTimeout(() => { try { updateAssumingTheTruthSidebarCount(); } catch(e) {} }, 200);
                     }
                     // 核废料计数器
                     else if (type === 'nuclear_waste') {
@@ -20792,6 +21191,58 @@
                         try { updateMurderMysteryMessageSidebarCount(); } catch(e) {}
                         // 延迟再次渲染，防止首次构建时数据/缓存尚未到位
                         setTimeout(() => { try { updateMurderMysteryMessageSidebarCount(); } catch(e) {} }, 200);
+                    }
+                    // 埃普西隆质疑真理-载具计数器
+                    else if (type === 'assuming_the_truth') {
+                        const counter = document.createElement('span');
+                        counter.className = 'assuming-the-truth-counter';
+                        counter.style.marginLeft = '6px';
+                        counter.style.color = 'var(--gta-text-secondary)';
+                        counter.textContent = '';
+                        label.appendChild(counter);
+                        // 初始渲染一次
+                        try { updateAssumingTheTruthSidebarCount(); } catch(e) {}
+                        // 延迟再次渲染，防止首次构建时数据/缓存尚未到位
+                        setTimeout(() => { try { updateAssumingTheTruthSidebarCount(); } catch(e) {} }, 200);
+                    }
+                    // 埃普斯隆追求真理-神器计数器
+                    else if (type === 'chasing_the_truth') {
+                        const counter = document.createElement('span');
+                        counter.className = 'chasing-the-truth-counter';
+                        counter.style.marginLeft = '6px';
+                        counter.style.color = 'var(--gta-text-secondary)';
+                        counter.textContent = '';
+                        label.appendChild(counter);
+                        // 初始渲染一次
+                        try { updateChasingTheTruthSidebarCount(); } catch(e) {}
+                        // 延迟再次渲染，防止首次构建时数据/缓存尚未到位
+                        setTimeout(() => { try { updateChasingTheTruthSidebarCount(); } catch(e) {} }, 200);
+                    }
+                    // 埃普西隆传单计数器
+                    else if (type === 'epsilon_tracts') {
+                        const counter = document.createElement('span');
+                        counter.className = 'epsilon-tracts-counter';
+                        counter.style.marginLeft = '6px';
+                        counter.style.color = 'var(--gta-text-secondary)';
+                        counter.textContent = '';
+                        label.appendChild(counter);
+                        // 初始渲染一次
+                        try { updateEpsilonTractsSidebarCount(); } catch(e) {}
+                        // 延迟再次渲染，确保数据/缓存就绪
+                        setTimeout(() => { try { updateEpsilonTractsSidebarCount(); } catch(e) {} }, 200);
+                    }
+                    // 待售标志计数器
+                    else if (type === 'for_sale_sign') {
+                        const counter = document.createElement('span');
+                        counter.className = 'for-sale-sign-counter';
+                        counter.style.marginLeft = '6px';
+                        counter.style.color = 'var(--gta-text-secondary)';
+                        counter.textContent = '';
+                        label.appendChild(counter);
+                        // 初始渲染一次
+                        try { updateForSaleSignSidebarCount(); } catch(e) {}
+                        // 延迟再次渲染，确保数据/缓存就绪
+                        setTimeout(() => { try { updateForSaleSignSidebarCount(); } catch(e) {} }, 200);
                     }
                     // 喷灌位置计数器
                     else if (type === 'spray') {
@@ -20990,6 +21441,11 @@
                         if (t === 'submarine_pieces') {
                             try { updateSubmarinePiecesSidebarCount(); } catch(e) {}
                         }
+                        // assuming_the_truth 计数器
+                        if (t === 'assuming_the_truth') {
+                            try { updateAssumingTheTruthSidebarCount(); } catch(e) {}
+                            setTimeout(() => { try { updateAssumingTheTruthSidebarCount(); } catch(e) {} }, 200);
+                        }
                         // 核废料计数器
                         if (t === 'nuclear_waste') {
                             try { updateNuclearWasteSidebarCount(); } catch(e) {}
@@ -21008,9 +21464,27 @@
                             try { updateMurderMysteryMessageSidebarCount(); } catch(e) {}
                             setTimeout(() => { try { updateMurderMysteryMessageSidebarCount(); } catch(e) {} }, 200);
                         }
+                        // 埃普西隆质疑真理-载具计数器
+                        if (t === 'assuming_the_truth') {
+                            try { updateAssumingTheTruthSidebarCount(); } catch(e) {}
+                            setTimeout(() => { try { updateAssumingTheTruthSidebarCount(); } catch(e) {} }, 200);
+                        }
+                        // 埃普斯隆追求真理-神器计数器
+                        if (t === 'chasing_the_truth') {
+                            try { updateChasingTheTruthSidebarCount(); } catch(e) {}
+                            setTimeout(() => { try { updateChasingTheTruthSidebarCount(); } catch(e) {} }, 200);
+                        }
+                        if (t === 'epsilon_tracts') {
+                            try { updateEpsilonTractsSidebarCount(); } catch(e) {}
+                            setTimeout(() => { try { updateEpsilonTractsSidebarCount(); } catch(e) {} }, 200);
+                        }
                         // 洛圣都杀人狂计数器
                         if (t === 'serial_killer_slasher') {
                             try { updateSlasherSidebarCount(); } catch(e) {}
+                        }
+                        if (t === 'for_sale_sign') {
+                            try { updateForSaleSignSidebarCount(); } catch(e) {}
+                            setTimeout(() => { try { updateForSaleSignSidebarCount(); } catch(e) {} }, 200);
                         }
                         // 左轮寻宝计数器
                         if (t === 'treasure_hunt_dba_revolver') {
@@ -21100,6 +21574,10 @@
                         if (t === 'spaceship_parts') {
                             try { updateSpaceshipPartsSidebarCount(); } catch(e) {}
                         }
+                        if (t === 'assuming_the_truth') {
+                            try { updateAssumingTheTruthSidebarCount(); } catch(e) {}
+                            setTimeout(() => { try { updateAssumingTheTruthSidebarCount(); } catch(e) {} }, 200);
+                            }
                         // 南瓜灯计数器
                         if (t === 'jack_o_lanterns') {
                             try { updateJackOLanternsSidebarCount(); } catch(e) {}
@@ -21219,6 +21697,7 @@
                     try { updateStreetDealersSidebarCount(); } catch(e) {}
                     try { updateSubmarinePiecesSidebarCount(); } catch(e) {}
                     try { updateNuclearWasteSidebarCount(); } catch(e) {}
+                    try { updateAssumingTheTruthSidebarCount(); } catch(e) {}
                     try { updateSlasherSidebarCount(); } catch(e) {}
                     try { updateTreasureHuntSidebarCount(); } catch(e) {}
                     try { updateUfoSidebarCount(); } catch(e) {}
@@ -21235,6 +21714,7 @@
                     try { updatePlayingCardsSidebarCount(); } catch(e) {}
                     try { updateLetterScrapsSidebarCount(); } catch(e) {}
                     try { updateMurderMysteryMessageSidebarCount(); } catch(e) {}
+                    try { updateAssumingTheTruthSidebarCount(); } catch(e) {}
                      try { updateSpHiddenPackagesSidebarCount(); } catch(e) {}
                      try { updatePeyoteSpLandSidebarCount(); } catch(e) {}
                      try { updatePeyoteSpAirSidebarCount(); } catch(e) {}
@@ -21253,6 +21733,7 @@
                     try { updateHiddenCachesSidebarCount(); } catch(e) {}
                     try { updateSmokeProductSidebarCount(); } catch(e) {}
                     try { updateDeadDropSidebarCount(); } catch(e) {}
+                    try { updateAssumingTheTruthSidebarCount(); } catch(e) {}
                     
                     // 延迟更新计数器，确保数据已加载
                     setTimeout(() => {
@@ -21562,6 +22043,528 @@
             }, { passive: false });
         })();
 
+        // ==================== 埃普西隆质疑真理-载具模板（集成缓存） ====================
+        
+        // 埃普西隆质疑真理-载具 弹窗（样式与核废料一致：底部按钮，移除右上角×）
+        function showAssumingTheTruthPopup(item, index) {
+            const sequenceNumber = index + 1;
+            const imageUrl = `https://gta-maps.antwen.com/collectibles_images/assuming_the_truth/assuming_the_truth_${sequenceNumber}.webp`;
+
+            // 关闭已存在的弹窗
+            const existingPopup = document.querySelector('.assuming-the-truth-popup');
+            if (existingPopup) existingPopup.remove();
+
+            // 统计隐藏/总数
+            const markers = (window.assumingTheTruthMarkers && window.assumingTheTruthMarkers) || [];
+            const totalCount = Array.isArray(window.itemData?.assuming_the_truth) ? window.itemData.assuming_the_truth.length : markers.length;
+
+            let hiddenCount = 0;
+            markers.forEach((marker) => {
+                if (marker && typeof marker.getElement === 'function') {
+                    const el = marker.getElement();
+                    if (el && el.style.opacity === '0.3') hiddenCount++;
+                }
+            });
+
+            const currentMarker = markers[index];
+            let isCurrentHidden = false;
+            if (currentMarker && typeof currentMarker.getElement === 'function') {
+                const el = currentMarker.getElement();
+                isCurrentHidden = el && el.style.opacity === '0.3';
+            }
+
+            const name = item?.name || `载具 #${sequenceNumber}`;
+            const title = `☸️ 埃普西隆质疑真理 - ${name} (${hiddenCount}/${totalCount})`;
+
+            // 构建弹窗（无右上角 ×，保留底部按钮）
+            const popup = document.createElement('div');
+            popup.className = 'assuming-the-truth-popup';
+            popup.style.cssText = `
+                position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+                background: var(--gta-bg-medium);
+                border: 1px solid var(--gta-border);
+                border-radius: 8px;
+                box-shadow: 0 2px 15px rgba(0,0,0,0.5);
+                padding: 15px;
+                z-index: 10000;
+                width: min(92vw, 520px);
+                max-height: 80vh;
+                color: var(--gta-text);
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                overflow-y: auto;
+            `;
+
+            popup.innerHTML = `
+                <div class="popup-header" style="position: relative; margin-bottom: 14px;">
+                    <h3 style="color: var(--gta-primary); font-size: 18px; margin: 0; font-weight: bold;">${title}</h3>
+                </div>
+                <img src="${imageUrl}" alt="assuming_the_truth #${sequenceNumber}" style="max-width: 100%; height: auto; border-radius: 6px; margin: 8px 0; display: block; cursor: zoom-in;"/>
+                <div style="margin: 10px 0; padding: 10px; background: rgba(156, 39, 176, 0.1); border-radius: 8px; color: var(--gta-text); font-size: 14px; line-height: 1.6;">
+                    <div style="font-weight: 700; margin-bottom: 6px;">${name}</div>
+                    <div>这是需要运送给埃普西隆计划的载具，是陌生人与怪咖任务质疑真理（麦克）的一部分。<br/>载具总是在图示的确切位置生成。</div>
+                </div>
+                <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
+                    <button id="hide-att-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease; display: ${isCurrentHidden ? 'none' : 'inline-block'};">隐藏</button>
+                    <button id="show-att-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease; display: ${isCurrentHidden ? 'inline-block' : 'none'};">显示</button>
+                    <button id="close-att-btn" style="padding: 8px 16px; background: var(--gta-primary); color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease;">关闭</button>
+                </div>
+            `;
+
+            // 绑定元素
+            const closeBtn = popup.querySelector('#close-att-btn');
+            const hideBtn = popup.querySelector('#hide-att-btn');
+            const showBtn = popup.querySelector('#show-att-btn');
+            const titleElement = popup.querySelector('h3');
+
+            // 关闭弹窗
+            const removePopup = () => popup.remove();
+            closeBtn && closeBtn.addEventListener('click', removePopup);
+            popup.addEventListener('click', (e) => e.stopPropagation());
+            setTimeout(() => {
+                const closePopupHandler = (e) => {
+                    if (!popup.contains(e.target)) {
+                        removePopup();
+                        document.removeEventListener('click', closePopupHandler);
+                    }
+                };
+                document.addEventListener('click', closePopupHandler);
+            }, 50);
+
+            // 图片点击放大
+            const popupImage = popup.querySelector('img');
+            if (popupImage) {
+                popupImage.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const overlay = document.createElement('div');
+                    overlay.style.cssText = `position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; z-index: 10002; cursor: zoom-out;`;
+                    const bigImg = document.createElement('img');
+                    bigImg.src = popupImage.src;
+                    bigImg.alt = popupImage.alt || '';
+                    bigImg.style.cssText = `max-width: 95vw; max-height: 95vh; border-radius: 6px; box-shadow: 0 4px 24px rgba(0,0,0,0.6);`;
+                    overlay.appendChild(bigImg);
+                    const removeOverlay = () => { document.removeEventListener('keydown', onKey); overlay.remove(); };
+                    const onKey = (ev) => { if (ev.key === 'Escape') removeOverlay(); };
+                    overlay.addEventListener('click', removeOverlay);
+                    document.addEventListener('keydown', onKey);
+                    document.body.appendChild(overlay);
+                });
+            }
+
+            // 隐藏/显示逻辑 + 缓存 + 计数器
+            function setCurrentMarkerVisibility(opacity) {
+                if (currentMarker && typeof currentMarker.setOpacity === 'function') {
+                    currentMarker.setOpacity(opacity);
+                } else if (currentMarker && typeof currentMarker.setStyle === 'function') {
+                    currentMarker.setStyle({ opacity });
+                }
+                VisibilityCache.updateItemVisibility('assuming_the_truth', index, opacity === 0.3);
+            }
+
+            if (hideBtn) {
+                hideBtn.addEventListener('click', () => {
+                    setCurrentMarkerVisibility(0.3);
+                    const newHiddenCount = hiddenCount + (isCurrentHidden ? 0 : 1);
+                    titleElement.textContent = `☸️ 埃普西隆质疑真理 - ${name} (${newHiddenCount}/${totalCount})`;
+                    hideBtn.style.display = 'none';
+                    showBtn.style.display = 'inline-block';
+                    isCurrentHidden = true;
+                    try { updateAssumingTheTruthSidebarCount(); } catch(e) {}
+                });
+            }
+            if (showBtn) {
+                showBtn.addEventListener('click', () => {
+                    setCurrentMarkerVisibility(1);
+                    const newHiddenCount = hiddenCount - (isCurrentHidden ? 1 : 0);
+                    titleElement.textContent = `☸️ 埃普西隆质疑真理 - ${name} (${newHiddenCount}/${totalCount})`;
+                    showBtn.style.display = 'none';
+                    hideBtn.style.display = 'inline-block';
+                    isCurrentHidden = false;
+                    try { updateAssumingTheTruthSidebarCount(); } catch(e) {}
+                });
+            }
+
+            document.body.appendChild(popup);
+        }
+
+        // 应用埃普西隆质疑真理-载具可见性缓存
+        function applyAssumingTheTruthVisibilityCache() {
+            try {
+                const markers = (window.assumingTheTruthMarkers && window.assumingTheTruthMarkers) || [];
+                if (!Array.isArray(markers) || markers.length === 0) return;
+                const visibilityMap = VisibilityCache.loadVisibility('assuming_the_truth') || {};
+                markers.forEach((marker, i) => {
+                    if (!marker) return;
+                    const isHidden = !!visibilityMap[i];
+                    const opacity = isHidden ? 0.3 : 1;
+                    if (typeof marker.setOpacity === 'function') marker.setOpacity(opacity);
+                    else if (typeof marker.setStyle === 'function') marker.setStyle({ opacity });
+                });
+                // 应用缓存后尝试刷新计数器
+                try { updateAssumingTheTruthSidebarCount(); } catch (e) {}
+            } catch (e) {
+                console.warn('应用埃普西隆质疑真理-载具可见性缓存失败:', e);
+            }
+        }
+
+        // 统计隐藏/总数，并更新 assuming_the_truth 侧边栏计数器
+        function updateAssumingTheTruthSidebarCount() {
+            try {
+                const counterEl = document.querySelector('#sidebar-item-assuming_the_truth + label .assuming-the-truth-counter');
+                if (!counterEl) return;
+
+                const markers = (window.assumingTheTruthMarkers && window.assumingTheTruthMarkers) || [];
+                const total = Array.isArray(window.itemData?.assuming_the_truth) ? window.itemData.assuming_the_truth.length : 0;
+                let hidden = 0;
+
+                let hasRenderedMarker = false;
+                if (Array.isArray(markers) && markers.length > 0) {
+                    for (const marker of markers) {
+                        if (marker && typeof marker.getElement === 'function') {
+                            const el = marker.getElement();
+                            if (el) {
+                                hasRenderedMarker = true;
+                                if (el.style.opacity === '0.3') hidden++;
+                            }
+                        }
+                    }
+                }
+
+                // 与缓存合并，防止重新显示后隐藏计数被清零
+                const cachedCounter = CounterCache.getCounter('assuming_the_truth');
+                hidden = Math.max(hidden, cachedCounter.hidden || 0);
+
+                CounterCache.updateCounter('assuming_the_truth', hidden, total);
+                counterEl.textContent = total > 0 ? ` (${hidden}/${total})` : '';
+            } catch (e) {
+                console.warn('更新 assuming_the_truth 计数器失败:', e);
+            }
+        }
+
+        // 统计隐藏/总数，并更新 chasing_the_truth 侧边栏计数器
+        function updateChasingTheTruthSidebarCount() {
+            try {
+                const counterEl = document.querySelector('#sidebar-item-chasing_the_truth + label .chasing-the-truth-counter');
+                if (!counterEl) return;
+                // 仅基于 VisibilityCache 计算（Leaflet 模式下不依赖 DOM）
+                const total = Array.isArray(window.itemData?.chasing_the_truth) ? window.itemData.chasing_the_truth.length : 0;
+                const visibilityMap = VisibilityCache.loadVisibility('chasing_the_truth') || {};
+                let hidden = 0;
+                for (let i = 0; i < total; i++) {
+                    if (visibilityMap[i] === true) hidden++;
+                }
+
+                CounterCache.updateCounter('chasing_the_truth', hidden, total);
+                counterEl.textContent = total > 0 ? ` (${hidden}/${total})` : '';
+            } catch (e) {
+                console.warn('更新 chasing_the_truth 计数器失败:', e);
+            }
+        }
+
+        // ==================== 埃普斯隆追求真理-神器模板（集成缓存） ====================
+        
+        // 埃普斯隆追求真理-神器 弹窗（样式与核废料一致：底部按钮，移除右上角×）
+        function showChasingTheTruthPopup(item, index) {
+            const sequenceNumber = index + 1;
+            // 直接使用序号，不加前导0
+            const imageUrl = `https://gta-maps.antwen.com/collectibles_images/chasing_the_truth/chasing_the_truth_${sequenceNumber}.webp`;
+
+            // 关闭已存在的弹窗
+            const existingPopup = document.querySelector('.chasing-the-truth-popup');
+            if (existingPopup) existingPopup.remove();
+
+            // 统计隐藏/总数（基于 VisibilityCache）
+            const arr = Array.isArray(window.itemData?.chasing_the_truth) ? window.itemData.chasing_the_truth : [];
+            const totalCount = arr.length;
+            const visibilityMap = VisibilityCache.loadVisibility('chasing_the_truth') || {};
+            let hiddenCount = 0;
+            for (let i = 0; i < totalCount; i++) {
+                if (visibilityMap[i] === true) hiddenCount++;
+            }
+            const isCurrentHidden = visibilityMap[index] === true;
+
+            const name = item?.name || `神器 #${sequenceNumber}`;
+            const title = `☯️ 埃普斯隆追求真理 - ${name} (${hiddenCount}/${totalCount})`;
+
+            // 构建弹窗（无右上角 ×，保留底部按钮）
+            const popup = document.createElement('div');
+            popup.className = 'chasing-the-truth-popup';
+            popup.style.cssText = `
+                position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+                background: var(--gta-bg-medium);
+                border: 1px solid var(--gta-border);
+                border-radius: 8px;
+                box-shadow: 0 2px 15px rgba(0,0,0,0.5);
+                padding: 15px;
+                z-index: 10000;
+                width: min(92vw, 520px);
+                max-height: 80vh;
+                color: var(--gta-text);
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                overflow-y: auto;
+            `;
+
+            popup.innerHTML = `
+                <div class="popup-header" style="position: relative; margin-bottom: 14px;">
+                    <h3 style="color: var(--gta-primary); font-size: 18px; margin: 0; font-weight: bold;">${title}</h3>
+                </div>
+                <img src="${imageUrl}" alt="chasing_the_truth #${sequenceNumber}" style="max-width: 100%; height: auto; border-radius: 6px; margin: 8px 0; display: block; cursor: zoom-in;"/>
+                <div style="margin: 10px 0; padding: 10px; background: rgba(156, 39, 176, 0.1); border-radius: 8px; color: var(--gta-text); font-size: 14px; line-height: 1.6;">
+                    <div style="font-weight: 700; margin-bottom: 6px;">${name}</div>
+                    <div>这是需要收集的埃普斯隆神器，是陷生人与怪咕任务追求真理（麦克）的一部分。<br/>神器总是在图示的确切位置生成。</div>
+                </div>
+                <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
+                    <button id="hide-ctt-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease; display: ${isCurrentHidden ? 'none' : 'inline-block'};">隐藏</button>
+                    <button id="show-ctt-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease; display: ${isCurrentHidden ? 'inline-block' : 'none'};">显示</button>
+                    <button id="close-ctt-btn" style="padding: 8px 16px; background: var(--gta-primary); color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease;">关闭</button>
+                </div>
+            `;
+
+            // 绑定元素
+            const closeBtn = popup.querySelector('#close-ctt-btn');
+            const hideBtn = popup.querySelector('#hide-ctt-btn');
+            const showBtn = popup.querySelector('#show-ctt-btn');
+            const titleElement = popup.querySelector('h3');
+
+            // 关闭弹窗
+            const removePopup = () => popup.remove();
+            closeBtn && closeBtn.addEventListener('click', removePopup);
+            popup.addEventListener('click', (e) => e.stopPropagation());
+            setTimeout(() => {
+                const closePopupHandler = (e) => {
+                    if (!popup.contains(e.target)) {
+                        removePopup();
+                        document.removeEventListener('click', closePopupHandler);
+                    }
+                };
+                document.addEventListener('click', closePopupHandler);
+            }, 50);
+
+            // 图片点击放大
+            const popupImage = popup.querySelector('img');
+            if (popupImage) {
+                popupImage.addEventListener('click', () => {
+                    window.open(imageUrl, '_blank');
+                });
+            }
+
+            // 隐藏/显示按钮事件
+            if (hideBtn) {
+                hideBtn.addEventListener('click', () => {
+                    // 仅更新可见性缓存与计数器（不修改透明度）
+                    const visibilityMap = VisibilityCache.loadVisibility('chasing_the_truth') || {};
+                    visibilityMap[index] = true; // 隐藏
+                    VisibilityCache.saveVisibility('chasing_the_truth', visibilityMap);
+
+                    hideBtn.style.display = 'none';
+                    showBtn.style.display = 'inline-block';
+
+                    const newHiddenCount = hiddenCount + 1;
+                    hiddenCount = newHiddenCount;
+                    titleElement.textContent = `☯️ 埃普斯隆追求真理 - ${name} (${newHiddenCount}/${totalCount})`;
+
+                    try { updateChasingTheTruthSidebarCount(); } catch (e) {}
+                });
+            }
+            
+            if (showBtn) {
+                showBtn.addEventListener('click', () => {
+                    // 仅更新可见性缓存与计数器（不修改透明度）
+                    const visibilityMap = VisibilityCache.loadVisibility('chasing_the_truth') || {};
+                    delete visibilityMap[index]; // 显示
+                    VisibilityCache.saveVisibility('chasing_the_truth', visibilityMap);
+
+                    showBtn.style.display = 'none';
+                    hideBtn.style.display = 'inline-block';
+
+                    const newHiddenCount = hiddenCount - 1;
+                    hiddenCount = newHiddenCount;
+                    titleElement.textContent = `☯️ 埃普斯隆追求真理 - ${name} (${newHiddenCount}/${totalCount})`;
+
+                    try { updateChasingTheTruthSidebarCount(); } catch (e) {}
+                });
+            }
+
+            document.body.appendChild(popup);
+        }
+
+        
+
+        // 应用埃普斯隆追求真理-神器可见性缓存（Leaflet：不调整透明度，仅刷新计数器）
+        function applyChasingTheTruthVisibilityCache() {
+            try {
+                // 目前不改变标记视觉，仅基于缓存刷新侧边栏计数器
+                try { updateChasingTheTruthSidebarCount(); } catch (e) {}
+            } catch (e) {
+                console.warn('应用埃普斯隆追求真理-神器可见性缓存失败:', e);
+            }
+        }
+
+        // ==================== 埃普西隆传单（epsilon_tracts） ====================
+
+        // 侧边栏计数器：基于 VisibilityCache 统计隐藏/总数
+        function updateEpsilonTractsSidebarCount() {
+            try {
+                const counterEl = document.querySelector('#sidebar-item-epsilon_tracts + label .epsilon-tracts-counter');
+                if (!counterEl) return;
+
+                const total = Array.isArray(window.itemData?.epsilon_tracts) ? window.itemData.epsilon_tracts.length : 0;
+                const visibilityMap = VisibilityCache.loadVisibility('epsilon_tracts') || {};
+                let hidden = 0;
+                for (let i = 0; i < total; i++) if (visibilityMap[i] === true) hidden++;
+
+                CounterCache.updateCounter('epsilon_tracts', hidden, total);
+                counterEl.textContent = total > 0 ? ` (${hidden}/${total})` : '';
+            } catch (e) {
+                console.warn('更新 epsilon_tracts 计数器失败:', e);
+            }
+        }
+
+        // 应用可见性缓存：根据缓存恢复标记透明度，并刷新计数器（计数基于缓存，不依赖DOM）
+        function applyEpsilonTractsVisibilityCache() {
+            try {
+                const markers = (window.epsilonTractsMarkers && window.epsilonTractsMarkers) || [];
+                const visibilityMap = VisibilityCache.loadVisibility('epsilon_tracts') || {};
+                if (Array.isArray(markers) && markers.length > 0) {
+                    markers.forEach((marker, i) => {
+                        if (!marker) return;
+                        const isHidden = !!visibilityMap[i];
+                        const opacity = isHidden ? 0.3 : 1;
+                        if (typeof marker.setOpacity === 'function') {
+                            marker.setOpacity(opacity);
+                        } else if (typeof marker.setStyle === 'function') {
+                            marker.setStyle({ opacity });
+                        } else if (typeof marker.getElement === 'function') {
+                            const el = marker.getElement();
+                            if (el) el.style.opacity = String(opacity);
+                        }
+                    });
+                }
+                try { updateEpsilonTractsSidebarCount(); } catch (e) {}
+            } catch (e) {
+                console.warn('应用 epsilon_tracts 可见性缓存失败:', e);
+            }
+        }
+
+        // 弹窗（样式同神器）：底部按钮 + 图片 + 文案
+        function showEpsilonTractsPopup(item, index) {
+            const sequenceNumber = index + 1;
+            const imageUrl = `https://gta-maps.antwen.com/collectibles_images/epsilon_tracts/epsilon_tracts_${sequenceNumber}.webp`;
+
+            // 关闭已存在的弹窗
+            const existingPopup = document.querySelector('.epsilon-tracts-popup');
+            if (existingPopup) existingPopup.remove();
+
+            // 统计隐藏/总数（基于 VisibilityCache）
+            const arr = Array.isArray(window.itemData?.epsilon_tracts) ? window.itemData.epsilon_tracts : [];
+            const totalCount = arr.length;
+            const visibilityMap = VisibilityCache.loadVisibility('epsilon_tracts') || {};
+            let hiddenCount = 0;
+            for (let i = 0; i < totalCount; i++) if (visibilityMap[i] === true) hiddenCount++;
+            let isCurrentHidden = visibilityMap[index] === true;
+
+            const name = item?.name || `传单 #${sequenceNumber}`;
+            const title = `☯️ 埃普西隆传单 - ${name} (${hiddenCount}/${totalCount})`;
+
+            const popup = document.createElement('div');
+            popup.className = 'epsilon-tracts-popup';
+            popup.style.cssText = `
+                position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+                background: var(--gta-bg-medium);
+                border: 1px solid var(--gta-border);
+                border-radius: 8px;
+                box-shadow: 0 2px 15px rgba(0,0,0,0.5);
+                padding: 15px;
+                z-index: 10000;
+                width: min(92vw, 520px);
+                max-height: 80vh;
+                color: var(--gta-text);
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                overflow-y: auto;
+            `;
+
+            popup.innerHTML = `
+                <div class="popup-header" style="position: relative; margin-bottom: 14px;">
+                    <h3 style="color: var(--gta-primary); font-size: 18px; margin: 0; font-weight: bold;">${title}</h3>
+                </div>
+                <img src="${imageUrl}" alt="epsilon_tracts #${sequenceNumber}" style="max-width: 100%; height: auto; border-radius: 6px; margin: 8px 0; display: block; cursor: zoom-in;"/>
+                <div style="margin: 10px 0; padding: 10px; background: rgba(33, 150, 243, 0.1); border-radius: 8px; color: var(--gta-text); font-size: 14px; line-height: 1.6;">
+                    <div style="font-weight: 700; margin-bottom: 6px;">${name}</div>
+                    <div>游戏中共有 10 张传单，玩家需要按特定的顺序收集。<br/>此收藏品在完成陌生人和怪胎任务模糊真理（麦克）后解锁。马尔尼会向玩家发送一条短信，告知此收藏品的相关信息。<br/>传单可以由任意角色收集。每收集一张传单，马尔尼会向麦克发送短信，提示下一张传单的位置。<br/>集齐该收藏品，您将解锁第九典范的埃普西隆传单，157 年。</div>
+                </div>
+                <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
+                    <button id="hide-et-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease; display: ${isCurrentHidden ? 'none' : 'inline-block'};">隐藏</button>
+                    <button id="show-et-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease; display: ${isCurrentHidden ? 'inline-block' : 'none'};">显示</button>
+                    <button id="close-et-btn" style="padding: 8px 16px; background: var(--gta-primary); color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease;">关闭</button>
+                </div>
+            `;
+
+            // 绑定元素
+            const closeBtn = popup.querySelector('#close-et-btn');
+            const hideBtn = popup.querySelector('#hide-et-btn');
+            const showBtn = popup.querySelector('#show-et-btn');
+            const titleElement = popup.querySelector('h3');
+
+            // 关闭弹窗（点击外部）
+            const removePopup = () => popup.remove();
+            closeBtn && closeBtn.addEventListener('click', removePopup);
+            popup.addEventListener('click', (e) => e.stopPropagation());
+            setTimeout(() => {
+                const closePopupHandler = (e) => {
+                    if (!popup.contains(e.target)) {
+                        removePopup();
+                        document.removeEventListener('click', closePopupHandler);
+                    }
+                };
+                document.addEventListener('click', closePopupHandler);
+            }, 50);
+
+            // 图片点击新窗口打开
+            const popupImage = popup.querySelector('img');
+            if (popupImage) {
+                popupImage.addEventListener('click', () => {
+                    window.open(imageUrl, '_blank');
+                });
+            }
+
+            // 当前 marker（若存在）及设置函数
+            const markers = (window.epsilonTractsMarkers && window.epsilonTractsMarkers) || [];
+            const currentMarker = markers[index];
+            function setCurrentMarkerVisibility(opacity) {
+                if (currentMarker && typeof currentMarker.setOpacity === 'function') currentMarker.setOpacity(opacity);
+                else if (currentMarker && typeof currentMarker.setStyle === 'function') currentMarker.setStyle({ opacity });
+                else if (currentMarker && typeof currentMarker.getElement === 'function') {
+                    const el = currentMarker.getElement();
+                    if (el) el.style.opacity = String(opacity);
+                }
+                VisibilityCache.updateItemVisibility('epsilon_tracts', index, opacity === 0.3);
+            }
+
+            if (hideBtn) {
+                hideBtn.addEventListener('click', () => {
+                    if (!isCurrentHidden) hiddenCount = hiddenCount + 1;
+                    setCurrentMarkerVisibility(0.3);
+                    titleElement.textContent = `☯️ 埃普西隆传单 - ${name} (${hiddenCount}/${totalCount})`;
+                    hideBtn.style.display = 'none';
+                    showBtn.style.display = 'inline-block';
+                    isCurrentHidden = true;
+                    try { updateEpsilonTractsSidebarCount(); } catch (e) {}
+                });
+            }
+            if (showBtn) {
+                showBtn.addEventListener('click', () => {
+                    if (isCurrentHidden) hiddenCount = hiddenCount - 1;
+                    setCurrentMarkerVisibility(1);
+                    titleElement.textContent = `☯️ 埃普西隆传单 - ${name} (${hiddenCount}/${totalCount})`;
+                    showBtn.style.display = 'none';
+                    hideBtn.style.display = 'inline-block';
+                    isCurrentHidden = false;
+                    try { updateEpsilonTractsSidebarCount(); } catch (e) {}
+                });
+            }
+
+            document.body.appendChild(popup);
+        }
+
         // ==================== 增强版核废料模板（集成缓存） ====================
         
         // 创建侧边栏条目时，为 nuclear_waste 增加一个计数器占位
@@ -21673,7 +22676,147 @@
                 console.warn('更新隐藏包裹（线下）计数器失败:', e);
             }
         }
+            // 埃普西隆质疑真理-载具 弹窗（样式与核废料一致：底部按钮，移除右上角×）
+            function showAssumingTheTruthPopup(item, index) {
+            const sequenceNumber = index + 1;
+            const imageUrl = `https://gta-maps.antwen.com/collectibles_images/assuming_the_truth/assuming_the_truth_${sequenceNumber}.webp`;
 
+            // 关闭已存在的弹窗
+            const existingPopup = document.querySelector('.assuming-the-truth-popup');
+            if (existingPopup) existingPopup.remove();
+
+            // 统计隐藏/总数
+            const markers = (window.assumingTheTruthMarkers && window.assumingTheTruthMarkers) || [];
+            const totalCount = Array.isArray(window.itemData?.assuming_the_truth) ? window.itemData.assuming_the_truth.length : markers.length;
+
+            let hiddenCount = 0;
+            markers.forEach((marker) => {
+                if (marker && typeof marker.getElement === 'function') {
+                const el = marker.getElement();
+                if (el && el.style.opacity === '0.3') hiddenCount++;
+                }
+            });
+
+            const currentMarker = markers[index];
+            let isCurrentHidden = false;
+            if (currentMarker && typeof currentMarker.getElement === 'function') {
+                const el = currentMarker.getElement();
+                isCurrentHidden = el && el.style.opacity === '0.3';
+            }
+
+            const name = item?.name || `载具 #${sequenceNumber}`;
+            const title = `☸️ 埃普西隆质疑真理 - ${name} (${hiddenCount}/${totalCount})`;
+
+            // 构建弹窗（无右上角 ×，保留底部按钮）
+            const popup = document.createElement('div');
+            popup.className = 'assuming-the-truth-popup';
+            popup.style.cssText = `
+                position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+                background: var(--gta-bg-medium);
+                border: 1px solid var(--gta-border);
+                border-radius: 8px;
+                box-shadow: 0 2px 15px rgba(0,0,0,0.5);
+                padding: 15px;
+                z-index: 10000;
+                width: min(92vw, 520px);
+                max-height: 80vh;
+                color: var(--gta-text);
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                overflow-y: auto;
+            `;
+
+            popup.innerHTML = `
+                <div class="popup-header" style="position: relative; margin-bottom: 14px;">
+                <h3 style="color: var(--gta-primary); font-size: 18px; margin: 0; font-weight: bold;">${title}</h3>
+                <!-- 移除右上角 × -->
+                </div>
+                <img src="${imageUrl}" alt="assuming_the_truth #${sequenceNumber}" style="max-width: 100%; height: auto; border-radius: 6px; margin: 8px 0; display: block; cursor: zoom-in;"/>
+                <div style="margin: 10px 0; padding: 10px; background: rgba(156, 39, 176, 0.1); border-radius: 8px; color: var(--gta-text); font-size: 14px; line-height: 1.6;">
+                <div style="font-weight: 700; margin-bottom: 6px;">${name}</div>
+                <div>这是需要运送给埃普西隆计划的载具，是陌生人与怪咖任务质疑真理（麦克）的一部分。<br/>载具总是在图示的确切位置生成。</div>
+                </div>
+                <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
+                <button id="hide-att-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease; display: ${isCurrentHidden ? 'none' : 'inline-block'};">隐藏</button>
+                <button id="show-att-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease; display: ${isCurrentHidden ? 'inline-block' : 'none'};">显示</button>
+                <button id="close-att-btn" style="padding: 8px 16px; background: var(--gta-primary); color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease;">关闭</button>
+                </div>
+            `;
+
+            // 绑定元素
+            const closeBtn = popup.querySelector('#close-att-btn');
+            const hideBtn = popup.querySelector('#hide-att-btn');
+            const showBtn = popup.querySelector('#show-att-btn');
+            const titleElement = popup.querySelector('h3');
+
+            // 关闭弹窗
+            const removePopup = () => popup.remove();
+            closeBtn && closeBtn.addEventListener('click', removePopup);
+            popup.addEventListener('click', (e) => e.stopPropagation());
+            setTimeout(() => {
+                const closePopupHandler = (e) => {
+                if (!popup.contains(e.target)) {
+                    removePopup();
+                    document.removeEventListener('click', closePopupHandler);
+                }
+                };
+                document.addEventListener('click', closePopupHandler);
+            }, 50);
+
+            // 图片点击放大（同核废料/线下包裹）
+            const popupImage = popup.querySelector('img');
+            if (popupImage) {
+                popupImage.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const overlay = document.createElement('div');
+                overlay.style.cssText = `position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; z-index: 10002; cursor: zoom-out;`;
+                const bigImg = document.createElement('img');
+                bigImg.src = popupImage.src;
+                bigImg.alt = popupImage.alt || '';
+                bigImg.style.cssText = `max-width: 95vw; max-height: 95vh; border-radius: 6px; box-shadow: 0 4px 24px rgba(0,0,0,0.6);`;
+                overlay.appendChild(bigImg);
+                const removeOverlay = () => { document.removeEventListener('keydown', onKey); overlay.remove(); };
+                const onKey = (ev) => { if (ev.key === 'Escape') removeOverlay(); };
+                overlay.addEventListener('click', removeOverlay);
+                document.addEventListener('keydown', onKey);
+                document.body.appendChild(overlay);
+                });
+            }
+
+            // 隐藏/显示逻辑 + 缓存 + 计数器
+            function setCurrentMarkerVisibility(opacity) {
+                if (currentMarker && typeof currentMarker.setOpacity === 'function') {
+                currentMarker.setOpacity(opacity);
+                } else if (currentMarker && typeof currentMarker.setStyle === 'function') {
+                currentMarker.setStyle({ opacity });
+                }
+                VisibilityCache.updateItemVisibility('assuming_the_truth', index, opacity === 0.3);
+            }
+
+            if (hideBtn) {
+                hideBtn.addEventListener('click', () => {
+                setCurrentMarkerVisibility(0.3);
+                const newHiddenCount = hiddenCount + (isCurrentHidden ? 0 : 1);
+                titleElement.textContent = `☸️ 埃普西隆质疑真理 - ${name} (${newHiddenCount}/${totalCount})`;
+                hideBtn.style.display = 'none';
+                showBtn.style.display = 'inline-block';
+                isCurrentHidden = true;
+                try { updateAssumingTheTruthSidebarCount(); } catch(e) {}
+                });
+            }
+            if (showBtn) {
+                showBtn.addEventListener('click', () => {
+                setCurrentMarkerVisibility(1);
+                const newHiddenCount = hiddenCount - (isCurrentHidden ? 1 : 0);
+                titleElement.textContent = `☸️ 埃普西隆质疑真理 - ${name} (${newHiddenCount}/${totalCount})`;
+                showBtn.style.display = 'none';
+                hideBtn.style.display = 'inline-block';
+                isCurrentHidden = false;
+                try { updateAssumingTheTruthSidebarCount(); } catch(e) {}
+                });
+            }
+
+            document.body.appendChild(popup);
+            }
         // 隐藏包裹（线下）弹窗模板（含隐藏/显示联动与计数器、缓存集成）
         function showSpHiddenPackagesImage(index) {
             // 序号从1开始
@@ -22522,3 +23665,4 @@
 
 </body>
 </html>
+

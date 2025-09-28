@@ -3652,11 +3652,18 @@
                         }
                     }
                 } else {
-                    // 回退：仅有数据尚未渲染 Leaflet 标记时
-                    total = Array.isArray(window.itemData?.murder_mystery_message) ? window.itemData.murder_mystery_message.length : 0;
-                    // 从缓存中获取隐藏数量
+                    // 图层未显示时：使用数据总量 + 可见性缓存来统计隐藏数量，避免重置为0
+                    const dataArr = Array.isArray(window.itemData?.murder_mystery_message) ? window.itemData.murder_mystery_message : [];
+                    total = dataArr.length;
+                    const visibilityMap = VisibilityCache.loadVisibility('murder_mystery_message') || {};
+                    for (let i = 0; i < total; i++) {
+                        if (visibilityMap[i] === true) hidden++;
+                    }
+                    // 如果尚无可见性缓存，则尝试使用上次计数器缓存
                     const cached = CounterCache.getCounter('murder_mystery_message');
-                    hidden = cached.hidden || 0;
+                    if (hidden === 0 && cached && typeof cached.hidden === 'number') hidden = cached.hidden;
+                    // 若数据数组为空（例如图层被取消选中导致未渲染且有时间过滤），使用缓存中的总数，避免显示为0
+                    if ((total === 0 || !Number.isFinite(total)) && cached && typeof cached.total === 'number') total = cached.total;
                 }
 
                 // 更新缓存与UI
@@ -20783,6 +20790,8 @@
                         label.appendChild(counter);
                         // 初始渲染一次
                         try { updateMurderMysteryMessageSidebarCount(); } catch(e) {}
+                        // 延迟再次渲染，防止首次构建时数据/缓存尚未到位
+                        setTimeout(() => { try { updateMurderMysteryMessageSidebarCount(); } catch(e) {} }, 200);
                     }
                     // 喷灌位置计数器
                     else if (type === 'spray') {
@@ -21225,6 +21234,7 @@
                     try { updateActionFiguresSidebarCount(); } catch(e) {}
                     try { updatePlayingCardsSidebarCount(); } catch(e) {}
                     try { updateLetterScrapsSidebarCount(); } catch(e) {}
+                    try { updateMurderMysteryMessageSidebarCount(); } catch(e) {}
                      try { updateSpHiddenPackagesSidebarCount(); } catch(e) {}
                      try { updatePeyoteSpLandSidebarCount(); } catch(e) {}
                      try { updatePeyoteSpAirSidebarCount(); } catch(e) {}

@@ -1214,6 +1214,7 @@
             'epsilon_tracts',
             'for_sale_sign',
             'the_big_score_gauntlet',
+            'hitchhikers',
             'chasing_the_truth',
             
             // 第3组：设施服务
@@ -1385,6 +1386,7 @@
             epsilon_tracts: '../src/assets/epsilon_tracts.svg',
             the_big_score_gauntlet: '../src/assets/the_big_score_gauntlet.svg',
             for_sale_sign: '../src/assets/for_sale_sign.svg',
+            hitchhikers: '../src/assets/hitchhikers.svg',
             rc_time_trial: '../src/assets/rctt.png',
             bike_time_trial: '../src/assets/btt.png',
             skydives: '../src/assets/skydive.png',
@@ -1519,6 +1521,7 @@
             epsilon_tracts: [],
             the_big_score_gauntlet: [],
             for_sale_sign: [],
+            hitchhikers: [],
             ld_organics_products: [],
             signal_jammers: [],
             jack_o_lanterns: [],
@@ -3570,9 +3573,25 @@
                 document.addEventListener('click', closePopupHandler);
             }, 50);
 
-            // 图片点击新窗口打开
+            // 图片点击放大（覆盖层，不打开新标签）
             const popupImage = popup.querySelector('img');
-            if (popupImage) popupImage.addEventListener('click', () => window.open(imageUrl, '_blank'));
+            if (popupImage) {
+                popupImage.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const overlay = document.createElement('div');
+                    overlay.style.cssText = `position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; z-index: 10002; cursor: zoom-out;`;
+                    const bigImg = document.createElement('img');
+                    bigImg.src = popupImage.src;
+                    bigImg.alt = popupImage.alt || '';
+                    bigImg.style.cssText = `max-width: 95vw; max-height: 95vh; border-radius: 6px; box-shadow: 0 4px 24px rgba(0,0,0,0.6);`;
+                    overlay.appendChild(bigImg);
+                    const removeOverlay = () => { document.removeEventListener('keydown', onKey); overlay.remove(); };
+                    const onKey = (ev) => { if (ev.key === 'Escape') removeOverlay(); };
+                    overlay.addEventListener('click', removeOverlay);
+                    document.addEventListener('keydown', onKey);
+                    document.body.appendChild(overlay);
+                });
+            }
 
             document.body.appendChild(popup);
         }
@@ -3697,9 +3716,25 @@
                 document.addEventListener('click', closePopupHandler);
             }, 50);
 
-            // 图片点击新窗口打开
+            // 图片点击放大（覆盖层，不打开新标签）
             const popupImage = popup.querySelector('img');
-            if (popupImage) popupImage.addEventListener('click', () => window.open(imageUrl, '_blank'));
+            if (popupImage) {
+                popupImage.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const overlay = document.createElement('div');
+                    overlay.style.cssText = `position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; z-index: 10002; cursor: zoom-out;`;
+                    const bigImg = document.createElement('img');
+                    bigImg.src = popupImage.src;
+                    bigImg.alt = popupImage.alt || '';
+                    bigImg.style.cssText = `max-width: 95vw; max-height: 95vh; border-radius: 6px; box-shadow: 0 4px 24px rgba(0,0,0,0.6);`;
+                    overlay.appendChild(bigImg);
+                    const removeOverlay = () => { document.removeEventListener('keydown', onKey); overlay.remove(); };
+                    const onKey = (ev) => { if (ev.key === 'Escape') removeOverlay(); };
+                    overlay.addEventListener('click', removeOverlay);
+                    document.addEventListener('keydown', onKey);
+                    document.body.appendChild(overlay);
+                });
+            }
 
             document.body.appendChild(popup);
         }
@@ -3738,6 +3773,133 @@
                 });
                 try { updateTheBigScoreGauntletSidebarCount(); } catch (e) {}
             } catch (e) { console.warn('应用 the_big_score_gauntlet 可见性缓存失败:', e); }
+        }
+
+        // 搭便车（潜在的利他邪教受害者）文本弹窗（无图片，含隐藏/显示+计数器）
+        function showHitchhikersPopup(item, index) {
+            const sequenceNumber = index + 1;
+            const baseTitle = `🚶 搭便车 #${sequenceNumber}`;
+            const extra = `您可以为需要搭便车的人伸出援手，特别地，崔佛则还可以选择将搭车人送到利他主义邪教营地并赚取 1.000 GTA$。在崔佛带过 4 名搭车人（不是带人 4 次。一次带来 2 人，进度加 2）到利他营地后，邪教徒会试图让他成为下一个受害者。`;
+
+            const notes = Array.isArray(item?.notes) ? item.notes : [];
+
+            // 统计隐藏/总数（基于 VisibilityCache）
+            const arr = Array.isArray(window.itemData?.hitchhikers) ? window.itemData.hitchhikers : [];
+            const totalCount = arr.length;
+            const visibilityMap = VisibilityCache.loadVisibility('hitchhikers') || {};
+            let hiddenCount = 0;
+            for (let i = 0; i < totalCount; i++) if (visibilityMap[i] === true) hiddenCount++;
+            let isCurrentHidden = visibilityMap[index] === true;
+
+            // 关闭已存在的弹窗
+            const existing = document.querySelector('.hitchhikers-popup');
+            if (existing) existing.remove();
+
+            const popup = document.createElement('div');
+            popup.className = 'hitchhikers-popup';
+            popup.style.cssText = `
+                position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+                background: var(--gta-bg-medium);
+                border: 1px solid var(--gta-border);
+                border-radius: 8px;
+                box-shadow: 0 2px 15px rgba(0,0,0,0.5);
+                padding: 16px; z-index: 10000; width: min(92vw, 540px); max-height: 80vh;
+                color: var(--gta-text); overflow-y: auto;`;
+
+            const htmlNotes = notes.map(n => `<li style="margin: 6px 0; line-height: 1.6;">${n}</li>`).join('');
+            popup.innerHTML = `
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+                    <h3 id="hitch-title" style="color: var(--gta-primary); font-size: 18px; margin: 0; font-weight: 700;">${baseTitle} (${hiddenCount}/${totalCount})</h3>
+                </div>
+                <div style="padding: 8px 10px; background: rgba(33,150,243,0.08); border: 1px solid var(--gta-border); border-radius: 6px;">
+                    ${notes.length ? `<ul style=\"padding-left:18px;margin:8px 0;\">${htmlNotes}</ul>` : '<div style="opacity:0.8;">暂无说明</div>'}
+                    <div style="margin-top:8px; line-height:1.7;">${extra}</div>
+                </div>
+                <div style="margin-top: 14px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
+                    <button id="hide-hitch-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; display: ${isCurrentHidden ? 'none' : 'inline-block'};">隐藏</button>
+                    <button id="show-hitch-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; display: ${isCurrentHidden ? 'inline-block' : 'none'};">显示</button>
+                    <button id="close-hitch-btn" style="padding: 8px 16px; background: var(--gta-primary); color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 500;">关闭</button>
+                </div>
+            `;
+
+            // 当前标记与设置函数
+            const markers = (window.hitchhikersMarkers && window.hitchhikersMarkers) || [];
+            const currentMarker = markers[index];
+            function setCurrentMarkerVisibility(opacity) {
+                if (currentMarker && typeof currentMarker.setOpacity === 'function') currentMarker.setOpacity(opacity);
+                else if (currentMarker && typeof currentMarker.setStyle === 'function') currentMarker.setStyle({ opacity });
+                else if (currentMarker && typeof currentMarker.getElement === 'function') { const el = currentMarker.getElement(); if (el) el.style.opacity = String(opacity); }
+                VisibilityCache.updateItemVisibility('hitchhikers', index, opacity === 0.3);
+            }
+
+            // 绑定元素
+            const titleElement = popup.querySelector('#hitch-title');
+            const closeBtn = popup.querySelector('#close-hitch-btn');
+            const hideBtn = popup.querySelector('#hide-hitch-btn');
+            const showBtn = popup.querySelector('#show-hitch-btn');
+
+            // 关闭弹窗
+            const removePopup = () => popup.remove();
+            closeBtn && closeBtn.addEventListener('click', removePopup);
+            popup.addEventListener('click', (e) => e.stopPropagation());
+            setTimeout(() => {
+                const closePopupHandler = (e) => { if (!popup.contains(e.target)) { removePopup(); document.removeEventListener('click', closePopupHandler); } };
+                document.addEventListener('click', closePopupHandler);
+            }, 20);
+
+            // 隐藏/显示按钮逻辑
+            if (hideBtn) hideBtn.addEventListener('click', () => {
+                if (!isCurrentHidden) hiddenCount = hiddenCount + 1;
+                setCurrentMarkerVisibility(0.3);
+                titleElement && (titleElement.textContent = `${baseTitle} (${hiddenCount}/${totalCount})`);
+                hideBtn.style.display = 'none';
+                showBtn.style.display = 'inline-block';
+                isCurrentHidden = true;
+                try { updateHitchhikersSidebarCount(); } catch (e) {}
+            });
+            if (showBtn) showBtn.addEventListener('click', () => {
+                if (isCurrentHidden && hiddenCount > 0) hiddenCount = hiddenCount - 1;
+                setCurrentMarkerVisibility(1);
+                titleElement && (titleElement.textContent = `${baseTitle} (${hiddenCount}/${totalCount})`);
+                showBtn.style.display = 'none';
+                hideBtn.style.display = 'inline-block';
+                isCurrentHidden = false;
+                try { updateHitchhikersSidebarCount(); } catch (e) {}
+            });
+
+            document.body.appendChild(popup);
+        }
+
+        // 侧边栏计数器：hitchhikers（基于 VisibilityCache 统计隐藏/总数）
+        function updateHitchhikersSidebarCount() {
+            try {
+                const counterEl = document.querySelector('#sidebar-item-hitchhikers + label .hitchhikers-counter');
+                if (!counterEl) return;
+                const total = Array.isArray(window.itemData?.hitchhikers) ? window.itemData.hitchhikers.length : 0;
+                const vm = VisibilityCache.loadVisibility('hitchhikers') || {};
+                let hidden = 0;
+                for (let i = 0; i < total; i++) if (vm[i] === true) hidden++;
+                counterEl.textContent = total > 0 ? ` (${hidden}/${total})` : '';
+            } catch (e) { console.warn('更新 hitchhikers 计数器失败:', e); }
+        }
+
+        // 应用 hitchhikers 可见性缓存（设置透明度+刷新计数器）
+        function applyHitchhikersVisibilityCache() {
+            try {
+                const markers = (window.hitchhikersMarkers && window.hitchhikersMarkers) || [];
+                const vm = VisibilityCache.loadVisibility('hitchhikers') || {};
+                if (Array.isArray(markers) && markers.length > 0) {
+                    markers.forEach((marker, i) => {
+                        if (!marker) return;
+                        const isHidden = !!vm[i];
+                        const opacity = isHidden ? 0.3 : 1;
+                        if (typeof marker.setOpacity === 'function') marker.setOpacity(opacity);
+                        else if (typeof marker.setStyle === 'function') marker.setStyle({ opacity });
+                        else if (typeof marker.getElement === 'function') { const el = marker.getElement(); if (el) el.style.opacity = String(opacity); }
+                    });
+                }
+                try { updateHitchhikersSidebarCount(); } catch (e) {}
+            } catch (e) { console.warn('应用 hitchhikers 可见性缓存失败:', e); }
         }
 
         // 谋杀之谜信息弹窗（含隐藏/显示联动与计数器、缓存集成）
@@ -3841,7 +4003,7 @@
                 document.addEventListener('click', closePopupHandler);
             }, 50);
 
-            // 图片点击放大
+            // 图片点击放大（覆盖层，不打开新标签）
             const popupImage = popup.querySelector('img');
             if (popupImage) {
                 popupImage.addEventListener('click', (e) => {
@@ -6258,6 +6420,7 @@
             { value: 'epsilon_tracts', text: '埃普西隆传单', icon: '../src/assets/epsilon_tracts.svg' },
             { value: 'for_sale_sign', text: '待售标志', icon: '../src/assets/for_sale_sign.svg' },
             { value: 'the_big_score_gauntlet', text: '大干一票（巧妙）- 铁腕', icon: '../src/assets/the_big_score_gauntlet.svg' },
+            { value: 'hitchhikers', text: '搭便车(潜在利他教受害者)', icon: '../src/assets/hitchhikers.svg' },
             { value: 'chasing_the_truth', text: '埃普斯隆追求真理-神器', icon: '../src/assets/chasing_the_truth.svg' },
             { value: 'stunt_jumps', text: '特技跳跃点' },
             { value: 'spray', text: '喷罐位置' },
@@ -6270,7 +6433,7 @@
             { value: 'rc_time_trial', text: 'RC时间挑战赛' },
             { value: 'bike_time_trial', text: '自行车时间挑战赛' },
             { value: 'skydives', text: '跳伞' },
-            { value: 'gang_attacks', text: '⚔️ 帮派攻击' },
+            { value: 'gang_attacks', text: '🎆 帮派攻击' },
             { value: 'ghosts3', text: '幽灵曝光2025' },
             { value: 'treasure_hunt_dba_revolver', text: '左轮寻宝' },
             { value: 'movie_props', text: '电影道具' },
@@ -6895,6 +7058,23 @@
                     } catch (e) {
                         console.warn('加载 epsilon_tracts 失败:', e);
                         itemData.epsilon_tracts = [];
+                    }
+                    // 加载 hitchhikers 数据（zones.json.hitchhikers），包含说明文字数组
+                    try {
+                        if (Array.isArray(cardsData.hitchhikers)) {
+                            itemData.hitchhikers = cardsData.hitchhikers.map((arr, index) => {
+                                const x = arr[0];
+                                const y = arr[1];
+                                const notes = Array.isArray(arr[2]) ? arr[2].map(s => String(s)) : [];
+                                return { x, y, notes, name: `搭便车 ${index + 1}` };
+                            });
+                            console.log('hitchhikers 数据加载成功，共', itemData.hitchhikers.length, '个位置');
+                        } else {
+                            itemData.hitchhikers = [];
+                        }
+                    } catch (e) {
+                        console.warn('加载 hitchhikers 失败:', e);
+                        itemData.hitchhikers = [];
                     }
                     // 加载其他物品数据
                     const itemTypes = [
@@ -9128,6 +9308,11 @@
                     if (!window.theBigScoreGauntletMarkers) window.theBigScoreGauntletMarkers = [];
                     window.theBigScoreGauntletMarkers[index] = marker;
                 }
+                // 记录 hitchhikers 标记以便后续扩展（可见性/计数器）
+                else if (type === 'hitchhikers') {
+                    if (!window.hitchhikersMarkers) window.hitchhikersMarkers = [];
+                    window.hitchhikersMarkers[index] = marker;
+                }
                 // 记录 ghosts3 标记以便弹窗隐藏/显示控制
                 else if (type === 'ghosts3') {
                     if (!window.ghosts3Markers) window.ghosts3Markers = [];
@@ -9315,6 +9500,10 @@
                 else if (type === 'the_big_score_gauntlet') {
                     showTheBigScoreGauntletPopup(item, index);
                 }
+                // 新增：特殊处理搭便车（潜在的利他邪教受害者）
+                else if (type === 'hitchhikers') {
+                    showHitchhikersPopup(item, index);
+                }
                 // 特殊处理车行标记，使用专门的车辆展示函数
                 else if (['casino', 'car_meet', 'premium_deluxe_motorsport', 'luxury_autos'].includes(type)) {
                     showDealershipVehicles(type, item.name);
@@ -9483,6 +9672,9 @@
             }
             if (window.theBigScoreGauntletMarkers) {
                 window.theBigScoreGauntletMarkers = [];
+            }
+            if (window.hitchhikersMarkers) {
+                window.hitchhikersMarkers = [];
             }
             // 不清除特技跳跃点标记，保持其状态
             // if (window.stuntJumpsMarkers) {
@@ -10070,6 +10262,7 @@
             try { applyAssumingTheTruthVisibilityCache(); } catch (e) {}
             try { applyChasingTheTruthVisibilityCache(); } catch (e) {}
             try { applyEpsilonTractsVisibilityCache(); } catch (e) {}
+            try { applyHitchhikersVisibilityCache(); } catch (e) {}
             try { applyRCTimeTrialVisibilityCache(); } catch (e) {}
             try { applyBikeTimeTrialVisibilityCache(); } catch (e) {}
             try { applyMadrazoHitsVisibilityCache(); } catch (e) {}
@@ -20923,6 +21116,9 @@
                         'for_sale_sign',
                         'the_big_score_gauntlet'
                     ],
+                    '线下随机任务':[
+                        'hitchhikers'
+                    ],
                     '地点与服务': [
                         'golf_holes',
                         'metro',
@@ -21405,6 +21601,19 @@
                         try { updateTheBigScoreGauntletSidebarCount(); } catch(e) {}
                         // 延迟再次渲染，确保数据/缓存就绪
                         setTimeout(() => { try { updateTheBigScoreGauntletSidebarCount(); } catch(e) {} }, 200);
+                    }
+                    // 搭便车计数器
+                    else if (type === 'hitchhikers') {
+                        const counter = document.createElement('span');
+                        counter.className = 'hitchhikers-counter';
+                        counter.style.marginLeft = '6px';
+                        counter.style.color = 'var(--gta-text-secondary)';
+                        counter.textContent = '';
+                        label.appendChild(counter);
+                        // 初始渲染
+                        try { updateHitchhikersSidebarCount(); } catch (e) {}
+                        // 延迟一次，确保数据/缓存就绪
+                        setTimeout(() => { try { updateHitchhikersSidebarCount(); } catch (e) {} }, 200);
                     }
                     // 喷灌位置计数器
                     else if (type === 'spray') {
@@ -22491,6 +22700,21 @@
             const showBtn = popup.querySelector('#show-ctt-btn');
             const titleElement = popup.querySelector('h3');
 
+            // 当前 marker 以及设置透明度的函数
+            const cttMarkers = (window.chasingTheTruthMarkers && window.chasingTheTruthMarkers) || [];
+            const currentCttMarker = cttMarkers[index];
+            function setCurrentCttMarkerVisibility(opacity) {
+                if (currentCttMarker && typeof currentCttMarker.setOpacity === 'function') currentCttMarker.setOpacity(opacity);
+                else if (currentCttMarker && typeof currentCttMarker.setStyle === 'function') currentCttMarker.setStyle({ opacity });
+                else if (currentCttMarker && typeof currentCttMarker.getElement === 'function') {
+                    const el = currentCttMarker.getElement();
+                    if (el) el.style.opacity = String(opacity);
+                }
+                const map = VisibilityCache.loadVisibility('chasing_the_truth') || {};
+                if (opacity === 0.3) map[index] = true; else delete map[index];
+                VisibilityCache.saveVisibility('chasing_the_truth', map);
+            }
+
             // 关闭弹窗
             const removePopup = () => popup.remove();
             closeBtn && closeBtn.addEventListener('click', removePopup);
@@ -22505,47 +22729,49 @@
                 document.addEventListener('click', closePopupHandler);
             }, 50);
 
-            // 图片点击放大
+            // 图片点击放大（覆盖层，不打开新标签）
             const popupImage = popup.querySelector('img');
             if (popupImage) {
-                popupImage.addEventListener('click', () => {
-                    window.open(imageUrl, '_blank');
+                popupImage.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const overlay = document.createElement('div');
+                    overlay.style.cssText = `position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; z-index: 10002; cursor: zoom-out;`;
+                    const bigImg = document.createElement('img');
+                    bigImg.src = popupImage.src;
+                    bigImg.alt = popupImage.alt || '';
+                    bigImg.style.cssText = `max-width: 95vw; max-height: 95vh; border-radius: 6px; box-shadow: 0 4px 24px rgba(0,0,0,0.6);`;
+                    overlay.appendChild(bigImg);
+                    const removeOverlay = () => { document.removeEventListener('keydown', onKey); overlay.remove(); };
+                    const onKey = (ev) => { if (ev.key === 'Escape') removeOverlay(); };
+                    overlay.addEventListener('click', removeOverlay);
+                    document.addEventListener('keydown', onKey);
+                    document.body.appendChild(overlay);
                 });
             }
 
-            // 隐藏/显示按钮事件
+            // 隐藏/显示按钮事件（同时修改透明度）
             if (hideBtn) {
                 hideBtn.addEventListener('click', () => {
-                    // 仅更新可见性缓存与计数器（不修改透明度）
-                    const visibilityMap = VisibilityCache.loadVisibility('chasing_the_truth') || {};
-                    visibilityMap[index] = true; // 隐藏
-                    VisibilityCache.saveVisibility('chasing_the_truth', visibilityMap);
-
+                    setCurrentCttMarkerVisibility(0.3);
                     hideBtn.style.display = 'none';
                     showBtn.style.display = 'inline-block';
-
-                    const newHiddenCount = hiddenCount + 1;
+                    const newHiddenCount = hiddenCount + (isCurrentHidden ? 0 : 1);
                     hiddenCount = newHiddenCount;
+                    isCurrentHidden = true;
                     titleElement.textContent = `☯️ 埃普斯隆追求真理 - ${name} (${newHiddenCount}/${totalCount})`;
-
                     try { updateChasingTheTruthSidebarCount(); } catch (e) {}
                 });
             }
             
             if (showBtn) {
                 showBtn.addEventListener('click', () => {
-                    // 仅更新可见性缓存与计数器（不修改透明度）
-                    const visibilityMap = VisibilityCache.loadVisibility('chasing_the_truth') || {};
-                    delete visibilityMap[index]; // 显示
-                    VisibilityCache.saveVisibility('chasing_the_truth', visibilityMap);
-
+                    setCurrentCttMarkerVisibility(1);
                     showBtn.style.display = 'none';
                     hideBtn.style.display = 'inline-block';
-
-                    const newHiddenCount = hiddenCount - 1;
+                    const newHiddenCount = hiddenCount - (isCurrentHidden ? 1 : 0);
                     hiddenCount = newHiddenCount;
+                    isCurrentHidden = false;
                     titleElement.textContent = `☯️ 埃普斯隆追求真理 - ${name} (${newHiddenCount}/${totalCount})`;
-
                     try { updateChasingTheTruthSidebarCount(); } catch (e) {}
                 });
             }
@@ -22555,10 +22781,24 @@
 
         
 
-        // 应用埃普斯隆追求真理-神器可见性缓存（Leaflet：不调整透明度，仅刷新计数器）
+        // 应用埃普斯隆追求真理-神器可见性缓存（设置透明度+刷新计数器）
         function applyChasingTheTruthVisibilityCache() {
             try {
-                // 目前不改变标记视觉，仅基于缓存刷新侧边栏计数器
+                const markers = (window.chasingTheTruthMarkers && window.chasingTheTruthMarkers) || [];
+                const visibilityMap = VisibilityCache.loadVisibility('chasing_the_truth') || {};
+                if (Array.isArray(markers) && markers.length > 0) {
+                    markers.forEach((marker, i) => {
+                        if (!marker) return;
+                        const isHidden = !!visibilityMap[i];
+                        const opacity = isHidden ? 0.3 : 1;
+                        if (typeof marker.setOpacity === 'function') marker.setOpacity(opacity);
+                        else if (typeof marker.setStyle === 'function') marker.setStyle({ opacity });
+                        else if (typeof marker.getElement === 'function') {
+                            const el = marker.getElement();
+                            if (el) el.style.opacity = String(opacity);
+                        }
+                    });
+                }
                 try { updateChasingTheTruthSidebarCount(); } catch (e) {}
             } catch (e) {
                 console.warn('应用埃普斯隆追求真理-神器可见性缓存失败:', e);
@@ -22684,11 +22924,23 @@
                 document.addEventListener('click', closePopupHandler);
             }, 50);
 
-            // 图片点击新窗口打开
+            // 图片点击放大（覆盖层，不打开新标签）
             const popupImage = popup.querySelector('img');
             if (popupImage) {
-                popupImage.addEventListener('click', () => {
-                    window.open(imageUrl, '_blank');
+                popupImage.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const overlay = document.createElement('div');
+                    overlay.style.cssText = `position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; z-index: 10002; cursor: zoom-out;`;
+                    const bigImg = document.createElement('img');
+                    bigImg.src = popupImage.src;
+                    bigImg.alt = popupImage.alt || '';
+                    bigImg.style.cssText = `max-width: 95vw; max-height: 95vh; border-radius: 6px; box-shadow: 0 4px 24px rgba(0,0,0,0.6);`;
+                    overlay.appendChild(bigImg);
+                    const removeOverlay = () => { document.removeEventListener('keydown', onKey); overlay.remove(); };
+                    const onKey = (ev) => { if (ev.key === 'Escape') removeOverlay(); };
+                    overlay.addEventListener('click', removeOverlay);
+                    document.addEventListener('keydown', onKey);
+                    document.body.appendChild(overlay);
                 });
             }
 

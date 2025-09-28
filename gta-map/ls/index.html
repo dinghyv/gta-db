@@ -22618,7 +22618,13 @@
         // 统计隐藏/总数，并更新 chasing_the_truth 侧边栏计数器
         function updateChasingTheTruthSidebarCount() {
             try {
-                const counterEl = document.querySelector('#sidebar-item-chasing_the_truth + label .chasing-the-truth-counter');
+                let counterEl = document.querySelector('#sidebar-item-chasing_the_truth + label .chasing-the-truth-counter');
+                // 兜底：通过 nextElementSibling 精确定位 label 再找 counter
+                if (!counterEl) {
+                    const inputEl = document.getElementById('sidebar-item-chasing_the_truth');
+                    const labelEl = inputEl && inputEl.nextElementSibling;
+                    if (labelEl) counterEl = labelEl.querySelector('.chasing-the-truth-counter');
+                }
                 if (!counterEl) return;
                 // 仅基于 VisibilityCache 计算（Leaflet 模式下不依赖 DOM）
                 const total = Array.isArray(window.itemData?.chasing_the_truth) ? window.itemData.chasing_the_truth.length : 0;
@@ -22655,7 +22661,7 @@
             for (let i = 0; i < totalCount; i++) {
                 if (visibilityMap[i] === true) hiddenCount++;
             }
-            const isCurrentHidden = visibilityMap[index] === true;
+            let isCurrentHidden = visibilityMap[index] === true;
 
             const name = item?.name || `神器 #${sequenceNumber}`;
             const title = `☯️ 埃普斯隆追求真理 - ${name} (${hiddenCount}/${totalCount})`;

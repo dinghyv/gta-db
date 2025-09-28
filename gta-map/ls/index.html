@@ -1213,6 +1213,7 @@
             'assuming_the_truth',
             'epsilon_tracts',
             'for_sale_sign',
+            'the_big_score_gauntlet',
             'chasing_the_truth',
             
             // 第3组：设施服务
@@ -1382,6 +1383,7 @@
             assuming_the_truth: '../src/assets/assuming_the_truth_car.svg',
             chasing_the_truth: '../src/assets/chasing_the_truth.svg',
             epsilon_tracts: '../src/assets/epsilon_tracts.svg',
+            the_big_score_gauntlet: '../src/assets/the_big_score_gauntlet.svg',
             for_sale_sign: '../src/assets/for_sale_sign.svg',
             rc_time_trial: '../src/assets/rctt.png',
             bike_time_trial: '../src/assets/btt.png',
@@ -1515,6 +1517,7 @@
             assuming_the_truth: [],
             chasing_the_truth: [],
             epsilon_tracts: [],
+            the_big_score_gauntlet: [],
             for_sale_sign: [],
             ld_organics_products: [],
             signal_jammers: [],
@@ -3609,6 +3612,134 @@
                 try { updateForSaleSignSidebarCount(); } catch (e) {}
             } catch (e) { console.warn('应用 for_sale_sign 可见性缓存失败:', e); }
         }
+
+        // 大干一票（巧妙）- 铁腕 弹窗（含隐藏/显示与可见性缓存、计数器）
+        function showTheBigScoreGauntletPopup(item, index) {
+            const sequenceNumber = index + 1;
+            const imageUrl = `https://gta-maps.antwen.com/collectibles_images/the_big_score_gauntlet/the_big_score_gauntlet_${sequenceNumber}.webp`;
+
+            // 关闭已存在的同类弹窗
+            const existing = document.querySelector('.the-big-score-gauntlet-popup');
+            if (existing) existing.remove();
+
+            const popup = document.createElement('div');
+            popup.className = 'the-big-score-gauntlet-popup';
+            popup.style.cssText = `
+                position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+                background: var(--gta-bg-medium);
+                border: 1px solid var(--gta-border);
+                border-radius: 8px;
+                box-shadow: 0 2px 15px rgba(0,0,0,0.5);
+                padding: 15px; z-index: 10000; width: min(92vw, 520px); max-height: 80vh;
+                color: var(--gta-text); font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; overflow-y: auto;`;
+
+            const title = `🚗 大干一票（巧妙）- 铁腕 #${sequenceNumber}`;
+            const content = `主线任务“大干一票（巧妙）”的前置任务中所需偷取并改装的铁腕。莱斯特会给每个角色发送有关铁腕位置的电子邮件，但它们的位置不会标记在游戏内地图上。当然，您可以在街上偷取别的铁腕，或者干脆自己买一台；不过这么做不能解锁前置任务的金牌。您需要偷取 3 台铁腕，分别对应 3 个不同的前置任务。`;
+
+            // 当前标记句柄与隐藏状态
+            const markers = (window.theBigScoreGauntletMarkers && window.theBigScoreGauntletMarkers) || [];
+            const currentMarker = markers[index];
+            const vm = VisibilityCache.loadVisibility('the_big_score_gauntlet') || {};
+            let isHidden = vm[index] === true;
+
+            popup.innerHTML = `
+                <div class="popup-header" style="position: relative; margin-bottom: 14px;">
+                    <h3 style="color: var(--gta-primary); font-size: 18px; margin: 0; font-weight: bold;">${title}</h3>
+                </div>
+                <img src="${imageUrl}" alt="the_big_score_gauntlet #${sequenceNumber}" style="max-width: 100%; height: auto; border-radius: 6px; margin: 8px 0; display: block; cursor: zoom-in;"/>
+                <div style="margin: 10px 0; padding: 10px; background: rgba(33, 150, 243, 0.1); border-radius: 8px; color: var(--gta-text); font-size: 14px; line-height: 1.6;">
+                    ${content}
+                </div>
+                <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
+                    <button id="hide-tbsg-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; display: ${isHidden ? 'none' : 'inline-block'};">隐藏</button>
+                    <button id="show-tbsg-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; display: ${isHidden ? 'inline-block' : 'none'};">显示</button>
+                    <button id="close-tbsg-btn" style="padding: 8px 16px; background: var(--gta-primary); color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 500;">关闭</button>
+                </div>
+            `;
+
+            const closeBtn = popup.querySelector('#close-tbsg-btn');
+            const hideBtn = popup.querySelector('#hide-tbsg-btn');
+            const showBtn = popup.querySelector('#show-tbsg-btn');
+
+            const setOpacity = (opacity) => {
+                if (!currentMarker) return;
+                if (typeof currentMarker.setOpacity === 'function') currentMarker.setOpacity(opacity);
+                else if (typeof currentMarker.setStyle === 'function') currentMarker.setStyle({ opacity });
+                else if (typeof currentMarker.getElement === 'function') {
+                    const el = currentMarker.getElement();
+                    if (el) el.style.opacity = String(opacity);
+                }
+            };
+
+            if (hideBtn) hideBtn.addEventListener('click', () => {
+                setOpacity(0.3);
+                VisibilityCache.updateItemVisibility('the_big_score_gauntlet', index, true);
+                hideBtn.style.display = 'none';
+                showBtn.style.display = 'inline-block';
+                isHidden = true;
+                try { updateTheBigScoreGauntletSidebarCount(); } catch (e) {}
+            });
+            if (showBtn) showBtn.addEventListener('click', () => {
+                setOpacity(1);
+                VisibilityCache.updateItemVisibility('the_big_score_gauntlet', index, false);
+                showBtn.style.display = 'none';
+                hideBtn.style.display = 'inline-block';
+                isHidden = false;
+                try { updateTheBigScoreGauntletSidebarCount(); } catch (e) {}
+            });
+
+            // 关闭弹窗与外部点击
+            const removePopup = () => popup.remove();
+            closeBtn && closeBtn.addEventListener('click', removePopup);
+            popup.addEventListener('click', (e) => e.stopPropagation());
+            setTimeout(() => {
+                const closePopupHandler = (e) => { if (!popup.contains(e.target)) { removePopup(); document.removeEventListener('click', closePopupHandler); } };
+                document.addEventListener('click', closePopupHandler);
+            }, 50);
+
+            // 图片点击新窗口打开
+            const popupImage = popup.querySelector('img');
+            if (popupImage) popupImage.addEventListener('click', () => window.open(imageUrl, '_blank'));
+
+            document.body.appendChild(popup);
+        }
+
+        // 侧边栏计数器：the_big_score_gauntlet（基于 VisibilityCache 统计隐藏/总数）
+        function updateTheBigScoreGauntletSidebarCount() {
+            try {
+                const counterEl = document.querySelector('#sidebar-item-the_big_score_gauntlet + label .the-big-score-gauntlet-counter');
+                if (!counterEl) return;
+
+                const total = Array.isArray(window.itemData?.the_big_score_gauntlet) ? window.itemData.the_big_score_gauntlet.length : 0;
+                const visibilityMap = VisibilityCache.loadVisibility('the_big_score_gauntlet') || {};
+                let hidden = 0;
+                for (let i = 0; i < total; i++) if (visibilityMap[i] === true) hidden++;
+
+                CounterCache.updateCounter('the_big_score_gauntlet', hidden, total);
+                counterEl.textContent = total > 0 ? ` (${hidden}/${total})` : '';
+            } catch (e) {
+                console.warn('更新 the_big_score_gauntlet 计数器失败:', e);
+            }
+        }
+
+        // 应用 the_big_score_gauntlet 可见性缓存（设置透明度）
+        function applyTheBigScoreGauntletVisibilityCache() {
+            try {
+                const markers = (window.theBigScoreGauntletMarkers && window.theBigScoreGauntletMarkers) || [];
+                if (!Array.isArray(markers) || markers.length === 0) return;
+                const vm = VisibilityCache.loadVisibility('the_big_score_gauntlet') || {};
+                markers.forEach((marker, i) => {
+                    const isHidden = !!vm[i];
+                    const opacity = isHidden ? 0.3 : 1;
+                    if (!marker) return;
+                    if (typeof marker.setOpacity === 'function') marker.setOpacity(opacity);
+                    else if (typeof marker.setStyle === 'function') marker.setStyle({ opacity });
+                    else if (typeof marker.getElement === 'function') { const el = marker.getElement(); if (el) el.style.opacity = String(opacity); }
+                });
+                try { updateTheBigScoreGauntletSidebarCount(); } catch (e) {}
+            } catch (e) { console.warn('应用 the_big_score_gauntlet 可见性缓存失败:', e); }
+        }
+
         // 谋杀之谜信息弹窗（含隐藏/显示联动与计数器、缓存集成）
         function showMurderMysteryMessageImage(index) {
             const item = (itemData.murder_mystery_message && itemData.murder_mystery_message[index]) || null;
@@ -5416,6 +5547,7 @@
                 try { applyChasingTheTruthVisibilityCache(); } catch (e) {}
                 try { applyEpsilonTractsVisibilityCache(); } catch (e) {}
                 try { applyForSaleSignVisibilityCache(); } catch (e) {}
+                try { applyTheBigScoreGauntletVisibilityCache(); } catch (e) {}
 
                 // 5) 刷新计数器（如有）
                 try { updateSmugglerPlaneSidebarCount(); } catch (e) {}
@@ -5426,6 +5558,7 @@
                 try { updateChasingTheTruthSidebarCount(); } catch (e) {}
                 try { updateEpsilonTractsSidebarCount(); } catch (e) {}
                 try { updateForSaleSignSidebarCount(); } catch (e) {}
+                try { updateTheBigScoreGauntletSidebarCount(); } catch (e) {}
                 try { updateSlasherSidebarCount(); } catch (e) {}
                 try { updateTreasureHuntSidebarCount(); } catch (e) {}
                 try { updateUfoSidebarCount(); } catch (e) {}
@@ -6124,6 +6257,7 @@
             { value: 'assuming_the_truth', text: '埃普西隆质疑真理-载具', icon: '../src/assets/assuming_the_truth_car.svg' },
             { value: 'epsilon_tracts', text: '埃普西隆传单', icon: '../src/assets/epsilon_tracts.svg' },
             { value: 'for_sale_sign', text: '待售标志', icon: '../src/assets/for_sale_sign.svg' },
+            { value: 'the_big_score_gauntlet', text: '大干一票（巧妙）- 铁腕', icon: '../src/assets/the_big_score_gauntlet.svg' },
             { value: 'chasing_the_truth', text: '埃普斯隆追求真理-神器', icon: '../src/assets/chasing_the_truth.svg' },
             { value: 'stunt_jumps', text: '特技跳跃点' },
             { value: 'spray', text: '喷罐位置' },
@@ -6775,6 +6909,7 @@
                         'snowmen',
                         'spray',
                         'for_sale_sign',
+                        'the_big_score_gauntlet',
                         // 杀人狂单独加载，不走通用分支
                     ];
                     
@@ -8988,6 +9123,11 @@
                     if (!window.forSaleSignMarkers) window.forSaleSignMarkers = [];
                     window.forSaleSignMarkers[index] = marker;
                 }
+                // 记录 the_big_score_gauntlet 标记以便弹窗隐藏/显示控制
+                else if (type === 'the_big_score_gauntlet') {
+                    if (!window.theBigScoreGauntletMarkers) window.theBigScoreGauntletMarkers = [];
+                    window.theBigScoreGauntletMarkers[index] = marker;
+                }
                 // 记录 ghosts3 标记以便弹窗隐藏/显示控制
                 else if (type === 'ghosts3') {
                     if (!window.ghosts3Markers) window.ghosts3Markers = [];
@@ -9171,6 +9311,10 @@
                 else if (type === 'for_sale_sign') {
                     showForSaleSignPopup(item, index);
                 }
+                // 新增：特殊处理大干一票（巧妙）铁腕
+                else if (type === 'the_big_score_gauntlet') {
+                    showTheBigScoreGauntletPopup(item, index);
+                }
                 // 特殊处理车行标记，使用专门的车辆展示函数
                 else if (['casino', 'car_meet', 'premium_deluxe_motorsport', 'luxury_autos'].includes(type)) {
                     showDealershipVehicles(type, item.name);
@@ -9336,6 +9480,9 @@
             }
             if (window.forSaleSignMarkers) {
                 window.forSaleSignMarkers = [];
+            }
+            if (window.theBigScoreGauntletMarkers) {
+                window.theBigScoreGauntletMarkers = [];
             }
             // 不清除特技跳跃点标记，保持其状态
             // if (window.stuntJumpsMarkers) {
@@ -9937,6 +10084,7 @@
             try { applyChasingTheTruthVisibilityCache(); } catch (e) {}
             try { applyEpsilonTractsVisibilityCache(); } catch (e) {}
             try { applyForSaleSignVisibilityCache(); } catch (e) {}
+            try { applyTheBigScoreGauntletVisibilityCache(); } catch (e) {}
 
             // 特殊：左轮寻宝两个子类型分别渲染（DOM版保留兼容，若Leaflet已处理则跳过）
             if (false && activeItemTypes.has('treasure_hunt_dba_revolver') && !pilotMarkerTypes.has('treasure_hunt_dba_revolver')) {
@@ -20772,7 +20920,8 @@
                         'assuming_the_truth',
                         'chasing_the_truth',
                         'epsilon_tracts',
-                        'for_sale_sign'
+                        'for_sale_sign',
+                        'the_big_score_gauntlet'
                     ],
                     '地点与服务': [
                         'golf_holes',
@@ -21244,6 +21393,19 @@
                         // 延迟再次渲染，确保数据/缓存就绪
                         setTimeout(() => { try { updateForSaleSignSidebarCount(); } catch(e) {} }, 200);
                     }
+                    // 大干一票（巧妙）- 铁腕 计数器
+                    else if (type === 'the_big_score_gauntlet') {
+                        const counter = document.createElement('span');
+                        counter.className = 'the-big-score-gauntlet-counter';
+                        counter.style.marginLeft = '6px';
+                        counter.style.color = 'var(--gta-text-secondary)';
+                        counter.textContent = '';
+                        label.appendChild(counter);
+                        // 初始渲染一次
+                        try { updateTheBigScoreGauntletSidebarCount(); } catch(e) {}
+                        // 延迟再次渲染，确保数据/缓存就绪
+                        setTimeout(() => { try { updateTheBigScoreGauntletSidebarCount(); } catch(e) {} }, 200);
+                    }
                     // 喷灌位置计数器
                     else if (type === 'spray') {
                         const counter = document.createElement('span');
@@ -21485,6 +21647,10 @@
                         if (t === 'for_sale_sign') {
                             try { updateForSaleSignSidebarCount(); } catch(e) {}
                             setTimeout(() => { try { updateForSaleSignSidebarCount(); } catch(e) {} }, 200);
+                        }
+                        if (t === 'the_big_score_gauntlet') {
+                            try { updateTheBigScoreGauntletSidebarCount(); } catch(e) {}
+                            setTimeout(() => { try { updateTheBigScoreGauntletSidebarCount(); } catch(e) {} }, 200);
                         }
                         // 左轮寻宝计数器
                         if (t === 'treasure_hunt_dba_revolver') {

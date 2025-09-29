@@ -1215,6 +1215,8 @@
             'for_sale_sign',
             'the_big_score_gauntlet',
             'hitchhikers',
+            'armored_truck_sp',
+            'v_others_re',
             'chasing_the_truth',
             
             // 第3组：设施服务
@@ -1387,6 +1389,8 @@
             the_big_score_gauntlet: '../src/assets/the_big_score_gauntlet.svg',
             for_sale_sign: '../src/assets/for_sale_sign.svg',
             hitchhikers: '../src/assets/hitchhikers.svg',
+            armored_truck_sp: '../src/assets/armored_truck_sp.svg',
+            v_others_re: '../src/assets/v_others_re.svg',
             rc_time_trial: '../src/assets/rctt.png',
             bike_time_trial: '../src/assets/btt.png',
             skydives: '../src/assets/skydive.png',
@@ -1522,6 +1526,8 @@
             the_big_score_gauntlet: [],
             for_sale_sign: [],
             hitchhikers: [],
+            armored_truck_sp: [],
+            v_others_re: [],
             ld_organics_products: [],
             signal_jammers: [],
             jack_o_lanterns: [],
@@ -1673,7 +1679,7 @@
                         version: '1.0'
                     });
                     localStorage.setItem(key, serialized);
-                    console.log(`缓存已保存: ${key}`, data);
+
                 } catch (error) {
                     console.warn(`保存缓存失败: ${key}`, error);
                 }
@@ -1691,7 +1697,7 @@
                         console.warn(`缓存版本不匹配: ${key}, 期望 1.0, 实际 ${parsed.version}`);
                     }
                     
-                    console.log(`缓存已加载: ${key}`, parsed.data);
+
                     return parsed.data;
                 } catch (error) {
                     console.warn(`加载缓存失败: ${key}`, error);
@@ -3902,6 +3908,320 @@
             } catch (e) { console.warn('应用 hitchhikers 可见性缓存失败:', e); }
         }
 
+        // 装甲运钞车（线下）文本弹窗（无图片，含隐藏/显示+计数器）
+        function showArmoredTruckSpPopup(item, index) {
+            const sequenceNumber = index + 1;
+            const baseTitle = `🚛 装甲运钞车 #${sequenceNumber}`;
+            const extra = `完成陌生人和怪胎任务牵拖人情（一）（富兰克林）后可用。使用黏弹，炸开运钞车的后门，获取里面的现金。现金数额自 3.000 至 8.000 GTA$ 不等。完成 57 个随机事件（增强版为 60 个）中的至少 14 个是 100% 完成度的要求之一。`;
+
+            // 关闭已存在的弹窗
+            const existingPopup = document.querySelector('.armored-truck-sp-popup');
+            if (existingPopup) existingPopup.remove();
+
+            // 统计隐藏/总数（基于 VisibilityCache）
+            const arr = Array.isArray(window.itemData?.armored_truck_sp) ? window.itemData.armored_truck_sp : [];
+            const totalCount = arr.length;
+            const visibilityMap = VisibilityCache.loadVisibility('armored_truck_sp') || {};
+            let hiddenCount = 0;
+            for (let i = 0; i < totalCount; i++) {
+                if (visibilityMap[i] === true) hiddenCount++;
+            }
+            let isCurrentHidden = visibilityMap[index] === true;
+
+            const name = item?.name || `装甲运钞车 #${sequenceNumber}`;
+            const title = `${baseTitle} (${hiddenCount}/${totalCount})`;
+
+            // 构建弹窗（无右上角 ×，保留底部按钮）
+            const popup = document.createElement('div');
+            popup.className = 'armored-truck-sp-popup';
+            popup.style.cssText = `
+                position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+                background: var(--gta-bg-medium);
+                border: 1px solid var(--gta-border);
+                border-radius: 8px;
+                box-shadow: 0 2px 15px rgba(0,0,0,0.5);
+                padding: 16px;
+                z-index: 10000;
+                width: min(92vw, 540px);
+                max-height: 80vh;
+                color: var(--gta-text);
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                overflow-y: auto;
+            `;
+
+            popup.innerHTML = `
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+                    <h3 id="truck-title" style="color: var(--gta-primary); font-size: 18px; margin: 0; font-weight: 700;">${title}</h3>
+                </div>
+                <div style="padding: 8px 10px; background: rgba(33,150,243,0.08); border: 1px solid var(--gta-border); border-radius: 6px; color: var(--gta-text); font-size: 14px; line-height: 1.6;">
+                    <div style="font-weight: 700; margin-bottom: 6px;">${name}</div>
+                    <div>${extra}</div>
+                </div>
+                <div style="margin-top: 14px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
+                    <button class="hide-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500;">隐藏</button>
+                    <button class="show-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; display: none;">显示</button>
+                    <button class="close-btn" style="padding: 8px 16px; background: var(--gta-primary); color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 500;">关闭</button>
+                </div>
+            `;
+
+            document.body.appendChild(popup);
+
+            // 获取按钮和标题元素
+            const hideBtn = popup.querySelector('.hide-btn');
+            const showBtn = popup.querySelector('.show-btn');
+            const closeBtn = popup.querySelector('.close-btn');
+            const titleElement = popup.querySelector('h3');
+
+            // 根据当前状态显示对应按钮
+            if (isCurrentHidden) {
+                hideBtn.style.display = 'none';
+                showBtn.style.display = 'inline-block';
+            }
+
+            // 当前标记和设置透明度的函数
+            const armoredTruckSpMarkers = (window.armoredTruckSpMarkers && window.armoredTruckSpMarkers) || [];
+            const currentArmoredTruckSpMarker = armoredTruckSpMarkers[index];
+            function setCurrentArmoredTruckSpMarkerVisibility(opacity) {
+                if (currentArmoredTruckSpMarker && typeof currentArmoredTruckSpMarker.setOpacity === 'function') currentArmoredTruckSpMarker.setOpacity(opacity);
+                else if (currentArmoredTruckSpMarker && typeof currentArmoredTruckSpMarker.setStyle === 'function') currentArmoredTruckSpMarker.setStyle({ opacity });
+                else if (currentArmoredTruckSpMarker && typeof currentArmoredTruckSpMarker.getElement === 'function') {
+                    const el = currentArmoredTruckSpMarker.getElement();
+                    if (el) el.style.opacity = String(opacity);
+                }
+                const map = VisibilityCache.loadVisibility('armored_truck_sp') || {};
+                if (opacity === 0.3) map[index] = true; else delete map[index];
+                VisibilityCache.saveVisibility('armored_truck_sp', map);
+            }
+
+            // 隐藏按钮事件
+            if (hideBtn) {
+                hideBtn.addEventListener('click', () => {
+                    setCurrentArmoredTruckSpMarkerVisibility(0.3);
+                    hideBtn.style.display = 'none';
+                    showBtn.style.display = 'inline-block';
+                    const newHiddenCount = hiddenCount + (isCurrentHidden ? 0 : 1);
+                    hiddenCount = newHiddenCount;
+                    isCurrentHidden = true;
+                    titleElement.textContent = `${baseTitle} (${newHiddenCount}/${totalCount})`;
+                    try { updateArmoredTruckSpSidebarCount(); } catch (e) {}
+                });
+            }
+
+            // 显示按钮事件
+            if (showBtn) {
+                showBtn.addEventListener('click', () => {
+                    setCurrentArmoredTruckSpMarkerVisibility(1);
+                    showBtn.style.display = 'none';
+                    hideBtn.style.display = 'inline-block';
+                    const newHiddenCount = hiddenCount - (isCurrentHidden ? 1 : 0);
+                    hiddenCount = newHiddenCount;
+                    isCurrentHidden = false;
+                    titleElement.textContent = `${baseTitle} (${newHiddenCount}/${totalCount})`;
+                    try { updateArmoredTruckSpSidebarCount(); } catch (e) {}
+                });
+            }
+
+            // 关闭按钮事件
+            if (closeBtn) {
+                closeBtn.addEventListener('click', () => {
+                    popup.remove();
+                });
+            }
+
+            // 点击弹窗外部关闭
+            popup.addEventListener('click', (e) => {
+                if (e.target === popup) {
+                    popup.remove();
+                }
+            });
+        }
+
+        // 侧边栏计数器：armored_truck_sp（基于 VisibilityCache 统计隐藏/总数）
+        function updateArmoredTruckSpSidebarCount() {
+            try {
+                let counterEl = document.querySelector('#sidebar-item-armored_truck_sp + label .armored-truck-sp-counter');
+                // 兜底：通过 nextElementSibling 精确定位 label 再找 counter
+                if (!counterEl) {
+                    const inputEl = document.getElementById('sidebar-item-armored_truck_sp');
+                    const labelEl = inputEl && inputEl.nextElementSibling;
+                    if (labelEl) counterEl = labelEl.querySelector('.armored-truck-sp-counter');
+                }
+                if (!counterEl) return;
+                const total = Array.isArray(window.itemData?.armored_truck_sp) ? window.itemData.armored_truck_sp.length : 0;
+                const vm = VisibilityCache.loadVisibility('armored_truck_sp') || {};
+                let hidden = 0;
+                for (let i = 0; i < total; i++) {
+                    if (vm[i] === true) hidden++;
+                }
+                counterEl.textContent = total > 0 ? ` (${hidden}/${total})` : '';
+                try { console.log('[DEBUG][counter] armored_truck_sp hidden/total =', hidden, '/', total); } catch (e) {}
+            } catch (e) {
+                console.warn('更新 armored_truck_sp 计数器失败:', e);
+            }
+        }
+
+        // 应用装甲运钞车（线下）可见性缓存（设置透明度 + 刷新计数器）
+        function applyArmoredTruckSpVisibilityCache() {
+            try {
+                const markers = (window.armoredTruckSpMarkers && window.armoredTruckSpMarkers) || [];
+                const visibilityMap = VisibilityCache.loadVisibility('armored_truck_sp') || {};
+                try { console.log('[DEBUG][applyVisibility] armored_truck_sp markers =', markers.length, 'vm keys =', Object.keys(visibilityMap).length); } catch (e) {}
+                if (Array.isArray(markers) && markers.length > 0) {
+                    let appliedHidden = 0;
+                    markers.forEach((marker, i) => {
+                        if (!marker) return;
+                        const isHidden = !!visibilityMap[i];
+                        const opacity = isHidden ? 0.3 : 1;
+                        if (typeof marker.setOpacity === 'function') marker.setOpacity(opacity);
+                        else if (typeof marker.setStyle === 'function') marker.setStyle({ opacity });
+                        else if (typeof marker.getElement === 'function') {
+                            const el = marker.getElement();
+                            if (el) el.style.opacity = String(opacity);
+                        }
+                        if (isHidden) appliedHidden++;
+                    });
+                    try { console.log('[DEBUG][applyVisibility] armored_truck_sp applied hidden count =', appliedHidden); } catch (e) {}
+                }
+                try { updateArmoredTruckSpSidebarCount(); } catch (e) {}
+            } catch (e) {
+                console.warn('应用装甲运钞车（线下）可见性缓存失败:', e);
+            }
+        }
+
+        // 其他随机任务（线下）文本弹窗（含隐藏/显示+计数器）
+        function showVOthersRePopup(item, index) {
+            const sequenceNumber = index + 1;
+            const baseTitle = `🎲 其他随机任务 #${sequenceNumber}`;
+            const appendText = '完成 57 个随机事件（增强版为 60 个）中的至少 14 个是 100% 完成度的要求之一。';
+            const base = (item && (item.base || (Array.isArray(item.notes) && item.notes[0]))) ? (item.base || item.notes[0]) : '';
+            const notes = Array.isArray(item?.notes) ? item.notes : [];
+            const htmlNotes = notes.map(n => `<li style="margin: 6px 0; line-height: 1.6;">${n}</li>`).join('');
+
+            // 关闭已存在的弹窗
+            const existing = document.querySelector('.v-others-re-popup');
+            if (existing) existing.remove();
+
+            // 统计隐藏/总数（基于 VisibilityCache）
+            const arr = Array.isArray(window.itemData?.v_others_re) ? window.itemData.v_others_re : [];
+            const totalCount = arr.length;
+            const vm = VisibilityCache.loadVisibility('v_others_re') || {};
+            let hiddenCount = 0;
+            for (let i = 0; i < totalCount; i++) if (vm[i] === true) hiddenCount++;
+            let isCurrentHidden = vm[index] === true;
+
+            const title = `${baseTitle} (${hiddenCount}/${totalCount})`;
+
+            // 构建弹窗
+            const popup = document.createElement('div');
+            popup.className = 'v-others-re-popup';
+            popup.style.cssText = `
+                position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+                background: var(--gta-bg-medium);
+                border: 1px solid var(--gta-border);
+                border-radius: 8px;
+                box-shadow: 0 2px 15px rgba(0,0,0,0.5);
+                padding: 16px;
+                z-index: 10000;
+                width: min(92vw, 540px);
+                max-height: 80vh;
+                color: var(--gta-text);
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                overflow-y: auto;
+            `;
+
+            popup.innerHTML = `
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+                    <h3 id="v-others-re-title" style="color: var(--gta-primary); font-size: 18px; margin: 0; font-weight: 700;">${title}</h3>
+                </div>
+                <div style="padding: 8px 10px; background: rgba(33,150,243,0.08); border: 1px solid var(--gta-border); border-radius: 6px; color: var(--gta-text); font-size: 14px; line-height: 1.6;">
+                    ${notes.length ? `<ul style=\"padding-left:18px;margin:8px 0;\">${htmlNotes}</ul>` : (base ? `<div style=\"opacity:0.9;\">${base}</div>` : '<div style=\"opacity:0.8;\">暂无说明</div>')}
+                    <div style="margin-top:8px; line-height:1.7;">${appendText}</div>
+                </div>
+                <div style="margin-top: 14px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
+                    <button class="hide-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; display: ${isCurrentHidden ? 'none' : 'inline-block'};">隐藏</button>
+                    <button class="show-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; display: ${isCurrentHidden ? 'inline-block' : 'none'};">显示</button>
+                    <button class="close-btn" style="padding: 8px 16px; background: var(--gta-primary); color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 500;">关闭</button>
+                </div>
+            `;
+
+            document.body.appendChild(popup);
+
+            const hideBtn = popup.querySelector('.hide-btn');
+            const showBtn = popup.querySelector('.show-btn');
+            const closeBtn = popup.querySelector('.close-btn');
+            const titleEl = popup.querySelector('#v-others-re-title');
+
+            if (isCurrentHidden) { hideBtn.style.display = 'none'; showBtn.style.display = 'inline-block'; }
+
+            const markers = (window.vOthersReMarkers && window.vOthersReMarkers) || [];
+            const currentMarker = markers[index];
+            function setCurrentMarkerVisibility(opacity) {
+                if (currentMarker && typeof currentMarker.setOpacity === 'function') currentMarker.setOpacity(opacity);
+                else if (currentMarker && typeof currentMarker.setStyle === 'function') currentMarker.setStyle({ opacity });
+                else if (currentMarker && typeof currentMarker.getElement === 'function') {
+                    const el = currentMarker.getElement(); if (el) el.style.opacity = String(opacity);
+                }
+                const map = VisibilityCache.loadVisibility('v_others_re') || {};
+                if (opacity === 0.3) map[index] = true; else delete map[index];
+                VisibilityCache.saveVisibility('v_others_re', map);
+            }
+
+            if (hideBtn) hideBtn.addEventListener('click', () => {
+                setCurrentMarkerVisibility(0.3);
+                const newHidden = hiddenCount + (isCurrentHidden ? 0 : 1);
+                hiddenCount = newHidden; isCurrentHidden = true;
+                titleEl && (titleEl.textContent = `${baseTitle} (${newHidden}/${totalCount})`);
+                hideBtn.style.display = 'none'; showBtn.style.display = 'inline-block';
+                try { updateVOthersReSidebarCount(); } catch(e) {}
+            });
+            if (showBtn) showBtn.addEventListener('click', () => {
+                setCurrentMarkerVisibility(1);
+                const newHidden = hiddenCount - (isCurrentHidden ? 1 : 0);
+                hiddenCount = newHidden; isCurrentHidden = false;
+                titleEl && (titleEl.textContent = `${baseTitle} (${newHidden}/${totalCount})`);
+                showBtn.style.display = 'none'; hideBtn.style.display = 'inline-block';
+                try { updateVOthersReSidebarCount(); } catch(e) {}
+            });
+            if (closeBtn) closeBtn.addEventListener('click', () => popup.remove());
+            popup.addEventListener('click', (e) => { if (e.target === popup) popup.remove(); });
+        }
+
+        // 侧边栏计数器：v_others_re（基于 VisibilityCache 统计隐藏/总数）
+        function updateVOthersReSidebarCount() {
+            try {
+                let counterEl = document.querySelector('#sidebar-item-v_others_re + label .v-others-re-counter');
+                if (!counterEl) {
+                    const inputEl = document.getElementById('sidebar-item-v_others_re');
+                    const labelEl = inputEl && inputEl.nextElementSibling;
+                    if (labelEl) counterEl = labelEl.querySelector('.v-others-re-counter');
+                }
+                if (!counterEl) return;
+                const total = Array.isArray(window.itemData?.v_others_re) ? window.itemData.v_others_re.length : 0;
+                const vm = VisibilityCache.loadVisibility('v_others_re') || {};
+                let hidden = 0; for (let i = 0; i < total; i++) if (vm[i] === true) hidden++;
+                counterEl.textContent = total > 0 ? ` (${hidden}/${total})` : '';
+            } catch (e) { console.warn('更新 v_others_re 计数器失败:', e); }
+        }
+
+        // 应用 v_others_re 可见性缓存（设置透明度 + 刷新计数器）
+        function applyVOthersReVisibilityCache() {
+            try {
+                const markers = (window.vOthersReMarkers && window.vOthersReMarkers) || [];
+                const vm = VisibilityCache.loadVisibility('v_others_re') || {};
+                if (Array.isArray(markers) && markers.length > 0) {
+                    markers.forEach((marker, i) => {
+                        if (!marker) return;
+                        const isHidden = !!vm[i];
+                        const opacity = isHidden ? 0.3 : 1;
+                        if (typeof marker.setOpacity === 'function') marker.setOpacity(opacity);
+                        else if (typeof marker.setStyle === 'function') marker.setStyle({ opacity });
+                        else if (typeof marker.getElement === 'function') { const el = marker.getElement(); if (el) el.style.opacity = String(opacity); }
+                    });
+                }
+                try { updateVOthersReSidebarCount(); } catch (e) {}
+            } catch (e) { console.warn('应用 v_others_re 可见性缓存失败:', e); }
+        }
+
         // 谋杀之谜信息弹窗（含隐藏/显示联动与计数器、缓存集成）
         function showMurderMysteryMessageImage(index) {
             const item = (itemData.murder_mystery_message && itemData.murder_mystery_message[index]) || null;
@@ -5721,6 +6041,8 @@
                 try { updateEpsilonTractsSidebarCount(); } catch (e) {}
                 try { updateForSaleSignSidebarCount(); } catch (e) {}
                 try { updateTheBigScoreGauntletSidebarCount(); } catch (e) {}
+                try { updateArmoredTruckSpSidebarCount(); } catch (e) {}
+                try { updateVOthersReSidebarCount(); } catch (e) {}
                 try { updateSlasherSidebarCount(); } catch (e) {}
                 try { updateTreasureHuntSidebarCount(); } catch (e) {}
                 try { updateUfoSidebarCount(); } catch (e) {}
@@ -6421,6 +6743,8 @@
             { value: 'for_sale_sign', text: '待售标志', icon: '../src/assets/for_sale_sign.svg' },
             { value: 'the_big_score_gauntlet', text: '大干一票（巧妙）- 铁腕', icon: '../src/assets/the_big_score_gauntlet.svg' },
             { value: 'hitchhikers', text: '搭便车(潜在利他教受害者)', icon: '../src/assets/hitchhikers.svg' },
+            { value: 'armored_truck_sp', text: '装甲运钞车(线下)', icon: '../src/assets/armored_truck_sp.svg' },
+            { value: 'v_others_re', text: '其他随机任务', icon: '../src/assets/v_others_re.svg' },
             { value: 'chasing_the_truth', text: '埃普斯隆追求真理-神器', icon: '../src/assets/chasing_the_truth.svg' },
             { value: 'stunt_jumps', text: '特技跳跃点' },
             { value: 'spray', text: '喷罐位置' },
@@ -7076,6 +7400,24 @@
                         console.warn('加载 hitchhikers 失败:', e);
                         itemData.hitchhikers = [];
                     }
+                    // 加载 v_others_re 数据（zones.json.v_others_re）
+                    try {
+                        if (Array.isArray(cardsData.v_others_re)) {
+                            itemData.v_others_re = cardsData.v_others_re.map((arr, index) => {
+                                const x = arr[0];
+                                const y = arr[1];
+                                const notesArr = Array.isArray(arr[2]) ? arr[2] : [];
+                                const base = notesArr[0] ? String(notesArr[0]) : '';
+                                return { x, y, name: `其他随机任务 ${index + 1}`, notes: notesArr, base };
+                            });
+                            console.log('v_others_re 数据加载成功，共', itemData.v_others_re.length, '个位置');
+                        } else {
+                            itemData.v_others_re = [];
+                        }
+                    } catch (e) {
+                        console.warn('加载 v_others_re 失败:', e);
+                        itemData.v_others_re = [];
+                    }
                     // 加载其他物品数据
                     const itemTypes = [
                         'smoke_on_the_water_product',
@@ -7090,6 +7432,7 @@
                         'spray',
                         'for_sale_sign',
                         'the_big_score_gauntlet',
+                        'armored_truck_sp',
                         // 杀人狂单独加载，不走通用分支
                     ];
                     
@@ -7126,6 +7469,14 @@
                             itemData[type] = []; // 提供默认值，避免后续错误
                         }
                     });
+
+                    // Debug: armored_truck_sp loading status (zones.json second pass)
+                    try {
+                        const rawLen = Array.isArray(cardsData.armored_truck_sp) ? cardsData.armored_truck_sp.length : 'missing';
+                        const mappedLen = Array.isArray(itemData.armored_truck_sp) ? itemData.armored_truck_sp.length : 'not-array';
+                        console.log('[DEBUG][loadItemData] armored_truck_sp raw length:', rawLen);
+                        console.log('[DEBUG][loadItemData] armored_truck_sp mapped length:', mappedLen, 'sample:', Array.isArray(itemData.armored_truck_sp) ? itemData.armored_truck_sp.slice(0, 2) : itemData.armored_truck_sp);
+                    } catch (e) { console.warn('[DEBUG] armored_truck_sp debug log failed:', e); }
 
                     // 单独加载：洛圣都杀人狂（from zones.json.serial_killer_slasher）
                     try {
@@ -9313,6 +9664,17 @@
                     if (!window.hitchhikersMarkers) window.hitchhikersMarkers = [];
                     window.hitchhikersMarkers[index] = marker;
                 }
+                // 记录 armored_truck_sp 标记以便后续扩展（可见性/计数器）
+                else if (type === 'armored_truck_sp') {
+                    if (!window.armoredTruckSpMarkers) window.armoredTruckSpMarkers = [];
+                    window.armoredTruckSpMarkers[index] = marker;
+                    try { console.log('[DEBUG][createLeafletMarker] armored_truck_sp marker created', { index, x: item && item.x, y: item && item.y }); } catch (e) {}
+                }
+                // 记录 v_others_re 标记以便后续扩展（可见性/计数器）
+                else if (type === 'v_others_re') {
+                    if (!window.vOthersReMarkers) window.vOthersReMarkers = [];
+                    window.vOthersReMarkers[index] = marker;
+                }
                 // 记录 ghosts3 标记以便弹窗隐藏/显示控制
                 else if (type === 'ghosts3') {
                     if (!window.ghosts3Markers) window.ghosts3Markers = [];
@@ -9504,6 +9866,15 @@
                 else if (type === 'hitchhikers') {
                     showHitchhikersPopup(item, index);
                 }
+                // 新增：特殊处理装甲运钞车（线下）
+                else if (type === 'armored_truck_sp') {
+                    try { console.log('[DEBUG][click] armored_truck_sp clicked', { index, x: item && item.x, y: item && item.y }); } catch (e) {}
+                    showArmoredTruckSpPopup(item, index);
+                }
+                // 新增：特殊处理其他随机任务（线下）文本弹窗
+                else if (type === 'v_others_re') {
+                    showVOthersRePopup(item, index);
+                }
                 // 特殊处理车行标记，使用专门的车辆展示函数
                 else if (['casino', 'car_meet', 'premium_deluxe_motorsport', 'luxury_autos'].includes(type)) {
                     showDealershipVehicles(type, item.name);
@@ -9675,6 +10046,9 @@
             }
             if (window.hitchhikersMarkers) {
                 window.hitchhikersMarkers = [];
+            }
+            if (window.armoredTruckSpMarkers) {
+                window.armoredTruckSpMarkers = [];
             }
             // 不清除特技跳跃点标记，保持其状态
             // if (window.stuntJumpsMarkers) {
@@ -10216,6 +10590,9 @@
                     } else {
                         // 普通标记处理
                         if (!itemData[type] || !Array.isArray(itemData[type])) return;
+                        if (type === 'armored_truck_sp') {
+                            console.log('[DEBUG][updateItemMarkers] Rendering armored_truck_sp, count =', itemData[type].length);
+                        }
                         
                         itemData[type].forEach((item, index) => {
                             if (typeof item.x === 'undefined' || typeof item.y === 'undefined') return;
@@ -10263,6 +10640,8 @@
             try { applyChasingTheTruthVisibilityCache(); } catch (e) {}
             try { applyEpsilonTractsVisibilityCache(); } catch (e) {}
             try { applyHitchhikersVisibilityCache(); } catch (e) {}
+            try { applyArmoredTruckSpVisibilityCache(); } catch (e) {}
+            try { applyVOthersReVisibilityCache(); } catch (e) {}
             try { applyRCTimeTrialVisibilityCache(); } catch (e) {}
             try { applyBikeTimeTrialVisibilityCache(); } catch (e) {}
             try { applyMadrazoHitsVisibilityCache(); } catch (e) {}
@@ -21116,8 +21495,10 @@
                         'for_sale_sign',
                         'the_big_score_gauntlet'
                     ],
-                    '线下随机任务':[
-                        'hitchhikers'
+                    '线下随机任务':[ 
+                        'hitchhikers',
+                        'armored_truck_sp',
+                        'v_others_re'
                     ],
                     '地点与服务': [
                         'golf_holes',
@@ -21615,6 +21996,32 @@
                         // 延迟一次，确保数据/缓存就绪
                         setTimeout(() => { try { updateHitchhikersSidebarCount(); } catch (e) {} }, 200);
                     }
+                    // 装甲运钞车（线下）计数器
+                    else if (type === 'armored_truck_sp') {
+                        const counter = document.createElement('span');
+                        counter.className = 'armored-truck-sp-counter';
+                        counter.style.marginLeft = '6px';
+                        counter.style.color = 'var(--gta-text-secondary)';
+                        counter.textContent = '';
+                        label.appendChild(counter);
+                        // 初始渲染
+                        try { updateArmoredTruckSpSidebarCount(); } catch (e) {}
+                        // 延迟一次，确保数据/缓存就绪
+                        setTimeout(() => { try { updateArmoredTruckSpSidebarCount(); } catch (e) {} }, 200);
+                    }
+                    // 其他随机任务（线下）计数器
+                    else if (type === 'v_others_re') {
+                        const counter = document.createElement('span');
+                        counter.className = 'v-others-re-counter';
+                        counter.style.marginLeft = '6px';
+                        counter.style.color = 'var(--gta-text-secondary)';
+                        counter.textContent = '';
+                        label.appendChild(counter);
+                        // 初始渲染
+                        try { updateVOthersReSidebarCount(); } catch (e) {}
+                        // 延迟一次，确保数据/缓存就绪
+                        setTimeout(() => { try { updateVOthersReSidebarCount(); } catch (e) {} }, 200);
+                    }
                     // 喷灌位置计数器
                     else if (type === 'spray') {
                         const counter = document.createElement('span');
@@ -22015,6 +22422,11 @@
                         // 吞云吐雾馆产品计数器
                         if (t === 'smoke_on_the_water_product') {
                             try { updateSmokeProductSidebarCount(); } catch(e) {}
+                        }
+                        // 其他随机任务（线下）计数器
+                        if (t === 'v_others_re') {
+                            try { updateVOthersReSidebarCount(); } catch(e) {}
+                            setTimeout(() => { try { updateVOthersReSidebarCount(); } catch(e) {} }, 200);
                         }
                         // gun_van 不再有侧边计数器
                         if (t === 'dead_drop') {

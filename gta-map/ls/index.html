@@ -4337,7 +4337,11 @@
                 monkey_mosaics_random_event: '猴子马赛克艺术家',
                 altruist_cult_shootout: '利他邪教枪击事件',
                 bigfoot_vs_beast: '大脚怪VS野兽',
+                yeti: '雪怪',
+                yeti_award: '🏆 雪怪套装奖励',
                 shoot_animals_photography: '拍拍动物摄影',
+                payphone_hits: '电话暗杀',
+                police_rescue_patrick_mcreary: '帕特里克救援',
                 // 线下支线任务
                 maude_eccles: '茉德弃保逃犯',
                 rampages: '疯狂杀戮',
@@ -4405,11 +4409,20 @@
                 bigfoot_vs_beast: `要参加该事件，您必须从周日到下周六，依次吃完所有的金色迷幻仙人掌。
 您可以在金色仙人掌的描述中查看有关它们的细节。`,
 
+                // 雪怪（保持原文完全一致，含可点击的“雪怪套装”链接）
+                yeti: `一共有五条线索，且可由任意顺序收集。线索会发出声音以帮助您寻找，找到后，您需按E进行调查。每条线索都将奖励您10.000 GTA$与1.000 RP。集齐所有线索后，雪怪将于晚上 900至次日早上 600期间持续追杀您，直到您将其击杀。击杀时，您将获得50.000 GTA$与<span id="yeti-award-link" style="color: #2196F3; cursor: pointer; text-decoration: underline;">雪怪套装</span>奖励。`,
+
                 shoot_animals_photography: `您的目标是每天拍摄 3 只动物。
 每位玩家的拍摄动物清单各不相同。您可通过电子邮件或此处的洛圣都旅游局公告板查看清单。
 每张照片的奖励为 20.000 GTA$ 和 500 RP，在指定日期内拍摄所有照片可额外获得 40.000 GTA$。
 独特奖励：拍摄 1 只动物即可购买 国家公园警用车。拍摄 10 只动物即可解锁国家公园警用车的批发价。在一天内拍摄全部 3 只动物，即可获得 动物卫士套装。`
                 ,
+                payphone_hits: `电话暗杀通过公用电话触发。需要购买事务所并至少完成一个安保合约后解锁。
+
+完成目标可获得 GTA$ 与 RP 奖励；每次任务的目标、方式与地点可能不同。`,
+                police_rescue_patrick_mcreary: `寻找正在鸣笛巡逻的警用运输车（地图上以蓝点标记）。拦截囚车并救出囚犯，将其送达指定地点（可能直接在送达点触发）。
+
+奖励：10,000 GTA$、2,000 RP；解锁名钻赌场豪劫枪手“帕特里克·麦克瑞利”（8% 分红）。`,
                 // 线下支线任务
                 maude_eccles: `完成主线任务“菲利普先生”后对崔佛开放。在茉德处接下任务后，崔佛将收到茉德的电子邮件，其中包含弃保逃犯的信息。活捉逃犯奖励 10,000 GTA$；若击毙逃犯则为 5,000 GTA$。逃犯的位置不会显示在游戏内地图上。活捉一名可解锁一个成就。`,
                 rampages: `完成主线任务“崔佛·菲利普产业”后对崔佛开放。`,
@@ -4444,13 +4457,17 @@
                 railgun: `仅限回归玩家生成（PlayStation 3 / Xbox 360）。受漏洞影响，全体玩家均能享受回归玩家福利——即使您并未在上世代主机上游玩过 GTA V，您也可以解锁此生成点。`
             };
 
-            const label = TYPE_LABELS[type] || type;
-            const sequenceNumber = (typeof index === 'number') ? ` #${index + 1}` : '';
-            const title = `${label}${sequenceNumber}`;
+            const defaultLabel = TYPE_LABELS[type] || type;
+            let label = defaultLabel;
+            let sequenceNumber = (typeof index === 'number') ? ` #${index + 1}` : '';
+            let title = `${label}${sequenceNumber}`;
             const content = TYPE_CONTENTS[type] || '';
             const TYPE_IMAGES = {
                 // 任务
                 maude_eccles: 'https://gtaweb.eu/_sources/1/maps_gtao/tips/v_bail_bond_x.webp',
+                police_rescue_patrick_mcreary: 'https://gta-maps.antwen.com/collectibles_images/patrick/patrick.webp',
+                yeti: 'https://gta-maps.antwen.com/collectibles_images/yeti/yeti_x.webp',
+                yeti_award: 'https://gta-maps.antwen.com/collectibles_images/yeti/yeti_award.webp',
                 // 武器与健康
                 petrolcan: 'https://gtaweb.eu/_sources/10/maps_gtao/tips/weapons_sp_petrolcan_x.webp',
                 smg: 'https://gtaweb.eu/_sources/10/maps_gtao/tips/weapons_sp_smg_x.webp',
@@ -4483,7 +4500,39 @@
             // 将图片URL中的 'x' 替换为实际的索引号
             let imageUrl = TYPE_IMAGES[type] || null;
             if (imageUrl && typeof index === 'number') {
-                imageUrl = imageUrl.replace('_x.webp', `_${index}.webp`);
+                let imageIndex = index;
+                imageUrl = imageUrl.replace('_x.webp', `_${imageIndex}.webp`);
+            }
+
+            // 特殊处理：雪怪（yeti）标题与图片
+            if (type === 'yeti' && typeof index === 'number') {
+                const list = (window.itemData && Array.isArray(window.itemData.yeti)) ? window.itemData.yeti : [];
+                const yetiItem = list[index];
+                if (yetiItem && yetiItem.type === 'clue') {
+                    label = '❄️ 雪怪线索';
+                    sequenceNumber = (typeof yetiItem.clueIndex === 'number') ? ` #${yetiItem.clueIndex}` : '';
+                    title = `${label}${sequenceNumber}`;
+                    // 线索显示对应编号图片
+                    if (typeof yetiItem.clueIndex === 'number') {
+                        imageUrl = `https://gta-maps.antwen.com/collectibles_images/yeti/yeti_${yetiItem.clueIndex}.webp`;
+                    } else {
+                        imageUrl = null;
+                    }
+                } else if (yetiItem && yetiItem.type === 'area') {
+                    label = '雪怪区域';
+                    // 计算该区域在所有区域中的序号
+                    let areaOrder = 0;
+                    for (let i = 0; i <= index; i++) {
+                        if (list[i] && list[i].type === 'area') areaOrder++;
+                    }
+                    sequenceNumber = areaOrder ? ` #${areaOrder}` : '';
+                    title = `${label}${sequenceNumber}`;
+                    // 区域不显示图片
+                    imageUrl = null;
+                } else {
+                    label = '雪怪';
+                    title = `${label}${sequenceNumber}`;
+                }
             }
 
             const existing = document.querySelector(`.simple-info-popup-${type}`);
@@ -4499,7 +4548,12 @@
                 padding: 16px; z-index: 10000; width: min(92vw, 540px); max-height: 80vh;
                 color: var(--gta-text); overflow-y: auto;`;
 
-            const imgHtml = imageUrl ? `<img src="${imageUrl}" alt="${label}" style="max-width:100%;height:auto;border-radius:6px;margin:8px 0;display:block;"/>` : '';
+            const imgHtml = imageUrl ? `<img src="${imageUrl}" alt="${label}" class="simple-popup-image" style="max-width:100%;height:auto;border-radius:6px;margin:8px 0;display:block;cursor: zoom-in;"/>` : '';
+            const contentHtml = content ? `
+                <div style="padding: 8px 10px; background: rgba(33,150,243,0.08); border: 1px solid var(--gta-border); border-radius: 6px;">
+                    <div style="white-space: pre-wrap; line-height:1.7;">${content}</div>
+                </div>
+            ` : '';
 
             popup.innerHTML = `
                 <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;position:relative;">
@@ -4507,9 +4561,7 @@
                     <span class="popup-close" style="position:absolute;right:0;top:0;cursor:pointer;color:var(--gta-text-secondary);font-size:20px;">×</span>
                 </div>
                 ${imgHtml}
-                <div style="padding: 8px 10px; background: rgba(33,150,243,0.08); border: 1px solid var(--gta-border); border-radius: 6px;">
-                    <div style="white-space: pre-wrap; line-height:1.7;">${content}</div>
-                </div>
+                ${contentHtml}
                 <div style="margin-top: 14px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
                     <button class="close-btn" style="padding: 8px 16px; background: var(--gta-primary); color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 500;">关闭</button>
                 </div>
@@ -4517,16 +4569,77 @@
 
             document.body.appendChild(popup);
 
+            // 层级：奖励弹窗更高，保持叠放顺序接近旧实现
+            if (type === 'yeti_award') {
+                popup.style.zIndex = '10020';
+            }
+
             const closeBtn = popup.querySelector('.close-btn');
             const popupClose = popup.querySelector('.popup-close');
             const removePopup = () => popup.remove();
             closeBtn && closeBtn.addEventListener('click', removePopup);
             popupClose && popupClose.addEventListener('click', removePopup);
+
+            // 绑定：雪怪套装链接，打开奖励弹窗
+            const awardLinkEl = popup.querySelector('#yeti-award-link');
+            if (awardLinkEl) {
+                awardLinkEl.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (e.preventDefault) e.preventDefault();
+                    showSimpleInfoPopup('yeti_award');
+                });
+            }
             popup.addEventListener('click', (e) => e.stopPropagation());
             setTimeout(() => {
-                const onDoc = (e) => { if (!popup.contains(e.target)) { removePopup(); document.removeEventListener('click', onDoc); } };
+                const onDoc = (e) => {
+                    // 如存在图片放大覆盖层，点击其上不应关闭底部弹窗
+                    const overlayEl = document.querySelector('.simple-image-overlay');
+                    if (overlayEl && overlayEl.contains(e.target)) return;
+                    if (!popup.contains(e.target)) {
+                        removePopup();
+                        document.removeEventListener('click', onDoc);
+                    }
+                };
                 document.addEventListener('click', onDoc);
             }, 20);
+
+            // 图片点击放大（全屏覆盖层）
+            const imgEl = popup.querySelector('.simple-popup-image');
+            if (imgEl) {
+                imgEl.addEventListener('click', () => {
+                    // 移除已有覆盖层（避免重复）
+                    const existing = document.querySelector('.simple-image-overlay');
+                    if (existing) existing.remove();
+
+                    const overlay = document.createElement('div');
+                    overlay.className = 'simple-image-overlay';
+                    overlay.style.cssText = `
+                        position: fixed; inset: 0;
+                        background: rgba(0,0,0,0.85);
+                        display: flex; align-items: center; justify-content: center;
+                        z-index: 10050;
+                    `;
+                    overlay.innerHTML = `
+                        <img src="${imageUrl}" alt="${label}" style="max-width: 96vw; max-height: 96vh; border-radius: 8px; box-shadow: 0 10px 40px rgba(0,0,0,0.6); cursor: zoom-out;" />
+                        <span class="overlay-close" style="position: fixed; top: 12px; right: 16px; color: #fff; font-size: 28px; cursor: pointer; user-select: none;">×</span>
+                    `;
+                    document.body.appendChild(overlay);
+
+                    const closeOverlay = () => {
+                        document.removeEventListener('keydown', onKeyDown);
+                        overlay.remove();
+                    };
+                    const onKeyDown = (e) => { if (e.key === 'Escape') closeOverlay(); };
+                    document.addEventListener('keydown', onKeyDown);
+
+                    overlay.addEventListener('click', (e) => {
+                        const target = e.target;
+                        if (target === overlay || (target && (target.classList?.contains('overlay-close') || target.tagName?.toLowerCase() === 'img'))) {
+                            closeOverlay();
+                        }
+                    });
+                });
+            }
         }
 
         // 装甲运钞车（线下）文本弹窗（无图片，含隐藏/显示+计数器）
@@ -9607,8 +9720,7 @@
                 }).addTo(map);
                 
                 marker.on('click', function(e) {
-
-                    showPatrickRescuePopup(item, index, item.subtype || 'spawn');
+                    showSimpleInfoPopup('police_rescue_patrick_mcreary', index);
                 });
                 
                 return marker;
@@ -9989,7 +10101,7 @@
                     
                     // 雪怪区域只显示圆圈，不显示图标
                     const clickHandler = function(e) {
-                        showYetiPopup(item, index);
+                        showSimpleInfoPopup('yeti', index);
                     };
                     
                     circle.on('click', clickHandler);
@@ -10021,7 +10133,7 @@
                     }).addTo(map);
                     
                     marker.on('click', function(e) {
-                        showYetiPopup(item, index);
+                        showSimpleInfoPopup('yeti', index);
                     });
                     
                     return marker;
@@ -10726,9 +10838,9 @@
                 else if (type === 'shipwrecked') {
                     showShipwreckedPopup(item, index);
                 }
-                // 特殊处理电话暗杀，显示图片弹窗
+                // 特殊处理电话暗杀，显示简洁文本弹窗
                 else if (type === 'payphone_hits') {
-                    showPayphoneHitsImage(index);
+                    showSimpleInfoPopup('payphone_hits', index);
                 }
                 // 特殊处理高尔夫球洞，显示图片弹窗
                 else if (type === 'golf_holes') {
@@ -10952,8 +11064,7 @@
                 }
                 // 新增：特殊处理帕特里克救援，显示弹窗
                 else if (type === 'police_rescue_patrick_mcreary') {
-
-                    showPatrickRescuePopup(item, index, item.subtype || 'spawn');
+                    showSimpleInfoPopup('police_rescue_patrick_mcreary', index);
                 }
                 // 新增：特殊处理随机任务，显示弹窗
                 else if (type === 'random_missions') {
@@ -13070,9 +13181,9 @@
                 showShipwreckedPopup(item, index);
             }
             
-            // 如果是电话暗杀，显示图片弹窗
+            // 如果是电话暗杀，显示简洁文本弹窗
             if (type === 'payphone_hits') {
-                showPayphoneHitsImage(index);
+                showSimpleInfoPopup('payphone_hits', index);
             }
             
             // 如果是高尔夫球洞，显示图片弹窗
@@ -15900,113 +16011,7 @@
             document.body.appendChild(popup);
         }
 
-
-        // 显示电话暗杀图片弹窗
-        function showPayphoneHitsImage(index) {
-            // 序号从1开始
-            const sequenceNumber = index + 1;            
-            // 创建弹窗
-            const popup = document.createElement('div');
-            popup.className = 'payphone-hits-popup';
-            popup.style.cssText = `
-                position: fixed;
-                top: 50%;
-                left: 50%;
-                transform: translate(-50%, -50%);
-                background: white;
-                border: 3px solid #E91E63;
-                border-radius: 12px;
-                padding: 20px;
-                z-index: 10000;
-                max-width: 80vw;
-                max-height: 80vh;
-                box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-                font-family: Arial, sans-serif;
-                text-align: center;
-            `;
-
-            // 弹窗内容
-            popup.innerHTML = `
-                <div style="margin-bottom: 15px; font-size: 20px; font-weight: bold; color: #C2185B;">
-                    📞 电话暗杀 #${sequenceNumber}
-                </div>
-                <div style="margin-bottom: 15px; color: #666; font-size: 14px;">
-                </div>
-                <div style="margin: 15px 0; padding: 12px; background: #f8f9fa; border-radius: 6px; border-left: 4px solid #E91E63;">
-                    <div style="font-weight: bold; color: #C2185B; margin-bottom: 5px;">🎯 任务说明</div>
-                    <div style="color: #666; font-size: 14px; line-height: 1.4;">
-                        需要购买事务所完成一个安保合约解锁
-                    </div>
-                </div>
-                <button id="hide-payphone-hits-btn" 
-                        style="padding: 10px 20px; margin-right: 10px;
-                               background: #E91E63; color: white; 
-                               border: none; border-radius: 6px; 
-                               cursor: pointer; font-size: 16px;
-                               transition: background-color 0.3s;">
-                    隐藏标记
-                </button>
-                <button id="close-payphone-hits-btn" 
-                        style="padding: 10px 20px; 
-                               background: #f44336; color: white; 
-                               border: none; border-radius: 6px; 
-                               cursor: pointer; font-size: 16px;
-                               transition: background-color 0.3s;">
-                    关闭
-                </button>
-            `;
-
-            // 添加到页面
-            document.body.appendChild(popup);
-
-            // 添加隐藏按钮事件监听
-            const hideBtn = popup.querySelector('#hide-payphone-hits-btn');
-            hideBtn.addEventListener('click', () => {
-                 // 找到对应的标记并设置透明度为25%
-                 document.querySelectorAll('.item-marker').forEach(marker => {
-                     const img = marker.querySelector('img');
-                     if (img && img.src && img.src.includes('payphone_hits') && marker.dataset.index == index) {
-                         marker.style.opacity = '0.25';
-                         // 将隐藏按钮改为显示按钮
-                         hideBtn.textContent = '显示';
-                         hideBtn.style.background = '#2196F3';
-                         hideBtn.id = 'show-payphone-hits-btn';
-                         
-                         // 移除旧的点击事件，添加新的显示事件
-                         const newShowBtn = hideBtn.cloneNode(true);
-                         hideBtn.replaceWith(newShowBtn);
-                         newShowBtn.addEventListener('click', () => {
-                             // 恢复透明度为100%
-                             const currentMarker = document.querySelector(`.item-marker[data-index="${index}"]`);
-                             if (currentMarker) {
-                                 currentMarker.style.opacity = '1';
-                             }
-                             popup.remove();
-                         });
-                     }
-                 });
-             });
-
-            // 添加关闭按钮事件监听
-            const closeBtn = popup.querySelector('#close-payphone-hits-btn');
-            closeBtn.addEventListener('click', () => {
-                popup.remove();
-            });
-
-            // 点击弹窗外部关闭
-            popup.addEventListener('click', (e) => e.stopPropagation());
-            
-            // 使用setTimeout延迟添加document点击事件，避免立即触发
-            setTimeout(() => {
-                const closePopupHandler = (e) => {
-                    if (!popup.contains(e.target)) {
-                        popup.remove();
-                        document.removeEventListener('click', closePopupHandler);
-                    }
-                };
-                document.addEventListener('click', closePopupHandler);
-            }, 100);
-        }
+        // 电话暗杀（旧DOM弹窗）已废弃，改用 showPayphoneHitsPopup(item, index)
 
         // 显示高尔夫球洞图片弹窗
         function showGolfHolesImage(index) {
@@ -17364,7 +17369,7 @@
                     const payphoneHitIndex = itemData.payphone_hits.findIndex(payphoneHit => 
                         payphoneHit.x === nearbyPayphoneHit.x && payphoneHit.y === nearbyPayphoneHit.y
                     );
-                    showPayphoneHitsImage(payphoneHitIndex);
+                    showSimpleInfoPopup('payphone_hits', payphoneHitIndex);
                 }
             }
         }
@@ -18050,7 +18055,7 @@
                             spawn.x === nearbySpawn.x && spawn.y === nearbySpawn.y
                         );
 
-                        showPatrickRescuePopup(nearbySpawn, index, 'spawn');
+                        showSimpleInfoPopup('police_rescue_patrick_mcreary', index);
                         return;
                     }
                 }
@@ -18067,7 +18072,7 @@
                             dropoff.x === nearbyDropoff.x && dropoff.y === nearbyDropoff.y
                         );
 
-                        showPatrickRescuePopup(nearbyDropoff, index, 'dropoff');
+                        showSimpleInfoPopup('police_rescue_patrick_mcreary', index);
                         return;
                     }
                 }
@@ -18324,7 +18329,7 @@
                     const yetiIndex = itemData.yeti.findIndex(yeti => 
                         yeti.x === nearbyYeti.x && yeti.y === nearbyYeti.y && yeti.type === nearbyYeti.type
                     );
-                    showYetiPopup(nearbyYeti, yetiIndex);
+                    showSimpleInfoPopup('yeti', yetiIndex);
                     return; // 找到雪怪线索，停止后续检测
                 }
             }
@@ -19374,105 +19379,6 @@
             });
 
             closeBtn.addEventListener('click', () => popup.remove());
-            popup.addEventListener('click', (e) => e.stopPropagation());
-            setTimeout(() => {
-                const closePopupHandler = (e) => {
-                    if (!popup.contains(e.target)) { popup.remove(); document.removeEventListener('click', closePopupHandler); }
-                };
-                document.addEventListener('click', closePopupHandler);
-            }, 50);
-
-            document.body.appendChild(popup);
-        }
-
-        // 雪怪弹窗
-        function showYetiPopup(item, index) {
-            const title = `❄️ 雪怪线索 #${item.clueIndex}`;
-            const content = `一共有五条线索，且可由任意顺序收集。线索会发出声音以帮助您寻找，找到后，您需按E进行调查。每条线索都将奖励您10.000 GTA$与1.000 RP。集齐所有线索后，雪怪将于晚上 900至次日早上 600期间持续追杀您，直到您将其击杀。击杀时，您将获得50.000 GTA$与<span id="yeti-award-link" style="color: #2196F3; cursor: pointer; text-decoration: underline;">雪怪套装</span>奖励。`;
-            const imageUrl = `https://gta-maps.antwen.com/collectibles_images/yeti/yeti_${item.clueIndex}.webp`;
-            
-            const popup = document.createElement('div');
-            popup.className = 'yeti-popup';
-            popup.style.cssText = `
-                position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-                background: #fff; border: 3px solid #2196F3; border-radius: 12px; padding: 18px;
-                z-index: 10000; max-width: 520px; max-height: 80vh; box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-                font-family: Arial, sans-serif; text-align: left; overflow-y: auto;`;
-
-            popup.innerHTML = `
-                <div style="margin-bottom: 14px; font-size: 20px; font-weight: bold; color: #1976D2; text-align:center;">${title}</div>
-                <img src="${imageUrl}" alt="雪怪线索图片" style="max-width: 100%; height: auto; border-radius: 6px; margin: 8px 0; display:block;"/>
-                <div style="margin: 10px 0; padding: 10px; background: #E3F2FD; border-radius: 8px; color: #1976D2; font-size: 13px; line-height: 1.6;">
-                    ${content}
-                </div>
-                <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px;">
-                    <button id="hide-yeti-btn" style="padding: 10px 18px; background: #4CAF50; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">隐藏</button>
-                    <button id="show-yeti-btn" style="padding: 10px 18px; background: #2196F3; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">显示</button>
-                    <button id="close-yeti-btn" style="padding: 10px 18px; background: #f44336; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">关闭</button>
-                </div>
-            `;
-
-            const hideBtn = popup.querySelector('#hide-yeti-btn');
-            const showBtn = popup.querySelector('#show-yeti-btn');
-            const closeBtn = popup.querySelector('#close-yeti-btn');
-            const awardLink = popup.querySelector('#yeti-award-link');
-
-            function resolveTargetAndIndex() {
-                const el = document.querySelector(`.item-marker[data-type="yeti"][data-index="${index}"]`);
-                return { el, globalIndex: index };
-            }
-
-            hideBtn.addEventListener('click', () => {
-                const { el } = resolveTargetAndIndex();
-                if (!el) return;
-                el.style.opacity = '0.25';
-            });
-
-            showBtn.addEventListener('click', () => {
-                const { el } = resolveTargetAndIndex();
-                if (!el) return;
-                el.style.opacity = '1';
-            });
-
-            closeBtn.addEventListener('click', () => popup.remove());
-            
-            // 雪怪套装点击事件
-            awardLink.addEventListener('click', () => {
-                showYetiAwardPopup();
-            });
-            
-            popup.addEventListener('click', (e) => e.stopPropagation());
-            setTimeout(() => {
-                const closePopupHandler = (e) => {
-                    if (!popup.contains(e.target)) { popup.remove(); document.removeEventListener('click', closePopupHandler); }
-                };
-                document.addEventListener('click', closePopupHandler);
-            }, 50);
-
-            document.body.appendChild(popup);
-        }
-
-        // 雪怪套装奖励弹窗
-        function showYetiAwardPopup() {
-            const popup = document.createElement('div');
-            popup.className = 'yeti-award-popup';
-            popup.style.cssText = `
-                position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-                background: #fff; border: 3px solid #FF9800; border-radius: 12px; padding: 18px;
-                z-index: 10001; max-width: 400px; max-height: 80vh; box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-                font-family: Arial, sans-serif; text-align: center; overflow-y: auto;`;
-
-            popup.innerHTML = `
-                <div style="margin-bottom: 14px; font-size: 18px; font-weight: bold; color: #F57C00;">🏆 雪怪套装奖励</div>
-                <img src="https://gta-maps.antwen.com/collectibles_images/yeti/yeti_award.webp" alt="雪怪套装奖励" style="max-width: 100%; height: auto; border-radius: 6px; margin: 8px 0; display:block;"/>
-                <div style="margin-top: 15px;">
-                    <button id="close-yeti-award-btn" style="padding: 10px 18px; background: #f44336; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">关闭</button>
-                </div>
-            `;
-
-            const closeBtn = popup.querySelector('#close-yeti-award-btn');
-            closeBtn.addEventListener('click', () => popup.remove());
-            
             popup.addEventListener('click', (e) => e.stopPropagation());
             setTimeout(() => {
                 const closePopupHandler = (e) => {
@@ -20663,76 +20569,7 @@
             document.body.appendChild(popup);
         }
 
-        // 帕特里克救援弹窗
-        function showPatrickRescuePopup(item, index, type) {
-            const typeNames = {
-                'spawn': '生成点',
-                'dropoff': '送达点'
-            };
-            
-            const title = `🚔 帕特里克救援 - ${typeNames[type]} #${index + 1}`;
-            const content = `寻找正在鸣笛巡逻的警用运输车。这辆车以蓝点标记在地图上。拦截囚车，救出囚犯。囚车会生成在 ，您需要将其送至 。运气好的话，您也有可能在送达点发现事件。<br><br>奖励：10.000 GTA$、2.000 RP，解锁名钻赌场豪劫的枪手帕特里克·麦克瑞利（8% 分红）。`;
-            const imageUrl = 'https://gta-maps.antwen.com/collectibles_images/patrick/patrick.webp';
-            
-            const popup = document.createElement('div');
-            popup.className = 'patrick-rescue-popup';
-            popup.style.cssText = `
-                position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-                background: #fff; border: 3px solid #2196F3; border-radius: 12px; padding: 18px;
-                z-index: 10000; max-width: 520px; max-height: 80vh; box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-                font-family: Arial, sans-serif; text-align: center; overflow-y: auto;`;
-
-            popup.innerHTML = `
-                <div style="margin-bottom: 14px; font-size: 20px; font-weight: bold; color: #1976D2;">${title}</div>
-                <img src="${imageUrl}" alt="帕特里克救援图片" style="max-width: 100%; height: auto; border-radius: 6px; margin: 8px 0;"/>
-                <div style="margin: 10px 0; padding: 10px; background: #e3f2fd; border-radius: 8px; color: #4e342e; font-size: 13px; text-align: left; line-height: 1.6;">
-                    ${content}
-                </div>
-                <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px;">
-                    <button id="hide-patrick-btn" style="padding: 10px 18px; background: #4CAF50; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">隐藏</button>
-                    <button id="show-patrick-btn" style="padding: 10px 18px; background: #2196F3; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">显示</button>
-                    <button id="close-patrick-btn" style="padding: 10px 18px; background: #f44336; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">关闭</button>
-                </div>
-            `;
-
-            // 隐藏/显示/关闭按钮
-            const hideBtn = popup.querySelector('#hide-patrick-btn');
-            const showBtn = popup.querySelector('#show-patrick-btn');
-            const closeBtn = popup.querySelector('#close-patrick-btn');
-
-            // 解析目标标记和索引
-            function resolveTargetAndIndex() {
-                const el = document.querySelector(`.item-marker[data-type="police_rescue_patrick_mcreary_${type}"][data-index="${index}"]`);
-                return { el, globalIndex: index };
-            }
-
-            // 隐藏按钮：设置标记透明度为25%
-            hideBtn.addEventListener('click', () => {
-                const { el } = resolveTargetAndIndex();
-                if (!el) return;
-                el.style.opacity = '0.25';
-            });
-
-            // 显示按钮：恢复标记透明度为100%
-            showBtn.addEventListener('click', () => {
-                const { el } = resolveTargetAndIndex();
-                if (!el) return;
-                el.style.opacity = '1';
-            });
-
-            // 关闭按钮
-            closeBtn.addEventListener('click', () => popup.remove());
-            
-            popup.addEventListener('click', (e) => e.stopPropagation());
-            setTimeout(() => {
-                const closePopupHandler = (e) => {
-                    if (!popup.contains(e.target)) { popup.remove(); document.removeEventListener('click', closePopupHandler); }
-                };
-                document.addEventListener('click', closePopupHandler);
-            }, 50);
-
-            document.body.appendChild(popup);
-        }
+        // 帕特里克救援 DOM 弹窗已迁移至简洁文本弹窗（使用 showSimpleInfoPopup）
 
         // 随机任务弹窗
         function showRandomMissionPopup(mission, timeSlot, index) {

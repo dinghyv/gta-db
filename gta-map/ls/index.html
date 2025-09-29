@@ -1314,6 +1314,37 @@
             'cerberus',
             'possessed_animals',
             'yeti',
+            // 动物
+            'boar',
+            'cat',
+            'chickenhawk',
+            'cormorant',
+            'cow',
+            'coyote',
+            'crow',
+            'deer',
+            'dog_husky',
+            'dog_pug',
+            'dog_husky_retriever',
+            'dog_rottweiler',
+            'dog_shepherd',
+            'dog_small',
+            'dog_westy',
+            'dolphin',
+            'fish',
+            'gull',
+            'hen',
+            'mountain_lion',
+            'orca',
+            'pig',
+            'pigeon',
+            'rabbit',
+            'rat',
+            'shark',
+            'shark_hammerhead',
+            'shark_tiger',
+            'stingray',
+            'whale',
             
             // 第10组：悬赏系统
             'maude_bounty_targets',
@@ -1772,7 +1803,38 @@
             hatchet: [],
             armour: [],
             health: [],
-            parachute: []
+            parachute: [],
+            // 动物（试点）
+            boar: [],
+            cat: [],
+            chickenhawk: [],
+            cormorant: [],
+            cow: [],
+            coyote: [],
+            crow: [],
+            deer: [],
+            dog_husky: [],
+            dog_pug: [],
+            dog_husky_retriever: [],
+            dog_rottweiler: [],
+            dog_shepherd: [],
+            dog_small: [],
+            dog_westy: [],
+            dolphin: [],
+            fish: [],
+            gull: [],
+            hen: [],
+            mountain_lion: [],
+            orca: [],
+            pig: [],
+            pigeon: [],
+            rabbit: [],
+            rat: [],
+            shark: [],
+            shark_hammerhead: [],
+            shark_tiger: [],
+            stingray: [],
+            whale: []
         };
 
         // 车行位置数据
@@ -1908,9 +1970,7 @@
             // 保存侧边栏选择状态
             saveState(activeTypes) {
                 const state = Array.from(activeTypes);
-                console.log('保存侧边栏状态:', state);
                 const result = CacheManager.save(CACHE_KEYS.SIDEBAR_STATE, state);
-                console.log('保存结果:', result);
                 return result;
             },
 
@@ -1922,9 +1982,7 @@
             // 应用缓存的侧边栏状态
             applyState(activeTypes) {
                 const cachedState = this.loadState();
-                console.log('尝试恢复侧边栏状态，缓存数据:', cachedState);
                 if (cachedState.length > 0) {
-                    console.log('恢复侧边栏状态:', cachedState);
                     // 清空当前状态
                     activeTypes.clear();
                     // 恢复缓存状态
@@ -1933,10 +1991,8 @@
                             activeTypes.add(type);
                         }
                     });
-                    console.log('恢复后的activeItemTypes:', Array.from(activeTypes));
                     return true;
                 }
-                console.log('无缓存状态可恢复');
                 return false;
             }
         };
@@ -1960,7 +2016,6 @@
             applyVisibility(itemType, markers) {
                 const visibilityMap = this.loadVisibility(itemType);
                 if (Object.keys(visibilityMap).length > 0) {
-                    console.log(`恢复 ${itemType} 可见性状态:`, visibilityMap);
                     markers.forEach((marker, index) => {
                         const isHidden = visibilityMap[index];
                         if (isHidden && marker.setOpacity) {
@@ -4214,6 +4269,80 @@
         function applyOffroadRacesVisibilityCache() { applyActivityVisibilityCache('offroad_races'); }
         function applySeaRacesVisibilityCache() { applyActivityVisibilityCache('sea_races'); }
         function applyStreetRacesVisibilityCache() { applyActivityVisibilityCache('street_races'); }
+
+        // 动物弹窗（显示动物名称、刷新时间、图片）
+        function showAnimalPopup(item, index, type) {
+            try {
+                // 动物中文名称映射
+                const animalNames = {
+                    'boar': '野猪',
+                    'cat': '猫',
+                    'chickenhawk': '鸡鹰',
+                    'cormorant': '鸬鹚',
+                    'cow': '牛',
+                    'coyote': '郊狼',
+                    'crow': '乌鸦',
+                    'deer': '鹿',
+                    'dog_husky': '哈士奇',
+                    'dog_pug': '哈巴狗',
+                    'dog_husky_retriever': '哈士奇寻回犬',
+                    'dog_rottweiler': '罗威纳犬',
+                    'dog_shepherd': '牧羊犬',
+                    'dog_small': '小型犬',
+                    'dog_westy': '西高地白梗',
+                    'dolphin': '海豚',
+                    'fish': '鱼',
+                    'gull': '海鸥',
+                    'hen': '母鸡',
+                    'mountain_lion': '山狮',
+                    'orca': '虎鲸',
+                    'pig': '猪',
+                    'pigeon': '鸽子',
+                    'rabbit': '兔子',
+                    'rat': '老鼠',
+                    'shark': '鲨鱼',
+                    'shark_hammerhead': '锤头鲨',
+                    'shark_tiger': '虎鲨',
+                    'stingray': '黄貂鱼',
+                    'whale': '鲸鱼'
+                };
+                
+                const animalName = animalNames[type] || type;
+                const timeRange = item.time || '全天';
+                const imageUrl = `https://gtaweb.eu/_sources/2/maps_gtao/tips/spawn_animal_${type}.webp`;
+                
+                let popupContent = `
+                    <div style="text-align: center; min-width: 200px;">
+                        <h3 style="margin: 5px 0; color: #333;">${animalName}</h3>
+                        <p style="margin: 5px 0; color: #666;">
+                            <strong>刷新时间:</strong> ${timeRange}
+                        </p>
+                        <p style="margin: 5px 0; color: #666;">
+                            <strong>坐标:</strong> ${item.x}, ${item.y}
+                        </p>
+                        <img src="${imageUrl}" 
+                             style="max-width: 180px; max-height: 120px; margin: 10px 0; border-radius: 5px;"
+                             onerror="this.style.display='none';"
+                             onload="this.style.display='block';">
+                    </div>
+                `;
+                
+                const popup = L.popup({
+                    maxWidth: 250,
+                    className: 'animal-popup'
+                })
+                .setContent(popupContent);
+                
+                // 在动物位置显示弹窗
+                const z = map.getZoom();
+                const pixel = gameToPixel(item.x, item.y, z);
+                const latlng = map.unproject(L.point(pixel.x, pixel.y), z);
+                popup.setLatLng(latlng).openOn(map);
+                
+            } catch (error) {
+                console.error('显示动物弹窗失败:', error);
+            }
+        }
 
         // 简洁文本弹窗（无计数器、无隐藏/显示按钮；如有图片链接才显示图片）
         function showSimpleInfoPopup(type, index) {
@@ -7364,7 +7493,38 @@
             { value: 'convoy', text: '车队', icon: '../src/assets/convoy.svg' },
             { value: 'armored_truck', text: '装甲运钞车', icon: '../src/assets/armored_truck.svg' },
             { value: 'exotic_exports1', text: '外贸出口载具1', icon: '../src/assets/exotic_exports1.svg' },
-            { value: 'exotic_exports2', text: '外贸出口载具2', icon: '../src/assets/exotic_exports2.svg' }
+            { value: 'exotic_exports2', text: '外贸出口载具2', icon: '../src/assets/exotic_exports2.svg' },
+            // 动物
+            { value: 'boar', text: '野猪' },
+            { value: 'cat', text: '猫' },
+            { value: 'chickenhawk', text: '鸡鹰' },
+            { value: 'cormorant', text: '鸬鹚' },
+            { value: 'cow', text: '牛' },
+            { value: 'coyote', text: '郊狼' },
+            { value: 'crow', text: '乌鸦' },
+            { value: 'deer', text: '鹿' },
+            { value: 'dog_husky', text: '哈士奇' },
+            { value: 'dog_pug', text: '哈巴狗' },
+            { value: 'dog_husky_retriever', text: '哈士奇寻回犬' },
+            { value: 'dog_rottweiler', text: '罗威纳犬' },
+            { value: 'dog_shepherd', text: '牧羊犬' },
+            { value: 'dog_small', text: '小型犬' },
+            { value: 'dog_westy', text: '西高地白梗' },
+            { value: 'dolphin', text: '海豚' },
+            { value: 'fish', text: '鱼' },
+            { value: 'gull', text: '海鸥' },
+            { value: 'hen', text: '母鸡' },
+            { value: 'mountain_lion', text: '山狮' },
+            { value: 'orca', text: '虎鲸' },
+            { value: 'pig', text: '猪' },
+            { value: 'pigeon', text: '鸽子' },
+            { value: 'rabbit', text: '兔子' },
+            { value: 'rat', text: '老鼠' },
+            { value: 'shark', text: '鲨鱼' },
+            { value: 'shark_hammerhead', text: '锤头鲨' },
+            { value: 'shark_tiger', text: '虎鲨' },
+            { value: 'stingray', text: '黄貂鱼' },
+            { value: 'whale', text: '鲸鱼' }
         ];
         const loader = document.getElementById('loader');
         const fileStatus = document.getElementById('file-status');
@@ -8668,6 +8828,91 @@
                     console.log('尝试加载的URL:', '../src/data/zones.json');
                 }
                 
+                // 加载动物数据（animals.json）- 所有动物类型
+                try {
+                    const animalsResp = await fetch('../src/data/animals.json');
+                    const animalsData = await animalsResp.json();
+                    
+                    // 动物中文名称映射
+                    const animalNames = {
+                        'boar': '野猪',
+                        'cat': '猫',
+                        'chickenhawk': '鸡鹰',
+                        'cormorant': '鸬鹚',
+                        'cow': '牛',
+                        'coyote': '郊狼',
+                        'crow': '乌鸦',
+                        'deer': '鹿',
+                        'dog_husky': '哈士奇',
+                        'dog_pug': '哈巴狗',
+                        'dog_husky_retriever': '哈士奇寻回犬',
+                        'dog_rottweiler': '罗威纳犬',
+                        'dog_shepherd': '牧羊犬',
+                        'dog_small': '小型犬',
+                        'dog_westy': '西高地白梗',
+                        'dolphin': '海豚',
+                        'fish': '鱼',
+                        'gull': '海鸥',
+                        'hen': '母鸡',
+                        'mountain_lion': '山狮',
+                        'orca': '虎鲸',
+                        'pig': '猪',
+                        'pigeon': '鸽子',
+                        'rabbit': '兔子',
+                        'rat': '老鼠',
+                        'shark': '鲨鱼',
+                        'shark_hammerhead': '锤头鲨',
+                        'shark_tiger': '虎鲨',
+                        'stingray': '黄貂鱼',
+                        'whale': '鲸鱼'
+                    };
+                    
+                    // 处理所有动物类型
+                    const animalTypes = Object.keys(animalNames);
+                    animalTypes.forEach(animalType => {
+                        try {
+                            if (animalsData && animalsData[animalType] && typeof animalsData[animalType] === 'object') {
+                                const animalItems = [];
+                                Object.keys(animalsData[animalType]).forEach(key => {
+                                    const arr = Array.isArray(animalsData[animalType][key]) ? animalsData[animalType][key] : [];
+                                    // 将如 '06-18' 或 '20-05' 转换为 'HH:MM - HH:MM'
+                                    const [h1, h2] = String(key).split('-');
+                                    const fmt = (h) => String(h).padStart(2, '0') + ':00';
+                                    const timeStr = (h1 && h2) ? `${fmt(h1)} - ${fmt(h2)}` : '';
+                                    arr.forEach((p, idx) => {
+                                        if (Array.isArray(p) && p.length >= 2) {
+                                            const x = p[0];
+                                            const y = p[1];
+                                            animalItems.push({ x, y, time: timeStr });
+                                        }
+                                    });
+                                });
+                                itemData[animalType] = animalItems.map((it, i) => ({ 
+                                    x: it.x, 
+                                    y: it.y, 
+                                    time: it.time || '', 
+                                    name: `${animalNames[animalType]} ${i + 1}` 
+                                }));
+                            } else {
+                                itemData[animalType] = [];
+                            }
+                        } catch (e) {
+                            itemData[animalType] = [];
+                        }
+                    });
+                } catch (e) {
+                    console.error('加载 animals.json 失败:', e);
+                    // 初始化所有动物数据为空数组
+                    const animalTypes = ['boar', 'cat', 'chickenhawk', 'cormorant', 'cow', 'coyote', 'crow', 'deer', 
+                                       'dog_husky', 'dog_pug', 'dog_husky_retriever', 'dog_rottweiler', 'dog_shepherd', 
+                                       'dog_small', 'dog_westy', 'dolphin', 'fish', 'gull', 'hen', 'mountain_lion', 
+                                       'orca', 'pig', 'pigeon', 'rabbit', 'rat', 'shark', 'shark_hammerhead', 
+                                       'shark_tiger', 'stingray', 'whale'];
+                    animalTypes.forEach(type => {
+                        itemData[type] = [];
+                    });
+                }
+
                 // 将itemData赋值给window.itemData，供计数器函数使用
                 window.itemData = itemData;
                 
@@ -10068,6 +10313,41 @@
                 return marker;
             }
             
+            // 特殊处理 animals（试点）- 所有动物类型（小圆点，按时间显示）
+            const animalTypes = ['boar', 'cat', 'chickenhawk', 'cormorant', 'cow', 'coyote', 'crow', 'deer', 
+                               'dog_husky', 'dog_pug', 'dog_husky_retriever', 'dog_rottweiler', 'dog_shepherd', 
+                               'dog_small', 'dog_westy', 'dolphin', 'fish', 'gull', 'hen', 'mountain_lion', 
+                               'orca', 'pig', 'pigeon', 'rabbit', 'rat', 'shark', 'shark_hammerhead', 
+                               'shark_tiger', 'stingray', 'whale'];
+            
+            if (animalTypes.includes(type)) {
+                const inTime = item && item.time ? isGangAttackActive(item.time) : true;
+                if (!inTime) {
+                    return null;
+                }
+                const color = getAnimalColor(type);
+                const circle = L.circleMarker(latlng, {
+                    color: color.border,
+                    fillColor: color.fill,
+                    fillOpacity: 0.9,
+                    weight: 1,
+                    radius: 4,
+                    interactive: true
+                }).addTo(map);
+                
+                // 添加点击事件显示弹窗
+                circle.on('click', function(e) {
+                    showAnimalPopup(item, index, type);
+                });
+
+                try {
+                    const markerArrayName = `${type}Markers`;
+                    if (!window[markerArrayName]) window[markerArrayName] = [];
+                    window[markerArrayName][index] = circle;
+                } catch (e) {}
+                return circle;
+            }
+            
             // 创建自定义图标
             const customIcon = L.icon({
                 iconUrl: itemIcons[type],
@@ -11220,6 +11500,25 @@
                             if (typeof item.x === 'undefined' || typeof item.y === 'undefined') return;
                             const marker = createLeafletMarker(item, index, type);
                             leafletMarkers.push(marker);
+                        });
+                    }
+                    // 特殊处理 animals：所有动物类型（按时间显示小圆点）
+                    else if (['boar', 'cat', 'chickenhawk', 'cormorant', 'cow', 'coyote', 'crow', 'deer',
+                             'dog_husky', 'dog_pug', 'dog_husky_retriever', 'dog_rottweiler', 'dog_shepherd',
+                             'dog_small', 'dog_westy', 'dolphin', 'fish', 'gull', 'hen', 'mountain_lion',
+                             'orca', 'pig', 'pigeon', 'rabbit', 'rat', 'shark', 'shark_hammerhead',
+                             'shark_tiger', 'stingray', 'whale'].includes(type)) {
+                        if (!itemData[type] || !Array.isArray(itemData[type])) {
+                            return;
+                        }
+                        itemData[type].forEach((item, index) => {
+                            if (typeof item.x === 'undefined' || typeof item.y === 'undefined') {
+                                return;
+                            }
+                            const marker = createLeafletMarker(item, index, type);
+                            if (marker) { 
+                                leafletMarkers.push(marker);
+                            }
                         });
                     }
                     // 特殊处理possessed_animals - 鬼上身动物圆形区域
@@ -21947,7 +22246,7 @@
                 const currentHour = Math.floor(timestamp / 120) % 24;
                 const currentMinute = Math.floor(timestamp / 2) % 60;
                 const currentTime = currentHour * 60 + currentMinute; // 转换为分钟
-                
+                                
                 // 解析时间范围 "04:00 - 12:00"
                 const [startTime, endTime] = timeRange.split(' - ');
                 const [startHour, startMinute] = startTime.split(':').map(Number);
@@ -21955,18 +22254,99 @@
                 
                 const startTimeMinutes = startHour * 60 + startMinute;
                 const endTimeMinutes = endHour * 60 + endMinute;
-                
+                                
                 // 检查当前时间是否在范围内
+                let isActive;
                 if (startTimeMinutes <= endTimeMinutes) {
                     // 正常范围，如 04:00 - 12:00
-                    return currentTime >= startTimeMinutes && currentTime <= endTimeMinutes;
+                    isActive = currentTime >= startTimeMinutes && currentTime <= endTimeMinutes;
                 } else {
                     // 跨天范围，如 22:00 - 06:00
-                    return currentTime >= startTimeMinutes || currentTime <= endTimeMinutes;
+                    isActive = currentTime >= startTimeMinutes || currentTime <= endTimeMinutes;
                 }
+                
+                return isActive;
             } catch (error) {
-                console.error('检查帮派攻击时间失败:', error);
+                console.error('检查帮派攻击时间失败:', error, 'timeRange:', timeRange);
                 return false;
+            }
+        }
+
+        // 动物颜色（草食偏绿、食肉偏暖、水生偏蓝）
+        function getAnimalColor(species) {
+            switch (species) {
+                // 野生动物 - 食肉动物（暖色系）
+                case 'boar':
+                case 'coyote':
+                case 'mountain_lion':
+                    return { border: '#BF360C', fill: '#FF5722' };
+                
+                // 鸟类 - 猛禽（橙色系）
+                case 'chickenhawk':
+                case 'crow':
+                    return { border: '#E65100', fill: '#FF9800' };
+                
+                // 鸟类 - 水鸟（蓝绿色系）
+                case 'cormorant':
+                case 'gull':
+                    return { border: '#00695C', fill: '#26A69A' };
+                
+                // 鸟类 - 家禽/小鸟（黄色系）
+                case 'hen':
+                case 'pigeon':
+                    return { border: '#F57F17', fill: '#FFEB3B' };
+                
+                // 家畜（棕色系）
+                case 'cow':
+                case 'pig':
+                    return { border: '#5D4037', fill: '#8D6E63' };
+                
+                // 草食动物（绿色系）
+                case 'deer':
+                case 'rabbit':
+                    return { border: '#33691E', fill: '#8BC34A' };
+                
+                // 宠物 - 猫（紫色系）
+                case 'cat':
+                    return { border: '#4A148C', fill: '#9C27B0' };
+                
+                // 宠物 - 狗（蓝色系）
+                case 'dog_husky':
+                case 'dog_pug':
+                case 'dog_husky_retriever':
+                case 'dog_rottweiler':
+                case 'dog_shepherd':
+                case 'dog_small':
+                case 'dog_westy':
+                    return { border: '#1565C0', fill: '#2196F3' };
+                
+                // 海洋哺乳动物（深蓝色系）
+                case 'dolphin':
+                case 'orca':
+                case 'whale':
+                    return { border: '#0D47A1', fill: '#1976D2' };
+                
+                // 鱼类（青色系）
+                case 'fish':
+                    return { border: '#00838F', fill: '#00BCD4' };
+                
+                // 鲨鱼（深灰色系）
+                case 'shark':
+                case 'shark_hammerhead':
+                case 'shark_tiger':
+                    return { border: '#424242', fill: '#757575' };
+                
+                // 其他海洋生物（浅蓝色系）
+                case 'stingray':
+                    return { border: '#0277BD', fill: '#03A9F4' };
+                
+                // 小动物（粉色系）
+                case 'rat':
+                    return { border: '#C2185B', fill: '#E91E63' };
+                
+                // 默认颜色（绿色系）
+                default:
+                    return { border: '#2E7D32', fill: '#81C784' };
             }
         }
 
@@ -22138,10 +22518,10 @@
             // 现实5秒等于游戏内1分钟，每5秒更新一次
             setInterval(updateGameTimeWeather, 1000);
             
-            // 每30秒更新一次帮派攻击显示状态
+            // 每30秒更新一次帮派攻击/动物显示状态
             setInterval(() => {
-                if (activeItemTypes.has('gang_attacks')) {
-                    updateItemMarkers(); // 帮派攻击需要重新创建标记
+                if (activeItemTypes.has('gang_attacks') || activeItemTypes.has('boar')) {
+                    updateItemMarkers(); // 帮派攻击/动物需要重新创建标记
                 }
             }, 30000);
         }
@@ -22355,6 +22735,38 @@
                         'cerberus',
                         'yeti',
                         'happy_holidays_hauler'
+                    ],
+                    '动物': [
+                        'boar',
+                        'cat',
+                        'chickenhawk',
+                        'cormorant',
+                        'cow',
+                        'coyote',
+                        'crow',
+                        'deer',
+                        'dog_husky',
+                        'dog_pug',
+                        'dog_husky_retriever',
+                        'dog_rottweiler',
+                        'dog_shepherd',
+                        'dog_small',
+                        'dog_westy',
+                        'dolphin',
+                        'fish',
+                        'gull',
+                        'hen',
+                        'mountain_lion',
+                        'orca',
+                        'pig',
+                        'pigeon',
+                        'rabbit',
+                        'rat',
+                        'shark',
+                        'shark_hammerhead',
+                        'shark_tiger',
+                        'stingray',
+                        'whale'
                     ]
                 };
 

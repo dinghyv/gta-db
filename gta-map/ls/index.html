@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -1329,6 +1328,37 @@
             'store_robbery',
             'ppl',
             'ppw'
+            ,
+            // 新增：线下支线任务 + 线下武器和健康
+            'maude_eccles',
+            'rampages',
+            'v_assassinations',
+            'petrolcan',
+            'smg',
+            'grenade',
+            'grenadelauncher',
+            'minigun',
+            'assaultrifle',
+            'pumpshotgun',
+            'rpg',
+            'mg',
+            'combatmg',
+            'bat',
+            'stickybomb',
+            'pistol',
+            'appistol',
+            'sniperrifle',
+            'microsmg',
+            'crowbar',
+            'molotov',
+            'carbinerifle',
+            'assaultshotgun',
+            'sawnoffshotgun',
+            'railgun',
+            'hatchet',
+            'armour',
+            'health',
+            'parachute'
         ]);
 
         // Leaflet标记存储
@@ -1539,6 +1569,39 @@
             shoot_animals_photography: '../src/assets/shoot_animals_photography.svg'
         });
 
+        // 线下支线任务 + 线下武器和健康 图标
+        Object.assign(itemIcons, {
+            maude_eccles: '../src/assets/maude_eccles.svg',
+            rampages: '../src/assets/rampages.svg',
+            v_assassinations: '../src/assets/v_assassinations.svg',
+            petrolcan: '../src/assets/petrolcan.svg',
+            smg: '../src/assets/smg.svg',
+            grenade: '../src/assets/grenade.svg',
+            grenadelauncher: '../src/assets/grenadelauncher.svg',
+            minigun: '../src/assets/minigun.svg',
+            assaultrifle: '../src/assets/assaultrifle.svg',
+            pumpshotgun: '../src/assets/pumpshotgun.svg',
+            rpg: '../src/assets/rpg.svg',
+            mg: '../src/assets/mg.svg',
+            combatmg: '../src/assets/combatmg.svg',
+            bat: '../src/assets/bat.svg',
+            stickybomb: '../src/assets/stickybomb.svg',
+            pistol: '../src/assets/pistol.svg',
+            appistol: '../src/assets/appistol.svg',
+            sniperrifle: '../src/assets/sniperrifle.svg',
+            microsmg: '../src/assets/microsmg.svg',
+            crowbar: '../src/assets/crowbar.svg',
+            molotov: '../src/assets/molotov.svg',
+            carbinerifle: '../src/assets/carbinerifle.svg',
+            assaultshotgun: '../src/assets/assaultshotgun.svg',
+            sawnoffshotgun: '../src/assets/sawnoffshotgun.svg',
+            railgun: '../src/assets/railgun.svg',
+            hatchet: '../src/assets/what.svg',
+            armour: '../src/assets/armour.svg',
+            health: '../src/assets/health.svg',
+            parachute: '../src/assets/parachute.svg'
+        });
+
         // 物品数据（从JSON文件加载）
         const itemData = {
             hidden_caches: [],
@@ -1678,7 +1741,38 @@
             convoy_final: [],
             armored_truck: [],
             exotic_exports1: [],
-            exotic_exports2: []
+            exotic_exports2: [],
+            // 线下支线任务（新增）
+            maude_eccles: [],
+            rampages: [],
+            v_assassinations: [],
+            // 线下武器和健康（新增）
+            petrolcan: [],
+            smg: [],
+            grenade: [],
+            grenadelauncher: [],
+            minigun: [],
+            assaultrifle: [],
+            pumpshotgun: [],
+            rpg: [],
+            mg: [],
+            combatmg: [],
+            bat: [],
+            stickybomb: [],
+            pistol: [],
+            appistol: [],
+            sniperrifle: [],
+            microsmg: [],
+            crowbar: [],
+            molotov: [],
+            carbinerifle: [],
+            assaultshotgun: [],
+            sawnoffshotgun: [],
+            railgun: [],
+            hatchet: [],
+            armour: [],
+            health: [],
+            parachute: []
         };
 
         // 车行位置数据
@@ -4124,6 +4218,7 @@
         // 简洁文本弹窗（无计数器、无隐藏/显示按钮；如有图片链接才显示图片）
         function showSimpleInfoPopup(type, index) {
             const TYPE_LABELS = {
+                // 线下挑战与活动（已存在）
                 stock_car_racing: '改装车竞速',
                 stunt_plane_time_trials: '特技飞机时间挑战赛',
                 wildlife_photography_challenge: '野生动物摄影挑战',
@@ -4131,7 +4226,38 @@
                 monkey_mosaics_random_event: '猴子马赛克艺术家',
                 altruist_cult_shootout: '利他邪教枪击事件',
                 bigfoot_vs_beast: '大脚怪VS野兽',
-                shoot_animals_photography: '拍拍动物摄影'
+                shoot_animals_photography: '拍拍动物摄影',
+                // 线下支线任务
+                maude_eccles: '茉德弃保逃犯',
+                rampages: '疯狂杀戮',
+                v_assassinations: '莱斯特暗杀任务',
+                // 线下武器和健康
+                petrolcan: '汽油桶',
+                smg: '冲锋枪',
+                grenade: '手榴弹',
+                grenadelauncher: '榴弹发射器',
+                minigun: '火神机枪',
+                assaultrifle: '突击步枪',
+                pumpshotgun: '泵动式霰弹枪',
+                rpg: '火箭发射器',
+                mg: '机枪',
+                combatmg: '战斗机枪',
+                bat: '棒球棒',
+                stickybomb: '黏弹',
+                pistol: '手枪',
+                appistol: '穿甲手枪',
+                sniperrifle: '狙击步枪',
+                microsmg: '微型冲锋枪',
+                crowbar: '撬棍',
+                molotov: '汽油弹',
+                carbinerifle: '卡宾步枪',
+                assaultshotgun: '突击霰弹枪',
+                sawnoffshotgun: '短管霰弹枪',
+                railgun: '电磁步枪',
+                hatchet: '手斧',
+                armour: '防弹衣',
+                health: '医药包',
+                parachute: '降落伞'
             };
 
             const TYPE_CONTENTS = {
@@ -4172,13 +4298,82 @@
 每位玩家的拍摄动物清单各不相同。您可通过电子邮件或此处的洛圣都旅游局公告板查看清单。
 每张照片的奖励为 20.000 GTA$ 和 500 RP，在指定日期内拍摄所有照片可额外获得 40.000 GTA$。
 独特奖励：拍摄 1 只动物即可购买 国家公园警用车。拍摄 10 只动物即可解锁国家公园警用车的批发价。在一天内拍摄全部 3 只动物，即可获得 动物卫士套装。`
+                ,
+                // 线下支线任务
+                maude_eccles: `完成主线任务“菲利普先生”后对崔佛开放。在茉德处接下任务后，崔佛将收到茉德的电子邮件，其中包含弃保逃犯的信息。活捉逃犯奖励 10,000 GTA$；若击毙逃犯则为 5,000 GTA$。逃犯的位置不会显示在游戏内地图上。活捉一名可解锁一个成就。`,
+                rampages: `完成主线任务“崔佛·菲利普产业”后对崔佛开放。`,
+                v_assassinations: `暗杀行动是莱斯特·克瑞斯特专门提供给富兰克林的任务。您必须完成第一个暗杀行动才能继续进行主线任务，而其他的暗杀行动则没有此影响。完成所有的暗杀行动是 100% 完成度的条件之一。`,
+                // 武器和健康物品
+                petrolcan: `汽油桶可以在这个位置找到。`,
+                smg: `冲锋枪可以在这个位置找到。`,
+                grenade: `手榴弹可以在这个位置找到。`,
+                grenadelauncher: `榴弹发射器可以在这个位置找到。`,
+                minigun: `火神机枪可以在这个位置找到。`,
+                assaultrifle: `突击步枪可以在这个位置找到。`,
+                pumpshotgun: `泵动式霰弹枪可以在这个位置找到。`,
+                rpg: `火箭发射器可以在这个位置找到。`,
+                mg: `机枪可以在这个位置找到。`,
+                combatmg: `战斗机枪可以在这个位置找到。`,
+                bat: `棒球棒可以在这个位置找到。`,
+                stickybomb: `黏弹可以在这个位置找到。`,
+                pistol: `手枪可以在这个位置找到。`,
+                appistol: `穿甲手枪可以在这个位置找到。`,
+                sniperrifle: `狙击步枪可以在这个位置找到。`,
+                microsmg: `微型冲锋枪可以在这个位置找到。`,
+                crowbar: `撬棍可以在这个位置找到。`,
+                molotov: `汽油弹可以在这个位置找到。`,
+                carbinerifle: `卡宾步枪可以在这个位置找到。`,
+                assaultshotgun: `突击霰弹枪可以在这个位置找到。`,
+                sawnoffshotgun: `短管霰弹枪可以在这个位置找到。`,
+                hatchet: `手斧可以在这个位置找到。`,
+                armour: `防弹衣可以在这个位置找到。`,
+                health: `医药包可以在这个位置找到。`,
+                parachute: `降落伞可以在这个位置找到。`,
+                // 特殊说明
+                railgun: `仅限回归玩家生成（PlayStation 3 / Xbox 360）。受漏洞影响，全体玩家均能享受回归玩家福利——即使您并未在上世代主机上游玩过 GTA V，您也可以解锁此生成点。`
             };
 
             const label = TYPE_LABELS[type] || type;
             const sequenceNumber = (typeof index === 'number') ? ` #${index + 1}` : '';
             const title = `${label}${sequenceNumber}`;
             const content = TYPE_CONTENTS[type] || '';
-            const imageUrl = null; // 如有链接可替换
+            const TYPE_IMAGES = {
+                // 任务
+                maude_eccles: 'https://gtaweb.eu/_sources/1/maps_gtao/tips/v_bail_bond_x.webp',
+                // 武器与健康
+                petrolcan: 'https://gtaweb.eu/_sources/10/maps_gtao/tips/weapons_sp_petrolcan_x.webp',
+                smg: 'https://gtaweb.eu/_sources/10/maps_gtao/tips/weapons_sp_smg_x.webp',
+                grenade: 'https://gtaweb.eu/_sources/10/maps_gtao/tips/weapons_sp_grenade_x.webp',
+                grenadelauncher: 'https://gtaweb.eu/_sources/10/maps_gtao/tips/weapons_sp_grenadelauncher_x.webp',
+                minigun: 'https://gtaweb.eu/_sources/10/maps_gtao/tips/weapons_sp_minigun_x.webp',
+                assaultrifle: 'https://gtaweb.eu/_sources/10/maps_gtao/tips/weapons_sp_assaultrifle_x.webp',
+                pumpshotgun: 'https://gtaweb.eu/_sources/10/maps_gtao/tips/weapons_sp_pumpshotgun_x.webp',
+                rpg: 'https://gtaweb.eu/_sources/10/maps_gtao/tips/weapons_sp_rpg_x.webp',
+                mg: 'https://gtaweb.eu/_sources/10/maps_gtao/tips/weapons_sp_mg_x.webp',
+                combatmg: 'https://gtaweb.eu/_sources/10/maps_gtao/tips/weapons_sp_combatmg_x.webp',
+                bat: 'https://gtaweb.eu/_sources/10/maps_gtao/tips/weapons_sp_bat_x.webp',
+                stickybomb: 'https://gtaweb.eu/_sources/10/maps_gtao/tips/weapons_sp_stickybomb_x.webp',
+                pistol: 'https://gtaweb.eu/_sources/10/maps_gtao/tips/weapons_sp_pistol_x.webp',
+                appistol: 'https://gtaweb.eu/_sources/10/maps_gtao/tips/weapons_sp_appistol_x.webp',
+                sniperrifle: 'https://gtaweb.eu/_sources/10/maps_gtao/tips/weapons_sp_sniperrifle_x.webp',
+                microsmg: 'https://gtaweb.eu/_sources/10/maps_gtao/tips/weapons_sp_microsmg_x.webp',
+                crowbar: 'https://gtaweb.eu/_sources/10/maps_gtao/tips/weapons_sp_crowbar_x.webp',
+                molotov: 'https://gtaweb.eu/_sources/10/maps_gtao/tips/weapons_sp_molotov_x.webp',
+                carbinerifle: 'https://gtaweb.eu/_sources/10/maps_gtao/tips/weapons_sp_carbinerifle_x.webp',
+                assaultshotgun: 'https://gtaweb.eu/_sources/10/maps_gtao/tips/weapons_sp_assaultshotgun_x.webp',
+                sawnoffshotgun: 'https://gtaweb.eu/_sources/10/maps_gtao/tips/weapons_sp_sawnoffshotgun_x.webp',
+                railgun: 'https://gtaweb.eu/_sources/10/maps_gtao/tips/weapons_sp_railgun_x.webp',
+                hatchet: 'https://gtaweb.eu/_sources/10/maps_gtao/tips/weapons_sp_hatchet_x.webp',
+                armour: 'https://gtaweb.eu/_sources/10/maps_gtao/tips/weapons_sp_armour_x.webp',
+                health: 'https://gtaweb.eu/_sources/10/maps_gtao/tips/weapons_sp_health_x.webp',
+                parachute: 'https://gtaweb.eu/_sources/10/maps_gtao/tips/weapons_sp_parachute_x.webp'
+            };
+            
+            // 将图片URL中的 'x' 替换为实际的索引号
+            let imageUrl = TYPE_IMAGES[type] || null;
+            if (imageUrl && typeof index === 'number') {
+                imageUrl = imageUrl.replace('_x.webp', `_${index}.webp`);
+            }
 
             const existing = document.querySelector(`.simple-info-popup-${type}`);
             if (existing) existing.remove();
@@ -7080,6 +7275,37 @@
             { value: 'bigfoot_vs_beast', text: '大脚怪VS野兽' },
             // 每日收藏品（新增，无计数器）
             { value: 'shoot_animals_photography', text: '拍拍动物摄影' },
+            // 线下支线任务（新增，无计数器）
+            { value: 'maude_eccles', text: '茉德弃保逃犯' },
+            { value: 'rampages', text: '疯狂杀戮' },
+            { value: 'v_assassinations', text: '莱斯特暗杀任务' },
+            // 线下武器和健康（新增，无计数器）
+            { value: 'petrolcan', text: '汽油桶' },
+            { value: 'smg', text: '冲锋枪' },
+            { value: 'grenade', text: '手榴弹' },
+            { value: 'grenadelauncher', text: '榴弹发射器' },
+            { value: 'minigun', text: '火神机枪' },
+            { value: 'assaultrifle', text: '突击步枪' },
+            { value: 'pumpshotgun', text: '泵动式霰弹枪' },
+            { value: 'rpg', text: '火箭发射器' },
+            { value: 'mg', text: '机枪' },
+            { value: 'combatmg', text: '战斗机枪' },
+            { value: 'bat', text: '棒球棒' },
+            { value: 'stickybomb', text: '黏弹' },
+            { value: 'pistol', text: '手枪' },
+            { value: 'appistol', text: '穿甲手枪' },
+            { value: 'sniperrifle', text: '狙击步枪' },
+            { value: 'microsmg', text: '微型冲锋枪' },
+            { value: 'crowbar', text: '撬棍' },
+            { value: 'molotov', text: '汽油弹' },
+            { value: 'carbinerifle', text: '卡宾步枪' },
+            { value: 'assaultshotgun', text: '突击霰弹枪' },
+            { value: 'sawnoffshotgun', text: '短管霰弹枪' },
+            { value: 'railgun', text: '电磁步枪' },
+            { value: 'hatchet', text: '手斧' },
+            { value: 'armour', text: '防弹衣' },
+            { value: 'health', text: '医药包' },
+            { value: 'parachute', text: '降落伞' },
             { value: 'stunt_jumps', text: '特技跳跃点' },
             { value: 'spray', text: '喷罐位置' },
             { value: 'ld_organics_products', text: '有机坊产品' },
@@ -7785,6 +8011,11 @@
                         'altruist_cult_shootout',
                         'bigfoot_vs_beast',
                         'shoot_animals_photography',
+                        // 新增 线下支线任务 + 线下武器和健康（扁平[x,y]）
+                        'maude_eccles',
+                        'rampages',
+                        // v_assassinations 在下方单独处理
+                        'petrolcan','smg','grenade','grenadelauncher','minigun','assaultrifle','pumpshotgun','rpg','mg','combatmg','bat','stickybomb','pistol','appistol','sniperrifle','microsmg','crowbar','molotov','carbinerifle','assaultshotgun','sawnoffshotgun','railgun','hatchet','armour','health','parachute',
                         // 杀人狂单独加载，不走通用分支
                     ];
                     
@@ -7806,10 +8037,10 @@
                                     }));
                                 } else if (Array.isArray(cardsData[type])) {
                                     // 只对数组类型调用map方法
-                                    itemData[type] = cardsData[type].map(item => ({
-                                        x: item[0],
-                                        y: item[1],
-                                        name: item[2] || type
+                                    itemData[type] = cardsData[type].map((item, idx) => ({
+                                        x: Array.isArray(item) ? item[0] : item.x,
+                                        y: Array.isArray(item) ? item[1] : item.y,
+                                        name: (Array.isArray(item) ? item[2] : item.name) || `${type} ${idx + 1}`
                                     }));
                                 } else {
                                     itemData[type] = [];
@@ -7821,6 +8052,28 @@
                             itemData[type] = []; // 提供默认值，避免后续错误
                         }
                     });
+
+                    // 特殊：v_assassinations 为嵌套数组 [[...points]] -> 扁平为 [{x,y,name}]
+                    try {
+                        const va = cardsData.v_assassinations;
+                        if (Array.isArray(va)) {
+                            const flatPoints = [];
+                            va.forEach(group => {
+                                if (Array.isArray(group)) {
+                                    group.forEach(p => {
+                                        if (Array.isArray(p) && p.length >= 2) flatPoints.push(p);
+                                    });
+                                }
+                            });
+                            itemData.v_assassinations = flatPoints.map((p, i) => ({ x: p[0], y: p[1], name: `莱斯特暗杀任务 ${i + 1}` }));
+                            console.log('v_assassinations 数据加载成功：', itemData.v_assassinations.length);
+                        } else {
+                            itemData.v_assassinations = [];
+                        }
+                    } catch (e) {
+                        console.warn('加载 v_assassinations 数据失败', e);
+                        itemData.v_assassinations = [];
+                    }
 
                     // Debug: armored_truck_sp loading status (zones.json second pass)
                     try {
@@ -10093,6 +10346,17 @@
                     if (!window.shootAnimalsPhotographyMarkers) window.shootAnimalsPhotographyMarkers = [];
                     window.shootAnimalsPhotographyMarkers[index] = marker;
                 }
+                // 记录新增类型标记（线下支线任务 + 线下武器和健康）
+                else if ([
+                    'maude_eccles','rampages','v_assassinations',
+                    'petrolcan','smg','grenade','grenadelauncher','minigun','assaultrifle','pumpshotgun','rpg','mg','combatmg','bat','stickybomb','pistol','appistol','sniperrifle','microsmg','crowbar','molotov','carbinerifle','assaultshotgun','sawnoffshotgun','railgun','hatchet','armour','health','parachute'
+                ].includes(type)) {
+                    // 动态创建标记数组
+                    const camelType = type.replace(/_([a-z])/g, (m, c) => c.toUpperCase());
+                    const markerArrayName = `${camelType}Markers`;
+                    if (!window[markerArrayName]) window[markerArrayName] = [];
+                    window[markerArrayName][index] = marker;
+                }
                 // 记录 ghosts3 标记以便弹窗隐藏/显示控制
                 else if (type === 'ghosts3') {
                     if (!window.ghosts3Markers) window.ghosts3Markers = [];
@@ -10366,6 +10630,13 @@
                 }
                 else if (type === 'shoot_animals_photography') {
                     showSimpleInfoPopup('shoot_animals_photography', index);
+                }
+                // 新增：线下支线任务 + 线下武器和健康
+                else if ([
+                    'maude_eccles','rampages','v_assassinations',
+                    'petrolcan','smg','grenade','grenadelauncher','minigun','assaultrifle','pumpshotgun','rpg','mg','combatmg','bat','stickybomb','pistol','appistol','sniperrifle','microsmg','crowbar','molotov','carbinerifle','assaultshotgun','sawnoffshotgun','railgun','hatchet','armour','health','parachute'
+                ].includes(type)) {
+                    showSimpleInfoPopup(type, index);
                 }
                 // 特殊处理车行标记，使用专门的车辆展示函数
                 else if (['casino', 'car_meet', 'premium_deluxe_motorsport', 'luxury_autos'].includes(type)) {
@@ -21997,7 +22268,40 @@
                         'chasing_the_truth',
                         'epsilon_tracts',
                         'for_sale_sign',
-                        'the_big_score_gauntlet'
+                        'the_big_score_gauntlet',
+                        // 新增
+                        'maude_eccles',
+                        'rampages',
+                        'v_assassinations'
+                    ],
+                    // 新增：线下武器和健康
+                    '线下武器和健康': [
+                        'petrolcan',
+                        'smg',
+                        'grenade',
+                        'grenadelauncher',
+                        'minigun',
+                        'assaultrifle',
+                        'pumpshotgun',
+                        'rpg',
+                        'mg',
+                        'combatmg',
+                        'bat',
+                        'stickybomb',
+                        'pistol',
+                        'appistol',
+                        'sniperrifle',
+                        'microsmg',
+                        'crowbar',
+                        'molotov',
+                        'carbinerifle',
+                        'assaultshotgun',
+                        'sawnoffshotgun',
+                        'railgun',
+                        'hatchet',
+                        'armour',
+                        'health',
+                        'parachute'
                     ],
                     '线下随机任务':[ 
                         'hitchhikers',

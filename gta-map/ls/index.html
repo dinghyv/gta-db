@@ -41,6 +41,7 @@
             --text-secondary: var(--gta-text-secondary);
             --transition: all 0.15s ease;
         }
+        /* showSimpleInfoPopup moved to script block */
 
         body, html {
             margin: 0;
@@ -1230,6 +1231,24 @@
             'snowmen',
             'rc_time_trial',
             'bike_time_trial',
+            // 线下挑战与活动
+            'under_the_bridge',
+            'knife_flight',
+            'triathlons',
+            'base_jumping',
+            'heli_jumping',
+            'offroad_races',
+            'sea_races',
+            'street_races',
+            // 新增：线下挑战与活动 + 每日收藏品（Leaflet标记）
+            'stock_car_racing',
+            'stunt_plane_time_trials',
+            'wildlife_photography_challenge',
+            'vinewood_star_tours',
+            'monkey_mosaics_random_event',
+            'altruist_cult_shootout',
+            'bigfoot_vs_beast',
+            'shoot_animals_photography',
             
             // 第5组：载具相关（部分）
             'skydives',
@@ -1496,6 +1515,30 @@
             vend_ecola: '../src/assets/vend_ecola.svg'
         };
 
+        // 线下挑战与活动 图标
+        Object.assign(itemIcons, {
+            under_the_bridge: '../src/assets/under_the_bridge.svg',
+            knife_flight: '../src/assets/knife_flight.svg',
+            triathlons: '../src/assets/triathlons.svg',
+            base_jumping: '../src/assets/base_jumping.svg',
+            heli_jumping: '../src/assets/heli_jumping.svg',
+            offroad_races: '../src/assets/offroad_races.svg',
+            sea_races: '../src/assets/sea_races.svg',
+            street_races: '../src/assets/street_races.svg'
+        });
+
+        // 线下挑战与活动 & 每日收藏品 扩展图标（复用通用占位图标）
+        Object.assign(itemIcons, {
+            stock_car_racing: '../src/assets/stock_car_racing.svg',
+            stunt_plane_time_trials: '../src/assets/stunt_plane_time_trials.svg',
+            wildlife_photography_challenge: '../src/assets/wildlife_photography_challenge.svg',
+            vinewood_star_tours: '../src/assets/vinewood_star_tours.svg',
+            monkey_mosaics_random_event: '../src/assets/monkey_mosaics_random_event.svg',
+            altruist_cult_shootout: '../src/assets/altruist_cult_shootout.svg',
+            bigfoot_vs_beast: '../src/assets/bigfoot_vs_beast.svg',
+            shoot_animals_photography: '../src/assets/shoot_animals_photography.svg'
+        });
+
         // 物品数据（从JSON文件加载）
         const itemData = {
             hidden_caches: [],
@@ -1528,6 +1571,25 @@
             hitchhikers: [],
             armored_truck_sp: [],
             v_others_re: [],
+            // 线下挑战与活动
+            under_the_bridge: [],
+            knife_flight: [],
+            triathlons: [],
+            base_jumping: [],
+            heli_jumping: [],
+            offroad_races: [],
+            sea_races: [],
+            street_races: [],
+            // 线下挑战与活动（新增）
+            stock_car_racing: [],
+            stunt_plane_time_trials: [],
+            wildlife_photography_challenge: [],
+            vinewood_star_tours: [],
+            monkey_mosaics_random_event: [],
+            altruist_cult_shootout: [],
+            bigfoot_vs_beast: [],
+            // 每日收藏品（新增）
+            shoot_animals_photography: [],
             ld_organics_products: [],
             signal_jammers: [],
             jack_o_lanterns: [],
@@ -3906,6 +3968,259 @@
                 }
                 try { updateHitchhikersSidebarCount(); } catch (e) {}
             } catch (e) { console.warn('应用 hitchhikers 可见性缓存失败:', e); }
+        }
+
+        // 通用：线下挑战与活动 文本弹窗（无图片，含隐藏/显示+计数器）
+        function showActivityPopup(type, index, { titlePrefix, extra }) {
+            const sequenceNumber = index + 1;
+            const baseTitle = `🎯 ${titlePrefix} #${sequenceNumber}`;
+
+            // 关闭已存在的同类弹窗
+            const existing = document.querySelector(`.activity-popup-${type}`);
+            if (existing) existing.remove();
+
+            // 统计隐藏/总数
+            const arr = Array.isArray(window.itemData?.[type]) ? window.itemData[type] : [];
+            const totalCount = arr.length;
+            const visibilityMap = VisibilityCache.loadVisibility(type) || {};
+            let hiddenCount = 0;
+            for (let i = 0; i < totalCount; i++) if (visibilityMap[i] === true) hiddenCount++;
+            let isCurrentHidden = visibilityMap[index] === true;
+
+            const titleText = `${baseTitle} (${hiddenCount}/${totalCount})`;
+
+            // 构建弹窗
+            const popup = document.createElement('div');
+            popup.className = `activity-popup-${type}`;
+            popup.style.cssText = `
+                position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+                background: var(--gta-bg-medium);
+                border: 1px solid var(--gta-border);
+                border-radius: 8px;
+                box-shadow: 0 2px 15px rgba(0,0,0,0.5);
+                padding: 16px; z-index: 10000; width: min(92vw, 540px); max-height: 80vh;
+                color: var(--gta-text); overflow-y: auto;`;
+
+            popup.innerHTML = `
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+                    <h3 id="activity-title" style="color: var(--gta-primary); font-size: 18px; margin: 0; font-weight: 700;">${titleText}</h3>
+                </div>
+                <div style="padding: 8px 10px; background: rgba(33,150,243,0.08); border: 1px solid var(--gta-border); border-radius: 6px;">
+                    <div style="line-height:1.7;">${extra || ''}</div>
+                </div>
+                <div style="margin-top: 14px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
+                    <button class="hide-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; ${isCurrentHidden ? 'display:none;' : ''}">隐藏</button>
+                    <button class="show-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; ${isCurrentHidden ? '' : 'display:none;'}">显示</button>
+                    <button class="close-btn" style="padding: 8px 16px; background: var(--gta-primary); color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 500;">关闭</button>
+                </div>
+            `;
+
+            document.body.appendChild(popup);
+
+            // 获取按钮和标题元素
+            const hideBtn = popup.querySelector('.hide-btn');
+            const showBtn = popup.querySelector('.show-btn');
+            const closeBtn = popup.querySelector('.close-btn');
+            const titleElement = popup.querySelector('#activity-title');
+
+            // 外部点击关闭
+            popup.addEventListener('click', (e) => e.stopPropagation());
+            setTimeout(() => {
+                const onDoc = (e) => { if (!popup.contains(e.target)) { popup.remove(); document.removeEventListener('click', onDoc); } };
+                document.addEventListener('click', onDoc);
+            }, 20);
+
+            // 获取当前标记
+            const camel = type.replace(/_([a-z])/g, (m, c) => c.toUpperCase());
+            const markerArrayName = `${camel}Markers`;
+            const markersArr = (window[markerArrayName] && window[markerArrayName]) || [];
+            const currentMarker = markersArr[index];
+
+            function setCurrentMarkerVisibility(opacity) {
+                if (currentMarker && typeof currentMarker.setOpacity === 'function') currentMarker.setOpacity(opacity);
+                else if (currentMarker && typeof currentMarker.setStyle === 'function') currentMarker.setStyle({ opacity });
+                else if (currentMarker && typeof currentMarker.getElement === 'function') { const el = currentMarker.getElement(); if (el) el.style.opacity = String(opacity); }
+                const vm = VisibilityCache.loadVisibility(type) || {};
+                if (opacity === 0.3) vm[index] = true; else delete vm[index];
+                VisibilityCache.saveVisibility(type, vm);
+            }
+
+            // 隐藏按钮事件
+            if (hideBtn) hideBtn.addEventListener('click', () => {
+                if (!isCurrentHidden) hiddenCount = hiddenCount + 1;
+                setCurrentMarkerVisibility(0.3);
+                titleElement && (titleElement.textContent = `${baseTitle} (${hiddenCount}/${totalCount})`);
+                hideBtn.style.display = 'none';
+                showBtn.style.display = 'inline-block';
+                isCurrentHidden = true;
+                try { updateActivitySidebarCount(type); } catch (e) {}
+            });
+
+            // 显示按钮事件
+            if (showBtn) showBtn.addEventListener('click', () => {
+                if (isCurrentHidden && hiddenCount > 0) hiddenCount = hiddenCount - 1;
+                setCurrentMarkerVisibility(1);
+                titleElement && (titleElement.textContent = `${baseTitle} (${hiddenCount}/${totalCount})`);
+                showBtn.style.display = 'none';
+                hideBtn.style.display = 'inline-block';
+                isCurrentHidden = false;
+                try { updateActivitySidebarCount(type); } catch (e) {}
+            });
+        }
+
+        // 通用：更新侧边栏计数器
+        function updateActivitySidebarCount(type) {
+            const cls = type.replace(/_/g, '-');
+            const counterEl = document.querySelector(`#sidebar-item-${type} + label .${cls}-counter`);
+            if (!counterEl) return;
+            const total = Array.isArray(window.itemData?.[type]) ? window.itemData[type].length : 0;
+            const vm = VisibilityCache.loadVisibility(type) || {};
+            let hidden = 0;
+            for (let i = 0; i < total; i++) if (vm[i] === true) hidden++;
+            counterEl.textContent = total > 0 ? ` (${hidden}/${total})` : '';
+        }
+
+        // 包装器：8 项目的计数器更新函数
+        function updateUnderTheBridgeSidebarCount() { updateActivitySidebarCount('under_the_bridge'); }
+        function updateKnifeFlightSidebarCount() { updateActivitySidebarCount('knife_flight'); }
+        function updateTriathlonsSidebarCount() { updateActivitySidebarCount('triathlons'); }
+        function updateBaseJumpingSidebarCount() { updateActivitySidebarCount('base_jumping'); }
+        function updateHeliJumpingSidebarCount() { updateActivitySidebarCount('heli_jumping'); }
+        function updateOffroadRacesSidebarCount() { updateActivitySidebarCount('offroad_races'); }
+        function updateSeaRacesSidebarCount() { updateActivitySidebarCount('sea_races'); }
+        function updateStreetRacesSidebarCount() { updateActivitySidebarCount('street_races'); }
+
+        // 通用：应用可见性缓存（设置透明度并刷新计数器）
+        function applyActivityVisibilityCache(type) {
+            try {
+                const camel = type.replace(/_([a-z])/g, (m, c) => c.toUpperCase());
+                const markerArrayName = `${camel}Markers`;
+                const markers = (window[markerArrayName] && window[markerArrayName]) || [];
+                const vm = VisibilityCache.loadVisibility(type) || {};
+                if (Array.isArray(markers) && markers.length > 0) {
+                    markers.forEach((marker, i) => {
+                        if (!marker) return;
+                        const isHidden = !!vm[i];
+                        const opacity = isHidden ? 0.3 : 1;
+                        if (typeof marker.setOpacity === 'function') marker.setOpacity(opacity);
+                        else if (typeof marker.setStyle === 'function') marker.setStyle({ opacity });
+                        else if (typeof marker.getElement === 'function') { const el = marker.getElement(); if (el) el.style.opacity = String(opacity); }
+                    });
+                }
+                updateActivitySidebarCount(type);
+            } catch (e) { console.warn(`应用 ${type} 可见性缓存失败:`, e); }
+        }
+
+        // 包装器：8 项目的可见性缓存应用函数
+        function applyUnderTheBridgeVisibilityCache() { applyActivityVisibilityCache('under_the_bridge'); }
+        function applyKnifeFlightVisibilityCache() { applyActivityVisibilityCache('knife_flight'); }
+        function applyTriathlonsVisibilityCache() { applyActivityVisibilityCache('triathlons'); }
+        function applyBaseJumpingVisibilityCache() { applyActivityVisibilityCache('base_jumping'); }
+        function applyHeliJumpingVisibilityCache() { applyActivityVisibilityCache('heli_jumping'); }
+        function applyOffroadRacesVisibilityCache() { applyActivityVisibilityCache('offroad_races'); }
+        function applySeaRacesVisibilityCache() { applyActivityVisibilityCache('sea_races'); }
+        function applyStreetRacesVisibilityCache() { applyActivityVisibilityCache('street_races'); }
+
+        // 简洁文本弹窗（无计数器、无隐藏/显示按钮；如有图片链接才显示图片）
+        function showSimpleInfoPopup(type, index) {
+            const TYPE_LABELS = {
+                stock_car_racing: '改装车竞速',
+                stunt_plane_time_trials: '特技飞机时间挑战赛',
+                wildlife_photography_challenge: '野生动物摄影挑战',
+                vinewood_star_tours: '好麦坞明星之旅',
+                monkey_mosaics_random_event: '猴子马赛克艺术家',
+                altruist_cult_shootout: '利他邪教枪击事件',
+                bigfoot_vs_beast: '大脚怪VS野兽',
+                shoot_animals_photography: '拍拍动物摄影'
+            };
+
+            const TYPE_CONTENTS = {
+                stock_car_racing: `该特性仅限曾经于 PlayStation 3 或 Xbox 360 主机游玩过 GTA V 的玩家可用。受漏洞影响，全体玩家均能享受回归玩家福利——即使您并未在上世代主机上游玩过 GTA V，您也可以享受这些福利。完成主线任务 菲利普先生 后对所有主角可用，它是由一条小罗发送给崔佛的介绍短信启用的。
+
+赢得比赛即可获得改装车奖励。在您获得列表中的最后一辆载具时，奖励列表会重置。载具将会出现在所有角色车库的特殊载具菜单中，但是雪佛 马绍尔只能被存放在机库里。
+
+奖励载具的顺序：绝致 吃得饱汉堡种马冒险家 红木烟业铁腕威皮 尿汤啤公路霸者冒险家 霜碧猛牛雪佛 马绍尔`,
+
+                stunt_plane_time_trials: `完成主线任务 难兄难弟 后对所有主角可用。共有 5 场不同的时间挑战赛。
+穿桥狂欢
+飞越好麦坞桥
+林掠影
+飞越机场
+波峦起伏`,
+
+                wildlife_photography_challenge: `该特性仅限曾经于 PlayStation 3 或 Xbox 360 主机游玩过 GTA V 的玩家可用。受漏洞影响，全体玩家均能享受回归玩家福利——即使您并未在上世代主机上游玩过 GTA V，您也可以享受这些福利。完成陌生人与怪咖任务狗仔队（富兰克林）后，稍等一段时间，富兰克林将接到与此挑战相关的短信和电子邮件。
+
+您的目标是拍摄 20 只动物。
+
+完成挑战，富兰克林会收到夺冠贺信。海怪将在固定生成在鲶鱼角，并且，所有角色都可在快乐码头网站以 1.325.000 GTA$ 购买。
+野猪 边境牧羊犬（牧羊犬） 猫 捕鸡鹰 大鸬鹚 牛 郊狼 乌鸦 鹿 母鸡 哈斯基 山地狮（美洲狮） 猪 兔子 贵宾犬 哈巴狗 猎犬 罗特韦尔犬 海鸥 西高地白梗`,
+
+                vinewood_star_tours: `完成陌生人和怪胎任务牵拖人情（一）（富兰克林）后，于 早上 7:00 至晚上 7:00 可用，花费为 40 GTA$。该旅程最多需要耗费游戏内 10 小时（现实 20 分钟）。完成 57 个随机事件（增强版为 60 个）中的至少 14 个是 100% 完成度的要求之一。`,
+
+                monkey_mosaics_random_event: `该特性仅限曾经于 PlayStation 3 或 Xbox 360 主机游玩过 GTA V 的玩家可用。受漏洞影响，全体玩家均能享受回归玩家福利——即使您并未在上世代主机上游玩过 GTA V，您也可以享受这些福利。拍摄所有 50 个猴子马赛克，并用任意角色购买一个车库，即可解锁该活动 ，此事件对所有角色开放。
+
+艺术家发现你时会逃跑。您可以追赶他，但不要杀死他（杀死艺术家不会得到任何奖励）。
+
+完成此事件即可解锁冲冲猴旅行家。届时，您会收到一条短信，通知您此载具可在任意角色的车库中通过特殊载具菜单请求。完成 57 个随机事件（增强版为 60 个）中的至少 14 个是 100% 完成度的要求之一。`,
+
+                altruist_cult_shootout: `在崔佛带过 4 名搭车人（不是带人 4 次。一次带来 2 人，进度加 2）到利他营地后自动开始。请务必趁此机会收集隐藏包裹。`,
+
+                bigfoot_vs_beast: `要参加该事件，您必须从周日到下周六，依次吃完所有的金色迷幻仙人掌。
+您可以在金色仙人掌的描述中查看有关它们的细节。`,
+
+                shoot_animals_photography: `您的目标是每天拍摄 3 只动物。
+每位玩家的拍摄动物清单各不相同。您可通过电子邮件或此处的洛圣都旅游局公告板查看清单。
+每张照片的奖励为 20.000 GTA$ 和 500 RP，在指定日期内拍摄所有照片可额外获得 40.000 GTA$。
+独特奖励：拍摄 1 只动物即可购买 国家公园警用车。拍摄 10 只动物即可解锁国家公园警用车的批发价。在一天内拍摄全部 3 只动物，即可获得 动物卫士套装。`
+            };
+
+            const label = TYPE_LABELS[type] || type;
+            const sequenceNumber = (typeof index === 'number') ? ` #${index + 1}` : '';
+            const title = `${label}${sequenceNumber}`;
+            const content = TYPE_CONTENTS[type] || '';
+            const imageUrl = null; // 如有链接可替换
+
+            const existing = document.querySelector(`.simple-info-popup-${type}`);
+            if (existing) existing.remove();
+
+            const popup = document.createElement('div');
+            popup.className = `simple-info-popup-${type}`;
+            popup.style.cssText = `
+                position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+                background: var(--gta-bg-medium);
+                border: 1px solid var(--gta-border);
+                border-radius: 8px; box-shadow: 0 2px 15px rgba(0,0,0,0.5);
+                padding: 16px; z-index: 10000; width: min(92vw, 540px); max-height: 80vh;
+                color: var(--gta-text); overflow-y: auto;`;
+
+            const imgHtml = imageUrl ? `<img src="${imageUrl}" alt="${label}" style="max-width:100%;height:auto;border-radius:6px;margin:8px 0;display:block;"/>` : '';
+
+            popup.innerHTML = `
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;position:relative;">
+                    <h3 style="color: var(--gta-primary); font-size: 18px; margin: 0; font-weight: 700;">${title}</h3>
+                    <span class="popup-close" style="position:absolute;right:0;top:0;cursor:pointer;color:var(--gta-text-secondary);font-size:20px;">×</span>
+                </div>
+                ${imgHtml}
+                <div style="padding: 8px 10px; background: rgba(33,150,243,0.08); border: 1px solid var(--gta-border); border-radius: 6px;">
+                    <div style="white-space: pre-wrap; line-height:1.7;">${content}</div>
+                </div>
+                <div style="margin-top: 14px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
+                    <button class="close-btn" style="padding: 8px 16px; background: var(--gta-primary); color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 500;">关闭</button>
+                </div>
+            `;
+
+            document.body.appendChild(popup);
+
+            const closeBtn = popup.querySelector('.close-btn');
+            const popupClose = popup.querySelector('.popup-close');
+            const removePopup = () => popup.remove();
+            closeBtn && closeBtn.addEventListener('click', removePopup);
+            popupClose && popupClose.addEventListener('click', removePopup);
+            popup.addEventListener('click', (e) => e.stopPropagation());
+            setTimeout(() => {
+                const onDoc = (e) => { if (!popup.contains(e.target)) { removePopup(); document.removeEventListener('click', onDoc); } };
+                document.addEventListener('click', onDoc);
+            }, 20);
         }
 
         // 装甲运钞车（线下）文本弹窗（无图片，含隐藏/显示+计数器）
@@ -6746,6 +7061,25 @@
             { value: 'armored_truck_sp', text: '装甲运钞车(线下)', icon: '../src/assets/armored_truck_sp.svg' },
             { value: 'v_others_re', text: '其他随机任务', icon: '../src/assets/v_others_re.svg' },
             { value: 'chasing_the_truth', text: '埃普斯隆追求真理-神器', icon: '../src/assets/chasing_the_truth.svg' },
+            // 线下挑战与活动
+            { value: 'under_the_bridge', text: '穿桥挑战', icon: '../src/assets/under_the_bridge.svg' },
+            { value: 'knife_flight', text: '侧飞挑战', icon: '../src/assets/knife_flight.svg' },
+            { value: 'triathlons', text: '三项全能', icon: '../src/assets/triathlons.svg' },
+            { value: 'base_jumping', text: '定点跳伞', icon: '../src/assets/base_jumping.svg' },
+            { value: 'heli_jumping', text: '直升机跳伞', icon: '../src/assets/heli_jumping.svg' },
+            { value: 'offroad_races', text: '越野竞速', icon: '../src/assets/offroad_races.svg' },
+            { value: 'sea_races', text: '水上竞速', icon: '../src/assets/sea_races.svg' },
+            { value: 'street_races', text: '街头竞速', icon: '../src/assets/street_races.svg' },
+            // 线下挑战与活动（新增，无计数器）
+            { value: 'stock_car_racing', text: '改装车竞速' },
+            { value: 'stunt_plane_time_trials', text: '特技飞机时间挑战赛' },
+            { value: 'wildlife_photography_challenge', text: '野生动物摄影挑战' },
+            { value: 'vinewood_star_tours', text: '好麦坞明星之旅' },
+            { value: 'monkey_mosaics_random_event', text: '猴子马赛克艺术家' },
+            { value: 'altruist_cult_shootout', text: '利他邪教枪击事件' },
+            { value: 'bigfoot_vs_beast', text: '大脚怪VS野兽' },
+            // 每日收藏品（新增，无计数器）
+            { value: 'shoot_animals_photography', text: '拍拍动物摄影' },
             { value: 'stunt_jumps', text: '特技跳跃点' },
             { value: 'spray', text: '喷罐位置' },
             { value: 'ld_organics_products', text: '有机坊产品' },
@@ -7433,6 +7767,24 @@
                         'for_sale_sign',
                         'the_big_score_gauntlet',
                         'armored_truck_sp',
+                        // 线下挑战与活动
+                        'under_the_bridge',
+                        'knife_flight',
+                        'triathlons',
+                        'base_jumping',
+                        'heli_jumping',
+                        'offroad_races',
+                        'sea_races',
+                        'street_races',
+                        // 新增 线下挑战与活动 & 每日收藏品
+                        'stock_car_racing',
+                        'stunt_plane_time_trials',
+                        'wildlife_photography_challenge',
+                        'vinewood_star_tours',
+                        'monkey_mosaics_random_event',
+                        'altruist_cult_shootout',
+                        'bigfoot_vs_beast',
+                        'shoot_animals_photography',
                         // 杀人狂单独加载，不走通用分支
                     ];
                     
@@ -9675,6 +10027,72 @@
                     if (!window.vOthersReMarkers) window.vOthersReMarkers = [];
                     window.vOthersReMarkers[index] = marker;
                 }
+                // 线下挑战与活动：记录标记
+                else if (type === 'under_the_bridge') {
+                    if (!window.underTheBridgeMarkers) window.underTheBridgeMarkers = [];
+                    window.underTheBridgeMarkers[index] = marker;
+                }
+                else if (type === 'knife_flight') {
+                    if (!window.knifeFlightMarkers) window.knifeFlightMarkers = [];
+                    window.knifeFlightMarkers[index] = marker;
+                }
+                else if (type === 'triathlons') {
+                    if (!window.triathlonsMarkers) window.triathlonsMarkers = [];
+                    window.triathlonsMarkers[index] = marker;
+                }
+                else if (type === 'base_jumping') {
+                    if (!window.baseJumpingMarkers) window.baseJumpingMarkers = [];
+                    window.baseJumpingMarkers[index] = marker;
+                }
+                else if (type === 'heli_jumping') {
+                    if (!window.heliJumpingMarkers) window.heliJumpingMarkers = [];
+                    window.heliJumpingMarkers[index] = marker;
+                }
+                else if (type === 'offroad_races') {
+                    if (!window.offroadRacesMarkers) window.offroadRacesMarkers = [];
+                    window.offroadRacesMarkers[index] = marker;
+                }
+                else if (type === 'sea_races') {
+                    if (!window.seaRacesMarkers) window.seaRacesMarkers = [];
+                    window.seaRacesMarkers[index] = marker;
+                }
+                else if (type === 'street_races') {
+                    if (!window.streetRacesMarkers) window.streetRacesMarkers = [];
+                    window.streetRacesMarkers[index] = marker;
+                }
+                // 记录 线下挑战与活动（新增）
+                else if (type === 'stock_car_racing') {
+                    if (!window.stockCarRacingMarkers) window.stockCarRacingMarkers = [];
+                    window.stockCarRacingMarkers[index] = marker;
+                }
+                else if (type === 'stunt_plane_time_trials') {
+                    if (!window.stuntPlaneTimeTrialsMarkers) window.stuntPlaneTimeTrialsMarkers = [];
+                    window.stuntPlaneTimeTrialsMarkers[index] = marker;
+                }
+                else if (type === 'wildlife_photography_challenge') {
+                    if (!window.wildlifePhotographyChallengeMarkers) window.wildlifePhotographyChallengeMarkers = [];
+                    window.wildlifePhotographyChallengeMarkers[index] = marker;
+                }
+                else if (type === 'vinewood_star_tours') {
+                    if (!window.vinewoodStarToursMarkers) window.vinewoodStarToursMarkers = [];
+                    window.vinewoodStarToursMarkers[index] = marker;
+                }
+                else if (type === 'monkey_mosaics_random_event') {
+                    if (!window.monkeyMosaicsRandomEventMarkers) window.monkeyMosaicsRandomEventMarkers = [];
+                    window.monkeyMosaicsRandomEventMarkers[index] = marker;
+                }
+                else if (type === 'altruist_cult_shootout') {
+                    if (!window.altruistCultShootoutMarkers) window.altruistCultShootoutMarkers = [];
+                    window.altruistCultShootoutMarkers[index] = marker;
+                }
+                else if (type === 'bigfoot_vs_beast') {
+                    if (!window.bigfootVsBeastMarkers) window.bigfootVsBeastMarkers = [];
+                    window.bigfootVsBeastMarkers[index] = marker;
+                }
+                else if (type === 'shoot_animals_photography') {
+                    if (!window.shootAnimalsPhotographyMarkers) window.shootAnimalsPhotographyMarkers = [];
+                    window.shootAnimalsPhotographyMarkers[index] = marker;
+                }
                 // 记录 ghosts3 标记以便弹窗隐藏/显示控制
                 else if (type === 'ghosts3') {
                     if (!window.ghosts3Markers) window.ghosts3Markers = [];
@@ -9874,6 +10292,80 @@
                 // 新增：特殊处理其他随机任务（线下）文本弹窗
                 else if (type === 'v_others_re') {
                     showVOthersRePopup(item, index);
+                }
+                // 线下挑战与活动：文本弹窗
+                else if (type === 'under_the_bridge') {
+                    showActivityPopup('under_the_bridge', index, {
+                        titlePrefix: '穿桥挑战',
+                        extra: '总共有 50 个穿桥地点。要达成 100% 完成度，必须完成其中的任意 25 个！完成所有穿桥挑战，以及所有侧飞挑战，您将获得一个成就。这两个挑战也可以在多人游戏模式中完成。'
+                    });
+                }
+                else if (type === 'knife_flight') {
+                    showActivityPopup('knife_flight', index, {
+                        titlePrefix: '侧飞挑战',
+                        extra: '总共有 15 个侧飞地点。要达成 100% 完成度，必须完成其中的任意 8 个！完成所有穿桥挑战，以及所有侧飞挑战，您将获得一个成就。这两个挑战也可以在多人游戏模式中完成。'
+                    });
+                }
+                else if (type === 'triathlons') {
+                    showActivityPopup('triathlons', index, {
+                        titlePrefix: '三项全能',
+                        extra: '首项三项全能赛事完成主线任务“掌上明珠”后对所有主角可用。其余二项在您完成前一项后解锁。第一项和第三项三项全能赛事在主线任务“飞行事故”至“不法勾当”期间对麦克和崔佛不可用。每项三项全能赛事均由游泳、骑自行车与跑步组成。在所有三项全能中获得铜牌或以上奖牌是 100% 完成度的要求之一。'
+                    });
+                }
+                else if (type === 'base_jumping') {
+                    showActivityPopup('base_jumping', index, {
+                        titlePrefix: '定点跳伞',
+                        extra: '完成陌生人与怪咖任务“风险评估”（富兰克林）后对所有主角开放。完成所有跳伞是 100% 完成度的要求之一。完成所有定点跳伞与直升机跳伞即可解锁陌生人和怪胎任务“低估风险”（富兰克林）。完成此任务是 100% 完成度的要求之一。'
+                    });
+                }
+                else if (type === 'heli_jumping') {
+                    showActivityPopup('heli_jumping', index, {
+                        titlePrefix: '直升机跳伞',
+                        extra: '完成陌生人与怪咖任务“风险评估”（富兰克林）后对所有主角开放。完成所有跳伞是 100% 完成度的要求之一。完成所有定点跳伞与直升机跳伞即可解锁陌生人和怪胎任务“低估风险”（富兰克林）。完成此任务是 100% 完成度的要求之一。'
+                    });
+                }
+                else if (type === 'offroad_races') {
+                    showActivityPopup('offroad_races', index, {
+                        titlePrefix: '越野竞速',
+                        extra: '首场竞速在完成主线任务“菲利普先生”后对所有主角可用。其余竞速在赢得前一场竞速后解锁。越野竞速无入场费，且奖励均为 500 GTA$。在所有越野竞速中赢得铜牌或以上奖牌是 100% 完成度的要求之一。'
+                    });
+                }
+                else if (type === 'sea_races') {
+                    showActivityPopup('sea_races', index, {
+                        titlePrefix: '水上竞速',
+                        extra: '完成主线任务“毒窟逃亡”后对所有主角可用。水上竞速没有游戏币奖励。在所有水上竞速中赢得铜牌或以上奖牌是 100% 完成度的要求之一。'
+                    });
+                }
+                else if (type === 'street_races') {
+                    showActivityPopup('street_races', index, {
+                        titlePrefix: '街头竞速',
+                        extra: '仅在晚上 20:00 至次日早上 5:00 期间对富兰克林可用。您将在陌生人和怪胎任务“换班工作”（富兰克林）中完成第一场竞速，该任务于完成主线任务“小查”、陌生人和怪胎任务“牵拖人情（一）”（富兰克林）后可用。您赢得一场竞速后会收到阿浩的短信，并解锁下一场竞速。第一场比赛免入场费，但奖励也比较少。在所有竞速中获得铜牌或以上奖牌是 100% 完成度的要求之一。'
+                    });
+                }
+                // 新增：简单文本弹窗（无图片）
+                else if (type === 'stock_car_racing') {
+                    showSimpleInfoPopup('stock_car_racing', index);
+                }
+                else if (type === 'stunt_plane_time_trials') {
+                    showSimpleInfoPopup('stunt_plane_time_trials', index);
+                }
+                else if (type === 'wildlife_photography_challenge') {
+                    showSimpleInfoPopup('wildlife_photography_challenge', index);
+                }
+                else if (type === 'vinewood_star_tours') {
+                    showSimpleInfoPopup('vinewood_star_tours', index);
+                }
+                else if (type === 'monkey_mosaics_random_event') {
+                    showSimpleInfoPopup('monkey_mosaics_random_event', index);
+                }
+                else if (type === 'altruist_cult_shootout') {
+                    showSimpleInfoPopup('altruist_cult_shootout', index);
+                }
+                else if (type === 'bigfoot_vs_beast') {
+                    showSimpleInfoPopup('bigfoot_vs_beast', index);
+                }
+                else if (type === 'shoot_animals_photography') {
+                    showSimpleInfoPopup('shoot_animals_photography', index);
                 }
                 // 特殊处理车行标记，使用专门的车辆展示函数
                 else if (['casino', 'car_meet', 'premium_deluxe_motorsport', 'luxury_autos'].includes(type)) {
@@ -10657,6 +11149,15 @@
             try { applyEpsilonTractsVisibilityCache(); } catch (e) {}
             try { applyForSaleSignVisibilityCache(); } catch (e) {}
             try { applyTheBigScoreGauntletVisibilityCache(); } catch (e) {}
+            // 线下挑战与活动：可见性缓存
+            try { applyUnderTheBridgeVisibilityCache(); } catch (e) {}
+            try { applyKnifeFlightVisibilityCache(); } catch (e) {}
+            try { applyTriathlonsVisibilityCache(); } catch (e) {}
+            try { applyBaseJumpingVisibilityCache(); } catch (e) {}
+            try { applyHeliJumpingVisibilityCache(); } catch (e) {}
+            try { applyOffroadRacesVisibilityCache(); } catch (e) {}
+            try { applySeaRacesVisibilityCache(); } catch (e) {}
+            try { applyStreetRacesVisibilityCache(); } catch (e) {}
 
             // 特殊：左轮寻宝两个子类型分别渲染（DOM版保留兼容，若Leaflet已处理则跳过）
             if (false && activeItemTypes.has('treasure_hunt_dba_revolver') && !pilotMarkerTypes.has('treasure_hunt_dba_revolver')) {
@@ -21430,6 +21931,9 @@
                         'street_dealers',
                         'smoke_on_the_water_product'
                     ],
+                    '每日收藏品': [
+                        'shoot_animals_photography'
+                    ],
                     '任务与活动': [
                         'yuanbao',
                         'stunt_jumps',
@@ -21499,6 +22003,25 @@
                         'hitchhikers',
                         'armored_truck_sp',
                         'v_others_re'
+                    ],
+                    // 线下挑战与活动
+                    '线下挑战与活动': [
+                        'under_the_bridge',
+                        'knife_flight',
+                        'triathlons',
+                        'base_jumping',
+                        'heli_jumping',
+                        'offroad_races',
+                        'sea_races',
+                        'street_races',
+                        // 新增
+                        'stock_car_racing',
+                        'stunt_plane_time_trials',
+                        'wildlife_photography_challenge',
+                        'vinewood_star_tours',
+                        'monkey_mosaics_random_event',
+                        'altruist_cult_shootout',
+                        'bigfoot_vs_beast'
                     ],
                     '地点与服务': [
                         'golf_holes',
@@ -22022,6 +22545,87 @@
                         // 延迟一次，确保数据/缓存就绪
                         setTimeout(() => { try { updateVOthersReSidebarCount(); } catch (e) {} }, 200);
                     }
+                    // 线下挑战与活动计数器
+                    else if (type === 'under_the_bridge') {
+                        const counter = document.createElement('span');
+                        counter.className = 'under-the-bridge-counter';
+                        counter.style.marginLeft = '6px';
+                        counter.style.color = 'var(--gta-text-secondary)';
+                        counter.textContent = '';
+                        label.appendChild(counter);
+                        try { updateUnderTheBridgeSidebarCount(); } catch (e) {}
+                        setTimeout(() => { try { updateUnderTheBridgeSidebarCount(); } catch (e) {} }, 200);
+                    }
+                    else if (type === 'knife_flight') {
+                        const counter = document.createElement('span');
+                        counter.className = 'knife-flight-counter';
+                        counter.style.marginLeft = '6px';
+                        counter.style.color = 'var(--gta-text-secondary)';
+                        counter.textContent = '';
+                        label.appendChild(counter);
+                        try { updateKnifeFlightSidebarCount(); } catch (e) {}
+                        setTimeout(() => { try { updateKnifeFlightSidebarCount(); } catch (e) {} }, 200);
+                    }
+                    else if (type === 'triathlons') {
+                        const counter = document.createElement('span');
+                        counter.className = 'triathlons-counter';
+                        counter.style.marginLeft = '6px';
+                        counter.style.color = 'var(--gta-text-secondary)';
+                        counter.textContent = '';
+                        label.appendChild(counter);
+                        try { updateTriathlonsSidebarCount(); } catch (e) {}
+                        setTimeout(() => { try { updateTriathlonsSidebarCount(); } catch (e) {} }, 200);
+                    }
+                    else if (type === 'base_jumping') {
+                        const counter = document.createElement('span');
+                        counter.className = 'base-jumping-counter';
+                        counter.style.marginLeft = '6px';
+                        counter.style.color = 'var(--gta-text-secondary)';
+                        counter.textContent = '';
+                        label.appendChild(counter);
+                        try { updateBaseJumpingSidebarCount(); } catch (e) {}
+                        setTimeout(() => { try { updateBaseJumpingSidebarCount(); } catch (e) {} }, 200);
+                    }
+                    else if (type === 'heli_jumping') {
+                        const counter = document.createElement('span');
+                        counter.className = 'heli-jumping-counter';
+                        counter.style.marginLeft = '6px';
+                        counter.style.color = 'var(--gta-text-secondary)';
+                        counter.textContent = '';
+                        label.appendChild(counter);
+                        try { updateHeliJumpingSidebarCount(); } catch (e) {}
+                        setTimeout(() => { try { updateHeliJumpingSidebarCount(); } catch (e) {} }, 200);
+                    }
+                    else if (type === 'offroad_races') {
+                        const counter = document.createElement('span');
+                        counter.className = 'offroad-races-counter';
+                        counter.style.marginLeft = '6px';
+                        counter.style.color = 'var(--gta-text-secondary)';
+                        counter.textContent = '';
+                        label.appendChild(counter);
+                        try { updateOffroadRacesSidebarCount(); } catch (e) {}
+                        setTimeout(() => { try { updateOffroadRacesSidebarCount(); } catch (e) {} }, 200);
+                    }
+                    else if (type === 'sea_races') {
+                        const counter = document.createElement('span');
+                        counter.className = 'sea-races-counter';
+                        counter.style.marginLeft = '6px';
+                        counter.style.color = 'var(--gta-text-secondary)';
+                        counter.textContent = '';
+                        label.appendChild(counter);
+                        try { updateSeaRacesSidebarCount(); } catch (e) {}
+                        setTimeout(() => { try { updateSeaRacesSidebarCount(); } catch (e) {} }, 200);
+                    }
+                    else if (type === 'street_races') {
+                        const counter = document.createElement('span');
+                        counter.className = 'street-races-counter';
+                        counter.style.marginLeft = '6px';
+                        counter.style.color = 'var(--gta-text-secondary)';
+                        counter.textContent = '';
+                        label.appendChild(counter);
+                        try { updateStreetRacesSidebarCount(); } catch (e) {}
+                        setTimeout(() => { try { updateStreetRacesSidebarCount(); } catch (e) {} }, 200);
+                    }
                     // 喷灌位置计数器
                     else if (type === 'spray') {
                         const counter = document.createElement('span');
@@ -22427,6 +23031,39 @@
                         if (t === 'v_others_re') {
                             try { updateVOthersReSidebarCount(); } catch(e) {}
                             setTimeout(() => { try { updateVOthersReSidebarCount(); } catch(e) {} }, 200);
+                        }
+                        // 线下挑战与活动计数器
+                        if (t === 'under_the_bridge') {
+                            try { updateUnderTheBridgeSidebarCount(); } catch(e) {}
+                            setTimeout(() => { try { updateUnderTheBridgeSidebarCount(); } catch(e) {} }, 200);
+                        }
+                        if (t === 'knife_flight') {
+                            try { updateKnifeFlightSidebarCount(); } catch(e) {}
+                            setTimeout(() => { try { updateKnifeFlightSidebarCount(); } catch(e) {} }, 200);
+                        }
+                        if (t === 'triathlons') {
+                            try { updateTriathlonsSidebarCount(); } catch(e) {}
+                            setTimeout(() => { try { updateTriathlonsSidebarCount(); } catch(e) {} }, 200);
+                        }
+                        if (t === 'base_jumping') {
+                            try { updateBaseJumpingSidebarCount(); } catch(e) {}
+                            setTimeout(() => { try { updateBaseJumpingSidebarCount(); } catch(e) {} }, 200);
+                        }
+                        if (t === 'heli_jumping') {
+                            try { updateHeliJumpingSidebarCount(); } catch(e) {}
+                            setTimeout(() => { try { updateHeliJumpingSidebarCount(); } catch(e) {} }, 200);
+                        }
+                        if (t === 'offroad_races') {
+                            try { updateOffroadRacesSidebarCount(); } catch(e) {}
+                            setTimeout(() => { try { updateOffroadRacesSidebarCount(); } catch(e) {} }, 200);
+                        }
+                        if (t === 'sea_races') {
+                            try { updateSeaRacesSidebarCount(); } catch(e) {}
+                            setTimeout(() => { try { updateSeaRacesSidebarCount(); } catch(e) {} }, 200);
+                        }
+                        if (t === 'street_races') {
+                            try { updateStreetRacesSidebarCount(); } catch(e) {}
+                            setTimeout(() => { try { updateStreetRacesSidebarCount(); } catch(e) {} }, 200);
                         }
                         // gun_van 不再有侧边计数器
                         if (t === 'dead_drop') {

@@ -4161,6 +4161,24 @@
                 document.addEventListener('click', onDoc);
             }, 20);
 
+            // 绑定：节日快乐卡车弹窗中的毛衣链接
+            const cocaLink = popup.querySelector('#coca-cola-sweater-link');
+            if (cocaLink) {
+                cocaLink.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (e.preventDefault) e.preventDefault();
+                    showSimpleInfoPopup('happy_holidays_hauler_sweater_0');
+                });
+            }
+            const spriteLink = popup.querySelector('#sprite-sweater-link');
+            if (spriteLink) {
+                spriteLink.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (e.preventDefault) e.preventDefault();
+                    showSimpleInfoPopup('happy_holidays_hauler_sweater_1');
+                });
+            }
+
             // 获取当前标记
             const camel = type.replace(/_([a-z])/g, (m, c) => c.toUpperCase());
             const markerArrayName = `${camel}Markers`;
@@ -4372,7 +4390,48 @@
                 hatchet: '手斧',
                 armour: '防弹衣',
                 health: '医药包',
-                parachute: '降落伞'
+                parachute: '降落伞',
+                gang_attacks: '帮派攻击',
+                wea: '威泽尔大楼枪战',
+                cerberus: '万圣节地狱犬事件',
+                // 事件与活动与地点
+                golf_holes: '高尔夫球洞',
+                community_outreach: '社区边界',
+                exotic_exports1: '外贸出口载具1',
+                exotic_exports2: '外贸出口载具2',
+                store_robbery: '商店抢劫',
+                convoy: '车队',
+                convoy_final: '车队终点',
+                armored_truck: '装甲运钞车',
+                happy_holidays_hauler: '节日快乐卡车',
+                happy_holidays_hauler_sweater_0: '🥤 易可乐节庆毛衣',
+                happy_holidays_hauler_sweater_1: '🥤 霜碧节庆毛衣',
+                // 服务类地点
+                metro: '地铁站',
+                police: '警察局',
+                v_telescopes: '望远镜',
+                fire_stations: '消防局',
+                hospitals: '医院',
+                clothing: '服装店',
+                tattoos: '纹身店',
+                barbers: '理发店',
+                ammunation: '武装国度',
+                mod_shop: '洛圣都改车王',
+                car_wash: '洗车店',
+                shops_to_rob: '可抢劫的商店',
+                gas_stations: '加油站',
+                atms: 'ATM机',
+                vend_sprunk: '霜碧售卖机',
+                vend_ecola: '易可乐售卖机',
+                // 迁移的弹窗类型
+                random_missions: '随机任务',
+                drug_vehicle: '🚗 毒品载具',
+                drunk_guard: '🛌 沉睡的保安',
+                metal_detector: '🧭 金属探测器',
+                smuggler_trail: '🛤️ 走私贩踪迹',
+                crime_scenes: '🔍 犯罪现场',
+                maude_bounty_area: '🎯 茉德悬赏区域',
+                maude_bounty_endpoint: '🎯 茉德悬赏终点'
             };
 
             const TYPE_CONTENTS = {
@@ -4454,20 +4513,47 @@
                 health: `医药包可以在这个位置找到。`,
                 parachute: `降落伞可以在这个位置找到。`,
                 // 特殊说明
-                railgun: `仅限回归玩家生成（PlayStation 3 / Xbox 360）。受漏洞影响，全体玩家均能享受回归玩家福利——即使您并未在上世代主机上游玩过 GTA V，您也可以解锁此生成点。`
+                railgun: `仅限回归玩家生成（PlayStation 3 / Xbox 360）。受漏洞影响，全体玩家均能享受回归玩家福利——即使您并未在上世代主机上游玩过 GTA V，您也可以解锁此生成点。`,
+                // 事件与活动简述
+                cerberus: `偷窃外贸出口载具的同时，请务必小心紧追您的地狱犬。`,
+                wea: `该事件可以在晚上 800至次日早上 600之间触发。首次完成该活动，您将获得 1.000 RP，WM 29 手枪和 Mk 2 手枪的节日快乐涂装。再次完成该活动，您将获得25.000 GTA$和1.000 RP。`,
+                community_outreach: `该事件既没有任务目标，也没有完成奖励。不过，您可以藉此免费试驾非凡 艳妇 D10 追逐和威拉德 边界宗派。`,
+                store_robbery: `在 2 分钟内将被盗的现金还给商店，即可获得 20.000 GTA$ 与 2.500 RP 奖励。或者，您也可以选择将其据为己有：25.000 GTA$ 和 2 个通缉等级。`,
+                convoy: `车队从起始点出发，沿着红色路线行驶。车队走完路线后，将随机选择一个终点位置继续行驶，并在抵达该位置后消失。<br><br>偷取车队载具并将其送至您的产业，您将获得原材料补给和 1.000 RP。<br><br>每个地点分别对应不同的载具与产业。<br><br>如果您没有对应的产业，可以把目标载具送至指定投放点，您将获得 25.000 GTA$ 与 1.000 RP。`,
+                convoy_final: `这是车队可能到达的终点位置之一。车队走完路线后，将随机选择一个终点位置继续行驶，并在抵达该位置后消失。<br><br>您可以在车队路线上拦截车队，或者在终点等候车队到达。`,
+                armored_truck: `使用黏弹炸开运钞车的后门以获取里面的现金——25.000 GTA$和1.000 RP。`,
+                happy_holidays_hauler: `节日欢乐货运车已开始在洛圣都四处行驶，每 85-95 秒投放一次节日礼物。<br><br>可能的礼物清单：<br>– <span id="coca-cola-sweater-link" style="color: #2196F3; cursor: pointer; text-decoration: underline;">易可乐节庆毛衣</span><br>– <span id="sprite-sweater-link" style="color: #2196F3; cursor: pointer; text-decoration: underline;">霜碧节庆毛衣</span><br>– 9.000-11.000 GTA$，1.000 RP和零食<br>– 9.000-11.000 GTA$，1.000 RP和弹药`,
+                // 高尔夫球洞提示
+                golf_holes: `可在上图位置找到！<br><br>🎯 收集奖励<br>完成所有高尔夫球洞挑战可获得特殊奖励。`,
+                // 迁移内容（保持原文不变）
+                drug_vehicle: `毒品载具会在此位置附近刷新。靠近时会在游戏中以蓝点标记。`,
+                drunk_guard: `搜刮他（键盘上的E ）以获得 7.007 GTA$ 和佩里科岛金发老大办公室的抽屉钥匙。抽屉里面有一把 佩里科手枪。`,
+                metal_detector: `您可以使用金属探测器在 佩里科岛 上定位 地下藏匿品 - 。<br/>搜索骷髅可获得 5.000 至 10.000 GTA$ 不等的现金奖励。`,
+                smuggler_trail: `沿着由几个烟雾信号标记的轨迹，您将找到一个装有25.000 GTA$和2.000 RP的箱子。`,
+                crime_scenes: `前 5 次完成该随机事件时，每次您都将获得 5.000 GTA$、2.000 RP 与 1 个卡宾枪部件。集齐 5 个部件后，您将获得 50.000 GTA$ 与 制式卡宾步枪。此后，完成一次该随机事件可获得 25.000 GTA$ 与 2.000 RP 奖励。`,
+                maude_bounty_area: `前往茉德处接受悬赏目标任务。等待数分钟后，她将通过电子邮件告知悬赏目标的相关信息。悬赏目标将随机出现在 20 个区域之一，其当前活动的区域会在游戏内的地图上标记出来。每个区域都有 20 个可供生成目标的位置。若您成功抓住目标，并转交给茉德，您可赚取 10.000 GTA$；若您直接杀死目标，您将获得 5.000 GTA$。完成一个悬赏目标任务后，您必须再等几分钟才会收到下一个悬赏目标的相关信息。该系列任务共有 5 个悬赏目标需要抓捕。全部完成之后，茉德会发短信，告诉您石斧的藏匿位置，该位置会在游戏内地图上标记出来。使用该武器完成 25 次击杀，您将得到 250.000 GTA$ 与 2.000 RP，并可在 Red Dead Redemption 2 中找到这款武器。`,
+                maude_bounty_endpoint: `前往茉德处接受悬赏目标任务。等待数分钟后，她将通过电子邮件告知悬赏目标的相关信息。悬赏目标将随机出现在 20 个区域之一，其当前活动的区域会在游戏内的地图上标记出来。每个区域都有 20 个可供生成目标的位置。若您成功抓住目标，并转交给茉德，您可赚取 10.000 GTA$；若您直接杀死目标，您将获得 5.000 GTA$。完成一个悬赏目标任务后，您必须再等几分钟才会收到下一个悬赏目标的相关信息。该系列任务共有 5 个悬赏目标需要抓捕。全部完成之后，茉德会发短信，告诉您石斧的藏匿位置，该位置会在游戏内地图上标记出来。使用该武器完成 25 次击杀，您将得到 250.000 GTA$ 与 2.000 RP，并可在 Red Dead Redemption 2 中找到这款武器。`
             };
 
             const defaultLabel = TYPE_LABELS[type] || type;
             let label = defaultLabel;
             let sequenceNumber = (typeof index === 'number') ? ` #${index + 1}` : '';
             let title = `${label}${sequenceNumber}`;
-            const content = TYPE_CONTENTS[type] || '';
+            let content = TYPE_CONTENTS[type] || '';
             const TYPE_IMAGES = {
                 // 任务
                 maude_eccles: 'https://gtaweb.eu/_sources/1/maps_gtao/tips/v_bail_bond_x.webp',
                 police_rescue_patrick_mcreary: 'https://gta-maps.antwen.com/collectibles_images/patrick/patrick.webp',
                 yeti: 'https://gta-maps.antwen.com/collectibles_images/yeti/yeti_x.webp',
                 yeti_award: 'https://gta-maps.antwen.com/collectibles_images/yeti/yeti_award.webp',
+                // 事件与活动
+                wea: 'https://gta-maps.antwen.com/collectibles_images/wea/wea.webp',
+                community_outreach: 'https://gta-maps.antwen.com/collectibles_images/community_outreach/community_outreach_x.webp',
+                golf_holes: 'https://gta-maps.antwen.com/collectibles_images/golf_holes/golf_holes_x.webp',
+                store_robbery: 'https://gta-maps.antwen.com/collectibles_images/store_robbery/store_robbery.webp',
+                armored_truck: 'https://gta-maps.antwen.com/collectibles_images/armored_truck/armored_truck.webp',
+                happy_holidays_hauler_sweater_0: 'https://gta-maps.antwen.com/collectibles_images/happy_holidays_hauler/happy_holidays_hauler_sweater_0.webp',
+                happy_holidays_hauler_sweater_1: 'https://gta-maps.antwen.com/collectibles_images/happy_holidays_hauler/happy_holidays_hauler_sweater_1.webp',
                 // 武器与健康
                 petrolcan: 'https://gtaweb.eu/_sources/10/maps_gtao/tips/weapons_sp_petrolcan_x.webp',
                 smg: 'https://gtaweb.eu/_sources/10/maps_gtao/tips/weapons_sp_smg_x.webp',
@@ -4494,7 +4580,13 @@
                 hatchet: 'https://gtaweb.eu/_sources/10/maps_gtao/tips/weapons_sp_hatchet_x.webp',
                 armour: 'https://gtaweb.eu/_sources/10/maps_gtao/tips/weapons_sp_armour_x.webp',
                 health: 'https://gtaweb.eu/_sources/10/maps_gtao/tips/weapons_sp_health_x.webp',
-                parachute: 'https://gtaweb.eu/_sources/10/maps_gtao/tips/weapons_sp_parachute_x.webp'
+                parachute: 'https://gtaweb.eu/_sources/10/maps_gtao/tips/weapons_sp_parachute_x.webp',
+                // 迁移类型图片
+                drug_vehicle: 'https://gta-maps.antwen.com/collectibles_images/drug_vehicle/drug_vehicle.webp',
+                drunk_guard: 'https://gta-maps.antwen.com/collectibles_images/drunk_guard/drunk_guard.webp',
+                metal_detector: 'https://gta-maps.antwen.com/collectibles_images/metal_detector/metal_detector_x.webp',
+                smuggler_trail: 'https://gta-maps.antwen.com/collectibles_images/smuggler_trail/smuggler_trail.webp',
+                crime_scenes: 'https://gta-maps.antwen.com/collectibles_images/crime_scenes/crime_scenes.webp'
             };
             
             // 将图片URL中的 'x' 替换为实际的索引号
@@ -4535,6 +4627,124 @@
                 }
             }
 
+            // 特殊处理：帮派攻击（显示时间与说明，无图片）
+            if (type === 'gang_attacks' && typeof index === 'number') {
+                label = '帮派攻击';
+                title = `${label}${sequenceNumber}`;
+                imageUrl = null;
+                const list = (window.itemData && Array.isArray(window.itemData.gang_attacks)) ? window.itemData.gang_attacks : [];
+                const item = list[index] || {};
+                const timeText = item.time || '未知时间';
+                content = `
+                    <div style="margin-bottom:10px;">
+                        <div style="font-weight:700;color:#d32f2f;margin-bottom:6px;">⏰ 时间限制</div>
+                        <div style="display:inline-block;padding:2px 8px;border-radius:6px;background:rgba(211,47,47,0.12);color:#c62828;font-weight:700;">${timeText}</div>
+                    </div>
+                    <div style="line-height:1.7;">
+                        🎯 <strong>帮派攻击事件</strong><br>
+                        • 在指定时间内前往该区域<br>
+                        • 与敌对帮派成员战斗<br>
+                        • 完成可获得<strong>经验值</strong>和<strong>游戏币奖励</strong><br>
+                        • 注意安全，准备充足的武器和弹药！
+                    </div>
+                `;
+            }
+
+            // 特殊处理：社区边界、高尔夫球洞、金属探测器图片序号为 1 基
+            if ((type === 'community_outreach' || type === 'golf_holes' || type === 'metal_detector') && typeof index === 'number') {
+                if (TYPE_IMAGES[type]) {
+                    imageUrl = TYPE_IMAGES[type].replace('_x.webp', `_${index + 1}.webp`);
+                }
+            }
+
+            // 特殊处理：外贸出口载具（车辆清单内容）
+            if ((type === 'exotic_exports1' || type === 'exotic_exports2') && typeof index === 'number') {
+                const list = (window.itemData && Array.isArray(window.itemData[type])) ? window.itemData[type] : [];
+                const item = list[index] || {};
+                const vehicles = Array.isArray(item.vehicleList) ? item.vehicleList : [];
+                const vehicleListContent = vehicles.length > 0 ? vehicles.map(v => `• ${String(v).trim()}`).join('<br>') : '暂无车辆数据';
+                label = type === 'exotic_exports1' ? '外贸出口载具1' : '外贸出口载具2';
+                title = `${label}${sequenceNumber}`;
+                content = `
+                    <div style="margin-bottom: 10px;">
+                        <strong>今日外贸出口载具列表：</strong><br>
+                        ${vehicleListContent}
+                    </div>
+                    <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #ddd;">
+                        该活动将在完成一个改车铺合约后解锁。您每天可以找到并交付 10 辆外贸载具，这 10 辆外贸载具以特定顺序生成。每送达一辆外贸载具，您将获得 20.000 GTA$、1.000 RP 与 50 REP 奖励。若在一天内交付全部 10 辆外贸载具，还可获得额外 100.000 GTA$ 的奖励。
+                    </div>
+                `;
+                imageUrl = null;
+            }
+
+            // 特殊处理：随机任务（动态内容）
+            if (type === 'random_missions' && typeof index === 'number') {
+                try {
+                    const rm = (window.itemData && window.itemData.random_missions) || {};
+                    const keys = Object.keys(rm);
+                    let current = null;
+                    let count = 0;
+                    for (const slot of keys) {
+                        const missions = rm[slot] || [];
+                        for (let i = 0; i < missions.length; i++) {
+                            if (count === index) {
+                                current = { mission: missions[i], timeSlot: slot, missionIndex: i };
+                                break;
+                            }
+                            count++;
+                        }
+                        if (current) break;
+                    }
+                    if (current) {
+                        const m = current.mission;
+                        let taskName = Array.isArray(m) ? (m[2]?.[0] || m[2] || '未知任务') : (m.taskName || '未知任务');
+                        let level = Array.isArray(m) ? (m[3]?.[0]) : m.level;
+                        let players = Array.isArray(m) ? (m[3]?.[1]) : m.players;
+                        let timeRange = Array.isArray(m) ? (m[3]?.[2]) : (m.timeRange || current.timeSlot || '全天');
+                        if (typeof level === 'undefined' || typeof players === 'undefined' || typeof timeRange === 'undefined') {
+                            // 与旧实现一致：信息不完整则不显示
+                            return;
+                        }
+                        title = `🎲 随机任务 - ${taskName}`;
+                        imageUrl = null;
+                        content = `
+                            <div style="margin-bottom: 10px;"><strong>任务名:</strong> ${taskName}</div>
+                            <div style="margin-bottom: 10px;"><strong>开放等级:</strong> ${level}</div>
+                            <div style="margin-bottom: 10px;"><strong>人数:</strong> ${players}</div>
+                            <div style="margin-bottom: 10px;"><strong>开放时间:</strong> ${timeRange}</div>
+                        `;
+                    }
+                } catch (e) { /* ignore */ }
+            }
+
+            // 特殊处理：服务类地点（metro/police/...）专属内容
+            const SERVICE_TYPES = new Set(['metro','police','v_telescopes','fire_stations','hospitals','clothing','tattoos','barbers','ammunation','mod_shop','car_wash','shops_to_rob','gas_stations','atms','vend_sprunk','vend_ecola']);
+            if (SERVICE_TYPES.has(type) && typeof index === 'number') {
+                const dataList = (window.itemData && Array.isArray(window.itemData[type])) ? window.itemData[type] : [];
+                const it = dataList[index] || {};
+                const baseInfo = `坐标: ${it.x}, ${it.y}`;
+                const labelInfo = it.label ? `<br><br>标签: ${it.label}` : '';
+                const descMap = {
+                    metro: `地铁站位置信息。<br><br>${baseInfo}${labelInfo}<br><br>地铁站是洛圣都公共交通系统的重要组成部分，连接城市各个区域。`,
+                    police: `警察局位置信息。<br><br>${baseInfo}${labelInfo}<br><br>警察局是执法部门的重要设施，提供各种执法服务。`,
+                    v_telescopes: `望远镜位置信息。<br><br>${baseInfo}<br><br>望远镜是观察和探索洛圣都美景的理想工具。`,
+                    fire_stations: `消防局位置信息。<br><br>${baseInfo}${labelInfo}<br><br>消防局负责处理火灾和其他紧急情况，保护市民安全。`,
+                    hospitals: `医院位置信息。<br><br>${baseInfo}${labelInfo}<br><br>医院提供医疗服务，是市民健康的重要保障。`,
+                    clothing: `服装店位置信息。<br><br>${baseInfo}${labelInfo}<br><br>服装店提供各种服装和配饰，让您打造独特的个人风格。`,
+                    tattoos: `纹身店位置信息。<br><br>${baseInfo}${labelInfo}<br><br>纹身店提供专业的纹身服务，让您展现个性。`,
+                    barbers: `理发店位置信息。<br><br>${baseInfo}${labelInfo}<br><br>理发店提供理发和造型服务，让您保持最佳形象。`,
+                    ammunation: `武装国度位置信息。<br><br>${baseInfo}${labelInfo}<br><br>武装国度是购买武器和弹药的专业商店。`,
+                    mod_shop: `洛圣都改车王位置信息。<br><br>${baseInfo}${labelInfo}<br><br>洛圣都改车王提供专业的车辆改装服务，包括LSC、班尼改装坊和洛圣都车友会等不同类型的改装服务。`,
+                    car_wash: `洗车店位置信息。<br><br>${baseInfo}${labelInfo}<br><br>洗车店提供专业的车辆清洁服务。`,
+                    shops_to_rob: `可抢劫的商店位置信息。<br><br>${baseInfo}${labelInfo}<br><br>这些商店可以进行抢劫活动，但请注意风险。`,
+                    gas_stations: `加油站位置信息。<br><br>${baseInfo}${labelInfo}<br><br>加油站为您的车辆提供燃料补给服务。`,
+                    atms: `ATM机位置信息。<br><br>${baseInfo}${labelInfo}<br><br>ATM机提供便捷的现金存取服务。`,
+                    vend_sprunk: `霜碧售卖机位置信息。<br><br>${baseInfo}${labelInfo}<br><br>霜碧售卖机提供清爽的霜碧饮料。`,
+                    vend_ecola: `易可乐售卖机位置信息。<br><br>${baseInfo}${labelInfo}<br><br>易可乐售卖机提供经典的易可乐饮料。`
+                };
+                content = descMap[type] || `${type}位置信息。<br><br>${baseInfo}${labelInfo}`;
+            }
+
             const existing = document.querySelector(`.simple-info-popup-${type}`);
             if (existing) existing.remove();
 
@@ -4551,7 +4761,7 @@
             const imgHtml = imageUrl ? `<img src="${imageUrl}" alt="${label}" class="simple-popup-image" style="max-width:100%;height:auto;border-radius:6px;margin:8px 0;display:block;cursor: zoom-in;"/>` : '';
             const contentHtml = content ? `
                 <div style="padding: 8px 10px; background: rgba(33,150,243,0.08); border: 1px solid var(--gta-border); border-radius: 6px;">
-                    <div style="white-space: pre-wrap; line-height:1.7;">${content}</div>
+                    <div style="white-space: normal; line-height:1.7;">${content}</div>
                 </div>
             ` : '';
 
@@ -4587,6 +4797,23 @@
                     e.stopPropagation();
                     if (e.preventDefault) e.preventDefault();
                     showSimpleInfoPopup('yeti_award');
+                });
+            }
+            // 绑定：节日快乐卡车弹窗中的毛衣链接（在简单弹窗内）
+            const cocaLink = popup.querySelector('#coca-cola-sweater-link');
+            if (cocaLink) {
+                cocaLink.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (e.preventDefault) e.preventDefault();
+                    showSimpleInfoPopup('happy_holidays_hauler_sweater_0');
+                });
+            }
+            const spriteLink = popup.querySelector('#sprite-sweater-link');
+            if (spriteLink) {
+                spriteLink.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (e.preventDefault) e.preventDefault();
+                    showSimpleInfoPopup('happy_holidays_hauler_sweater_1');
                 });
             }
             popup.addEventListener('click', (e) => e.stopPropagation());
@@ -9471,7 +9698,7 @@
                         if (type === 'smuggler_plane') {
                             showSmugglerPlanePopup(group, gIndex);
                         } else {
-                            showSmugglerTrailPopup(group, gIndex);
+                            showSimpleInfoPopup('smuggler_trail', gIndex);
                         }
                     });
                     
@@ -9523,7 +9750,7 @@
                                 if (type === 'smuggler_plane') {
                                     showSmugglerPlanePopup(group, gIndex);
                                 } else {
-                                    showSmugglerTrailPopup(group, gIndex);
+                                    showSimpleInfoPopup('smuggler_trail', gIndex);
                                 }
                             });
                             
@@ -9742,7 +9969,7 @@
                 }).addTo(map);
                 
                 marker.on('click', function(e) {
-                    showConvoyPopup(item, index);
+                    showSimpleInfoPopup('convoy', index);
                 });
                 
                 return marker;
@@ -9764,7 +9991,7 @@
                 }).addTo(map);
                 
                 marker.on('click', function(e) {
-                    showConvoyFinalPopup(item, index);
+                    showSimpleInfoPopup('convoy_final', index);
                 });
                 
                 return marker;
@@ -9792,10 +10019,8 @@
                 }).addTo(map);
                 
                 marker.on('click', function(e) {
-
-                    // 构造完整的任务数据数组
-                    const missionData = [item.x, item.y, item.taskName || '未知任务', [item.level || 1, item.players || 1, item.timeRange || '全天']];
-                    showRandomMissionPopup(missionData, item.timeSlot, item.missionIndex);
+                    // 统一到简单弹窗（索引为全局索引）
+                    showSimpleInfoPopup('random_missions', index);
                 });
                 
                 return marker;
@@ -9842,7 +10067,7 @@
                 }).addTo(map);
                 
                 marker.on('click', function(e) {
-                    showExoticExportsPopup(item, 'exotic_exports1', index);
+                    showSimpleInfoPopup('exotic_exports1', index);
                 });
                 
                 return marker;
@@ -9864,7 +10089,7 @@
                 }).addTo(map);
                 
                 marker.on('click', function(e) {
-                    showExoticExportsPopup(item, 'exotic_exports2', index);
+                    showSimpleInfoPopup('exotic_exports2', index);
                 });
                 
                 return marker;
@@ -9886,7 +10111,7 @@
                 }).addTo(map);
                 
                 marker.on('click', function(e) {
-                    showHappyHolidaysHaulerPopup(item, index);
+                    showSimpleInfoPopup('happy_holidays_hauler', index);
                 });
                 
                 return marker;
@@ -10162,9 +10387,9 @@
                         interactive: true
                     }).addTo(map);
                     
-                    // 添加点击事件
+                    // 添加点击事件 -> 统一到简单弹窗
                     circle.on('click', function(e) {
-                        showMaudeBountyPopup(item, index, 'area');
+                        showSimpleInfoPopup('maude_bounty_area', index);
                     });
                     
                     return {
@@ -10199,7 +10424,7 @@
                     }).addTo(map);
                     
                     marker.on('click', function(e) {
-                        showMaudeBountyPopup(item, index, 'endpoint');
+                        showSimpleInfoPopup('maude_bounty_endpoint', index);
                     });
                     
                     return marker;
@@ -10248,7 +10473,7 @@
                 
                 // 为圆形和图标都添加点击事件
                 const clickHandler = function(e) {
-                    showGangAttackPopup(item, index);
+                    showSimpleInfoPopup('gang_attacks', index);
                 };
                 
                 circle.on('click', clickHandler);
@@ -10397,8 +10622,7 @@
                 }).addTo(map);
                 
                 marker.on('click', function(e) {
-
-                    showCerberusPopup(item, index);
+                    showSimpleInfoPopup('cerberus', index);
                 });
                 
                 return marker;
@@ -10746,13 +10970,12 @@
             
             // 添加点击事件
             marker.on('click', function(e) {
-                // 特殊处理drug_vehicle，使用专门的弹窗函数
+                // 统一到简单弹窗
                 if (type === 'drug_vehicle') {
-                    showDrugVehiclePopup(item, index);
+                    showSimpleInfoPopup('drug_vehicle', index);
                 }
-                // 特殊处理metal_detector，使用专门的弹窗函数
                 else if (type === 'metal_detector') {
-                    showMetalDetectorPopup(item, index);
+                    showSimpleInfoPopup('metal_detector', index);
                 }
                 // 特殊处理gun_van，使用专门的武器信息弹窗
                 else if (type === 'gun_van') {
@@ -10844,7 +11067,7 @@
                 }
                 // 特殊处理高尔夫球洞，显示图片弹窗
                 else if (type === 'golf_holes') {
-                    showGolfHolesImage(index);
+                    showSimpleInfoPopup('golf_holes', index);
                 }
                 // 特殊处理雪人，显示图片弹窗
                 else if (type === 'snowmen') {
@@ -10862,9 +11085,9 @@
                 else if (type === 'spray') {
                     showSprayImage(index);
                 }
-                // 特殊处理帮派攻击，显示弹窗
+                // 特殊处理帮派攻击，显示简洁文本弹窗
                 else if (type === 'gang_attacks') {
-                    showGangAttackPopup(item, index);
+                    showSimpleInfoPopup('gang_attacks', index);
                 }
                 // 特殊处理幽灵曝光，显示弹窗
                 else if (type === 'ghosts3') {
@@ -10872,7 +11095,7 @@
                 }
                 // 特殊处理威泽尔大楼枪战，显示弹窗
                 else if (type === 'wea') {
-                    showWeaPopup(item, index);
+                    showSimpleInfoPopup('wea', index);
                 }
                 // 特殊处理陆地迷幻仙人掌，显示弹窗
                 else if (type === 'ppl') {
@@ -11051,8 +11274,7 @@
                 }
                 // 新增：特殊处理犯罪现场，显示弹窗
                 else if (type === 'crime_scenes') {
-
-                    showCrimeScenesPopup(item, index);
+                    showSimpleInfoPopup('crime_scenes', index);
                 }
                 // 新增：特殊处理藏匿屋，显示弹窗
                 else if (type === 'stash_houses') {
@@ -11068,32 +11290,31 @@
                 }
                 // 新增：特殊处理随机任务，显示弹窗
                 else if (type === 'random_missions') {
-
-                    showRandomMissionPopup([item.x, item.y], item.timeSlot, item.missionIndex);
+                    showSimpleInfoPopup('random_missions', index);
                 }
                 // 新增：特殊处理沉睡的保安，显示弹窗
                 else if (type === 'drunk_guard') {
-                    showDrunkGuardPopup(item, index);
+                    showSimpleInfoPopup('drunk_guard', index);
                 }
                 // 新增：特殊处理社区边界，显示弹窗
                 else if (type === 'community_outreach') {
-                    showCommunityOutreachPopup(item, index);
+                    showSimpleInfoPopup('community_outreach', index);
                 }
                 // 新增：特殊处理商店抢劫，显示弹窗
                 else if (type === 'store_robbery') {
-                    showStoreRobberyPopup(item, index);
+                    showSimpleInfoPopup('store_robbery', index);
                 }
                 // 新增：特殊处理装甲运钞车，显示弹窗
                 else if (type === 'armored_truck') {
-                    showArmoredTruckPopup(item, index);
+                    showSimpleInfoPopup('armored_truck', index);
                 }
                 // 新增：特殊处理媒体记忆棒，显示弹窗
                 else if (type === 'media_sticks') {
                     showMediaStickPopup(item, index);
                 }
-                // 新增：特殊处理望远镜，使用通用弹窗
+                // 新增：特殊处理望远镜，迁移至统一的简单弹窗
                 else if (type === 'v_telescopes') {
-                    showNewItemPopup(type, item, index);
+                    showSimpleInfoPopup('v_telescopes', index);
                 }
                 // 新增：特殊处理UFO观光，显示弹窗
                 else if (type === 'ufo') {
@@ -11101,8 +11322,7 @@
                 }
                 // 新增：特殊处理万圣节地狱犬事件，显示弹窗
                 else if (type === 'cerberus') {
-
-                    showCerberusPopup(item, index);
+                    showSimpleInfoPopup('cerberus', index);
                 }
                 // 新增：特殊处理地点与服务类型，使用通用弹窗
                 else if (['metro', 'police', 'fire_stations', 'hospitals', 'clothing', 'tattoos', 'barbers', 'ammunation', 'mod_shop', 'car_wash', 'shops_to_rob', 'gas_stations', 'atms', 'vend_sprunk', 'vend_ecola'].includes(type)) {
@@ -12022,7 +12242,7 @@
                         marker.appendChild(img);
                         marker.addEventListener('click', (e) => {
                             e.stopPropagation();
-                            showSmugglerTrailPopup(group, gIndex);
+                            showSimpleInfoPopup('smuggler_trail', gIndex);
                         });
                         // DOM 标记层已移除
                         itemMarkers.push({ type: 'smuggler_trail', index: gIndex, el: marker });
@@ -12064,7 +12284,7 @@
                             
                             marker.addEventListener('click', (e) => {
                                 e.stopPropagation();
-                                showSmugglerTrailPopup(group, gIndex);
+                                showSimpleInfoPopup('smuggler_trail', gIndex);
                             });
                             // DOM 标记层已移除
                             itemMarkers.push({ type: 'smuggler_trail_route', index: gIndex, el: marker });
@@ -12220,7 +12440,7 @@
                         marker.addEventListener('click', (e) => {
                             e.stopPropagation();
                             const missionData = Array.isArray(mission) ? { x, y } : mission;
-                            showRandomMissionPopup(missionData, timeSlot, index);
+                            showSimpleInfoPopup('random_missions', parseInt(marker.dataset.index, 10));
                         });
                         
                         // DOM 标记层已移除
@@ -13135,8 +13355,19 @@
                 'treasure_hunt_dba_revolver_random',
                 'treasure_hunt_dba_revolver_static',
                 'wea',
+                'cerberus',
                 'ppl',
-                'ppw'
+                'ppw',
+                // 新增统一弹窗类型
+                'community_outreach',
+                'store_robbery',
+                'armored_truck',
+                'exotic_exports1',
+                'exotic_exports2',
+                'happy_holidays_hauler',
+                'yeti_award',
+                'happy_holidays_hauler_sweater_0',
+                'happy_holidays_hauler_sweater_1'
             ]);
 
             if (!imageTypes.has(type)) {
@@ -13188,7 +13419,7 @@
             
             // 如果是高尔夫球洞，显示图片弹窗
             if (type === 'golf_holes') {
-                showGolfHolesImage(index);
+                showSimpleInfoPopup('golf_holes', index);
             }
             
             // 如果是雪人，显示图片弹窗
@@ -13201,9 +13432,9 @@
                 showDeadDropPopup(item, index);
             }
             
-            // 如果是帮派攻击，显示弹窗
+            // 如果是帮派攻击，显示简洁文本弹窗
             if (type === 'gang_attacks') {
-                showGangAttackPopup(item, index);
+                showSimpleInfoPopup('gang_attacks', index);
             }
 
             // 如果是幽灵曝光，显示弹窗
@@ -13221,7 +13452,7 @@
             
             // 如果是威泽尔大楼枪战，显示弹窗
             if (type === 'wea') {
-                showWeaPopup(item, index);
+                showSimpleInfoPopup('wea', index);
             }
             
             // 如果是陆地迷幻仙人掌，显示弹窗
@@ -16013,8 +16244,9 @@
 
         // 电话暗杀（旧DOM弹窗）已废弃，改用 showPayphoneHitsPopup(item, index)
 
-        // 显示高尔夫球洞图片弹窗
+        // 显示高尔夫球洞图片弹窗（已迁移到通用弹窗）
         function showGolfHolesImage(index) {
+            return showSimpleInfoPopup('golf_holes', index);
             // 序号从1开始
             const sequenceNumber = index + 1;
             const imageUrl = `https://gta-maps.antwen.com/collectibles_images/golf_holes/golf_holes_${sequenceNumber}.webp`;
@@ -17392,7 +17624,7 @@
                     const golfHoleIndex = itemData.golf_holes.findIndex(golfHole => 
                         golfHole.x === nearbyGolfHole.x && golfHole.y === nearbyGolfHole.y
                     );
-                    showGolfHolesImage(golfHoleIndex);
+                    showSimpleInfoPopup('golf_holes', golfHoleIndex);
                 }
             }
         }
@@ -17698,74 +17930,7 @@
 
         // 注意：茉德悬赏目标现在使用Leaflet标记系统，不再需要DOM点击检测
 
-        // 茉德悬赏目标弹窗
-        function showMaudeBountyPopup(item, index, subtype) {
-            const isArea = subtype === 'area';
-            const title = isArea ? `🎯 茉德悬赏区域 #${index + 1}` : `🎯 茉德悬赏终点 #${index + 1}`;
-            
-            const popup = document.createElement('div');
-            popup.className = 'maude-bounty-popup';
-            popup.style.cssText = `
-                position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-                background: #fff; border: 3px solid #FFD700; border-radius: 12px; padding: 18px;
-                z-index: 10000; max-width: 520px; max-height: 80vh; box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-                font-family: Arial, sans-serif; text-align: left; overflow-y: auto;`;
-
-            popup.innerHTML = `
-                <div style="margin-bottom: 12px; font-size: 20px; font-weight: bold; color: #FFD700; text-align:center;">${title}</div>
-                <div style="margin: 10px 0; padding: 10px; background: #fffbf0; border-radius: 8px; color: #4e342e; font-size: 13px; line-height: 1.6;">
-                    前往茉德处接受悬赏目标任务。等待数分钟后，她将通过电子邮件告知悬赏目标的相关信息。悬赏目标将随机出现在 20 个区域之一，其当前活动的区域会在游戏内的地图上标记出来。每个区域都有 20 个可供生成目标的位置。若您成功抓住目标，并转交给茉德，您可赚取 10.000 GTA$；若您直接杀死目标，您将获得 5.000 GTA$。完成一个悬赏目标任务后，您必须再等几分钟才会收到下一个悬赏目标的相关信息。该系列任务共有 5 个悬赏目标需要抓捕。全部完成之后，茉德会发短信，告诉您石斧的藏匿位置，该位置会在游戏内地图上标记出来。使用该武器完成 25 次击杀，您将得到 250.000 GTA$ 与 2.000 RP，并可在 Red Dead Redemption 2 中找到这款武器。
-                </div>
-                <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px;">
-                    <button id="hide-maude-btn" style="padding: 10px 18px; background: #4CAF50; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">隐藏</button>
-                    <button id="show-maude-btn" style="padding: 10px 18px; background: #2196F3; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">显示</button>
-                    <button id="close-maude-btn" style="padding: 10px 18px; background: #FFD700; color: #000; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">关闭</button>
-                </div>
-            `;
-
-            // 隐藏/显示/关闭按钮
-            const hideBtn = popup.querySelector('#hide-maude-btn');
-            const showBtn = popup.querySelector('#show-maude-btn');
-            const closeBtn = popup.querySelector('#close-maude-btn');
-
-            // 解析目标标记和索引
-            function resolveTargetAndIndex() {
-                let el;
-                if (subtype === 'area') {
-                    el = document.querySelector(`.item-marker[data-type="maude_bounty_area"][data-index="${index}"]`);
-                } else {
-                    el = document.querySelector(`.item-marker[data-type="maude_bounty_endpoint"][data-index="${index}"]`);
-                }
-                return { el, globalIndex: index };
-            }
-
-            // 隐藏按钮：设置标记透明度为25%
-            hideBtn.addEventListener('click', () => {
-                const { el } = resolveTargetAndIndex();
-                if (!el) return;
-                el.style.opacity = '0.25';
-            });
-
-            // 显示按钮：恢复标记透明度为100%
-            showBtn.addEventListener('click', () => {
-                const { el } = resolveTargetAndIndex();
-                if (!el) return;
-                el.style.opacity = '1';
-            });
-
-            // 关闭按钮
-            closeBtn.addEventListener('click', () => popup.remove());
-            
-            popup.addEventListener('click', (e) => e.stopPropagation());
-            setTimeout(() => {
-                const closePopupHandler = (e) => {
-                    if (!popup.contains(e.target)) { popup.remove(); document.removeEventListener('click', closePopupHandler); }
-                };
-                document.addEventListener('click', closePopupHandler);
-            }, 50);
-
-            document.body.appendChild(popup);
-        }
+        // 茉德悬赏目标 DOM 弹窗已迁移至 showSimpleInfoPopup()
 
         // 检测媒体记忆棒点击（坐标检测）
         function checkMediaStickClick(clickX, clickY) {
@@ -18101,8 +18266,7 @@
                         const distance = Math.sqrt(Math.pow(x - clickX, 2) + Math.pow(y - clickY, 2));
                         
                         if (distance <= RANDOM_MISSION_RADIUS) {
-
-                            showRandomMissionPopup(mission, timeSlot, i);
+                            showSimpleInfoPopup('random_missions', globalIndex);
                             return;
                         }
                         globalIndex++;
@@ -18125,8 +18289,7 @@
                 
                 if (nearbyVehicle) {
                     const index = itemData.drug_vehicle.findIndex(v => v.x === nearbyVehicle.x && v.y === nearbyVehicle.y);
-
-                    showDrugVehiclePopup(nearbyVehicle, index);
+                    showSimpleInfoPopup('drug_vehicle', index);
                     return;
                 }
             }
@@ -18145,8 +18308,7 @@
                 
                 if (nearby) {
                     const index = itemData.drunk_guard.findIndex(g => g.x === nearby.x && g.y === nearby.y);
-
-                    showDrunkGuardPopup(nearby, index);
+                    showSimpleInfoPopup('drunk_guard', index);
                     return;
                 }
             }
@@ -18203,7 +18365,7 @@
                     const dx = group.triggerpoint[0] - clickX;
                     const dy = group.triggerpoint[1] - clickY;
                     if (Math.sqrt(dx*dx + dy*dy) <= RADIUS) {
-                        showSmugglerTrailPopup(group, i);
+                        showSimpleInfoPopup('smuggler_trail', i);
                         return;
                     }
                 }
@@ -18217,7 +18379,7 @@
                             const dx = rx - clickX;
                             const dy = ry - clickY;
                             if (Math.sqrt(dx*dx + dy*dy) <= RADIUS) {
-                                showSmugglerTrailPopup(group, i);
+                                showSimpleInfoPopup('smuggler_trail', i);
                                 return;
                             }
                         }
@@ -18244,7 +18406,7 @@
                     const crimeSceneIndex = itemData.crime_scenes.findIndex(crimeScene => 
                         crimeScene.x === nearbyCrimeScene.x && crimeScene.y === nearbyCrimeScene.y
                     );
-                    showCrimeScenesPopup(nearbyCrimeScene, crimeSceneIndex);
+                    showSimpleInfoPopup('crime_scenes', crimeSceneIndex);
                     return; // 找到犯罪现场，停止后续检测
                 }
             }
@@ -18304,7 +18466,7 @@
                     const cerberusIndex = itemData.cerberus.findIndex(cerberus => 
                         cerberus.x === nearbyCerberus.x && cerberus.y === nearbyCerberus.y
                     );
-                    showCerberusPopup(nearbyCerberus, cerberusIndex);
+                    showSimpleInfoPopup('cerberus', cerberusIndex);
                     return; // 找到地狱犬，停止后续检测
                 }
             }
@@ -18353,7 +18515,7 @@
                         hauler.triggerpoint[0] === nearbyHauler.triggerpoint[0] && 
                         hauler.triggerpoint[1] === nearbyHauler.triggerpoint[1]
                     );
-                    showHappyHolidaysHaulerPopup(nearbyHauler, haulerIndex);
+                    showSimpleInfoPopup('happy_holidays_hauler', haulerIndex);
                     return; // 找到节日快乐卡车，停止后续检测
                 }
             }
@@ -18377,7 +18539,7 @@
                     const weaIndex = itemData.wea.findIndex(wea => 
                         wea.x === nearbyWea.x && wea.y === nearbyWea.y
                     );
-                    showWeaPopup(nearbyWea, weaIndex);
+                    showSimpleInfoPopup('wea', weaIndex);
                     return; // 找到威泽尔大楼枪战，停止后续检测
                 }
             }
@@ -18455,7 +18617,11 @@
                         const itemIndex = itemData[type].findIndex(item => 
                             item.x === nearbyItem.x && item.y === nearbyItem.y
                         );
-                        showNewItemPopup(type, nearbyItem, itemIndex);
+                        if (type === 'v_telescopes') {
+                            showSimpleInfoPopup('v_telescopes', itemIndex);
+                        } else {
+                            showNewItemPopup(type, nearbyItem, itemIndex);
+                        }
                         return; // 找到物品，停止后续检测
                     }
                 }
@@ -18480,7 +18646,7 @@
                     const communityOutreachIndex = itemData.community_outreach.findIndex(communityOutreach => 
                         communityOutreach.x === nearbyCommunityOutreach.x && communityOutreach.y === nearbyCommunityOutreach.y
                     );
-                    showCommunityOutreachPopup(nearbyCommunityOutreach, communityOutreachIndex);
+                    showSimpleInfoPopup('community_outreach', communityOutreachIndex);
                 }
             }
         }
@@ -18501,7 +18667,7 @@
                     const exoticExportIndex = itemData.exotic_exports1.findIndex(exoticExport => 
                         exoticExport.x === nearbyExoticExport.x && exoticExport.y === nearbyExoticExport.y
                     );
-                    showExoticExportsPopup(nearbyExoticExport, exoticExportIndex, 'exotic_exports1');
+                    showSimpleInfoPopup('exotic_exports1', exoticExportIndex);
                     return;
                 }
             }
@@ -18518,7 +18684,7 @@
                     const exoticExportIndex = itemData.exotic_exports2.findIndex(exoticExport => 
                         exoticExport.x === nearbyExoticExport.x && exoticExport.y === nearbyExoticExport.y
                     );
-                    showExoticExportsPopup(nearbyExoticExport, exoticExportIndex, 'exotic_exports2');
+                    showSimpleInfoPopup('exotic_exports2', exoticExportIndex);
                     return;
                 }
             }
@@ -18542,7 +18708,7 @@
                     const storeRobberyIndex = itemData.store_robbery.findIndex(storeRobbery => 
                         storeRobbery.x === nearbyStoreRobbery.x && storeRobbery.y === nearbyStoreRobbery.y
                     );
-                    showStoreRobberyPopup(nearbyStoreRobbery, storeRobberyIndex);
+                    showSimpleInfoPopup('store_robbery', storeRobberyIndex);
                 }
             }
         }
@@ -18569,7 +18735,7 @@
                     const convoyIndex = itemData.convoy.findIndex(convoy => 
                         convoy.triggerpoint === nearbyConvoy.triggerpoint
                     );
-                    showConvoyPopup(nearbyConvoy, convoyIndex);
+                    showSimpleInfoPopup('convoy', convoyIndex);
                     return;
                 }
             }
@@ -18588,7 +18754,7 @@
                     const convoyFinalIndex = itemData.convoy_final.findIndex(convoyFinal => 
                         convoyFinal.x === nearbyConvoyFinal.x && convoyFinal.y === nearbyConvoyFinal.y
                     );
-                    showConvoyFinalPopup(nearbyConvoyFinal, convoyFinalIndex);
+                    showSimpleInfoPopup('convoy_final', convoyFinalIndex);
                 }
             }
         }
@@ -18611,170 +18777,16 @@
                     const armoredTruckIndex = itemData.armored_truck.findIndex(armoredTruck => 
                         armoredTruck.x === nearbyArmoredTruck.x && armoredTruck.y === nearbyArmoredTruck.y
                     );
-                    showArmoredTruckPopup(nearbyArmoredTruck, armoredTruckIndex);
+                    showSimpleInfoPopup('armored_truck', armoredTruckIndex);
                 }
             }
         }
 
-        // 毒品载具弹窗
-        function showDrugVehiclePopup(item, index) {
-            const title = `🚗 毒品载具 #${index + 1}`;
-            const content = `毒品载具会在此位置附近刷新。靠近时会在游戏中以蓝点标记。`;
-            
-            const popup = document.createElement('div');
-            popup.className = 'drug-vehicle-popup';
-            popup.style.cssText = `
-                position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-                background: #fff; border: 3px solid #4CAF50; border-radius: 12px; padding: 18px;
-                z-index: 10000; max-width: 520px; max-height: 80vh; box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-                font-family: Arial, sans-serif; text-align: left; overflow-y: auto;`;
+        // 毒品载具 DOM 弹窗已迁移至 showSimpleInfoPopup()
 
-            popup.innerHTML = `
-                <div style="margin-bottom: 14px; font-size: 20px; font-weight: bold; color: #2E7D32; text-align:center;">${title}</div>
-                <img src="https://gta-maps.antwen.com/collectibles_images/drug_vehicle/drug_vehicle.webp" alt="毒品载具图片" style="max-width: 100%; height: auto; border-radius: 6px; margin: 8px 0; display:block;"/>
-                <div style="margin: 10px 0; padding: 10px; background: #e8f5e9; border-radius: 8px; color: #1b5e20; font-size: 13px; line-height: 1.6;">
-                    ${content}
-                </div>
-                <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px;">
-                    <button id="hide-drug-vehicle-btn" style="padding: 10px 18px; background: #4CAF50; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">隐藏</button>
-                    <button id="show-drug-vehicle-btn" style="padding: 10px 18px; background: #2196F3; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">显示</button>
-                    <button id="close-drug-vehicle-btn" style="padding: 10px 18px; background: #f44336; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">关闭</button>
-                </div>
-            `;
+        // 沉睡的保安 DOM 弹窗已迁移至 showSimpleInfoPopup()
 
-            // 按钮
-            const hideBtn = popup.querySelector('#hide-drug-vehicle-btn');
-            const showBtn = popup.querySelector('#show-drug-vehicle-btn');
-            const closeBtn = popup.querySelector('#close-drug-vehicle-btn');
-
-            // 解析目标标记和索引
-            function resolveTargetAndIndex() {
-                const el = document.querySelector(`.item-marker[data-type="drug_vehicle"][data-index="${index}"]`);
-                return { el, globalIndex: index };
-            }
-
-            hideBtn.addEventListener('click', () => {
-                const { el } = resolveTargetAndIndex();
-                if (!el) return;
-                el.style.opacity = '0.25';
-            });
-
-            showBtn.addEventListener('click', () => {
-                const { el } = resolveTargetAndIndex();
-                if (!el) return;
-                el.style.opacity = '1';
-            });
-
-            closeBtn.addEventListener('click', () => popup.remove());
-            popup.addEventListener('click', (e) => e.stopPropagation());
-            setTimeout(() => {
-                const closePopupHandler = (e) => {
-                    if (!popup.contains(e.target)) { popup.remove(); document.removeEventListener('click', closePopupHandler); }
-                };
-                document.addEventListener('click', closePopupHandler);
-            }, 50);
-
-            document.body.appendChild(popup);
-        }
-
-        // 沉睡的保安弹窗
-        function showDrunkGuardPopup(item, index) {
-            const title = `🛌 沉睡的保安 #${index + 1}`;
-            const content = `搜刮他（键盘上的E ）以获得 7.007 GTA$ 和佩里科岛金发老大办公室的抽屉钥匙。抽屉里面有一把 佩里科手枪。`;
-            const imageUrl = 'https://gta-maps.antwen.com/collectibles_images/drunk_guard/drunk_guard.webp';
-            
-            const popup = document.createElement('div');
-            popup.className = 'drunk-guard-popup';
-            popup.style.cssText = `
-                position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-                background: #fff; border: 3px solid #795548; border-radius: 12px; padding: 18px;
-                z-index: 10000; max-width: 520px; max-height: 80vh; box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-                font-family: Arial, sans-serif; text-align: left; overflow-y: auto;`;
-
-            popup.innerHTML = `
-                <div style="margin-bottom: 14px; font-size: 20px; font-weight: bold; color: #5D4037; text-align:center;">${title}</div>
-                <img src="${imageUrl}" alt="沉睡的保安图片" style="max-width: 100%; height: auto; border-radius: 6px; margin: 8px 0; display:block;"/>
-                <div style="margin: 10px 0; padding: 10px; background: #efebe9; border-radius: 8px; color: #3e2723; font-size: 13px; line-height: 1.6;">
-                    ${content}
-                </div>
-                <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px;">
-                    <button id="hide-drunk-guard-btn" style="padding: 10px 18px; background: #4CAF50; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">隐藏</button>
-                    <button id="show-drunk-guard-btn" style="padding: 10px 18px; background: #2196F3; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">显示</button>
-                    <button id="close-drunk-guard-btn" style="padding: 10px 18px; background: #f44336; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">关闭</button>
-                </div>
-            `;
-
-            const hideBtn = popup.querySelector('#hide-drunk-guard-btn');
-            const showBtn = popup.querySelector('#show-drunk-guard-btn');
-            const closeBtn = popup.querySelector('#close-drunk-guard-btn');
-
-            function resolveTargetAndIndex() {
-                const el = document.querySelector(`.item-marker[data-type="drunk_guard"][data-index="${index}"]`);
-                return { el, globalIndex: index };
-            }
-
-            hideBtn.addEventListener('click', () => {
-                const { el } = resolveTargetAndIndex();
-                if (!el) return;
-                el.style.opacity = '0.25';
-            });
-
-            showBtn.addEventListener('click', () => {
-                const { el } = resolveTargetAndIndex();
-                if (!el) return;
-                el.style.opacity = '1';
-            });
-
-            closeBtn.addEventListener('click', () => popup.remove());
-            popup.addEventListener('click', (e) => e.stopPropagation());
-            setTimeout(() => {
-                const closePopupHandler = (e) => {
-                    if (!popup.contains(e.target)) { popup.remove(); document.removeEventListener('click', closePopupHandler); }
-                };
-                document.addEventListener('click', closePopupHandler);
-            }, 50);
-
-            document.body.appendChild(popup);
-        }
-
-        // 金属探测器弹窗（适配Leaflet标记系统）
-        function showMetalDetectorPopup(item, index) {
-            const title = `🧭 金属探测器 #${index + 1}`;
-            const content = `您可以使用金属探测器在 佩里科岛 上定位 地下藏匿品 - 。<br/>搜索骷髅可获得 5.000 至 10.000 GTA$ 不等的现金奖励。`;
-            const imgUrl = `https://gta-maps.antwen.com/collectibles_images/metal_detector/metal_detector_${index + 1}.webp`;
-            
-            const popup = document.createElement('div');
-            popup.className = 'metal-detector-popup';
-            popup.style.cssText = `
-                position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-                background: #fff; border: 3px solid #607D8B; border-radius: 12px; padding: 18px;
-                z-index: 10000; max-width: 520px; max-height: 80vh; box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-                font-family: Arial, sans-serif; text-align: left; overflow-y: auto;`;
-
-            popup.innerHTML = `
-                <div style="margin-bottom: 14px; font-size: 20px; font-weight: bold; color: #455A64; text-align:center;">${title}</div>
-                <img src="${imgUrl}" alt="金属探测器图片" style="max-width: 100%; height: auto; border-radius: 6px; margin: 8px 0; display:block;"/>
-                <div style="margin: 10px 0; padding: 10px; background: #ECEFF1; border-radius: 8px; color: #263238; font-size: 13px; line-height: 1.6;">
-                    ${content}
-                </div>
-                <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px;">
-                    <button id="close-metal-btn" style="padding: 10px 18px; background: #f44336; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">关闭</button>
-                </div>
-            `;
-
-            const closeBtn = popup.querySelector('#close-metal-btn');
-
-            closeBtn.addEventListener('click', () => popup.remove());
-            popup.addEventListener('click', (e) => e.stopPropagation());
-            setTimeout(() => {
-                const closePopupHandler = (e) => {
-                    if (!popup.contains(e.target)) { popup.remove(); document.removeEventListener('click', closePopupHandler); }
-                };
-                document.addEventListener('click', closePopupHandler);
-            }, 50);
-
-            document.body.appendChild(popup);
-        }
+        // 金属探测器 DOM 弹窗已迁移至 showSimpleInfoPopup()
 
         // 辅助函数：通过DOM元素查找对应的Leaflet标记对象
         function findLeafletMarkerByElement(element) {
@@ -18824,126 +18836,8 @@
         // gun_van 侧边计数器已移除（占位空函数，避免旧调用报错）
         function updateGunVanSidebarCount() {}
 
-
-        // 走私贩踪迹弹窗
-        function showSmugglerTrailPopup(item, index) {
-            const title = `🛤️ 走私贩踪迹 #${index + 1}`;
-            const content = `沿着由几个烟雾信号标记的轨迹，您将找到一个装有25.000 GTA$和2.000 RP的箱子。`;
-            const imageUrl = 'https://gta-maps.antwen.com/collectibles_images/smuggler_trail/smuggler_trail.webp';
-            
-            const popup = document.createElement('div');
-            popup.className = 'smuggler-trail-popup';
-            popup.style.cssText = `
-                position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-                background: #fff; border: 3px solid #2196F3; border-radius: 12px; padding: 18px;
-                z-index: 10000; max-width: 520px; max-height: 80vh; box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-                font-family: Arial, sans-serif; text-align: left; overflow-y: auto;`;
-
-            popup.innerHTML = `
-                <div style="margin-bottom: 14px; font-size: 20px; font-weight: bold; color: #1976D2; text-align:center;">${title}</div>
-                <img src="${imageUrl}" alt="走私贩踪迹图片" style="max-width: 100%; height: auto; border-radius: 6px; margin: 8px 0; display:block;"/>
-                <div style="margin: 10px 0; padding: 10px; background: #E3F2FD; border-radius: 8px; color: #3e2723; font-size: 13px; line-height: 1.6;">
-                    ${content}
-                </div>
-                <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px;">
-                    <button id="hide-smuggler-trail-btn" style="padding: 10px 18px; background: #4CAF50; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">隐藏</button>
-                    <button id="show-smuggler-trail-btn" style="padding: 10px 18px; background: #2196F3; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">显示</button>
-                    <button id="close-smuggler-trail-btn" style="padding: 10px 18px; background: #f44336; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">关闭</button>
-                </div>
-            `;
-
-            const hideBtn = popup.querySelector('#hide-smuggler-trail-btn');
-            const showBtn = popup.querySelector('#show-smuggler-trail-btn');
-            const closeBtn = popup.querySelector('#close-smuggler-trail-btn');
-
-            function resolveTargetAndIndex() {
-                const el = document.querySelector(`.item-marker[data-type="smuggler_trail"][data-index="${index}"]`);
-                return { el, globalIndex: index };
-            }
-
-            hideBtn.addEventListener('click', () => {
-                const { el } = resolveTargetAndIndex();
-                if (!el) return;
-                el.style.opacity = '0.25';
-            });
-
-            showBtn.addEventListener('click', () => {
-                const { el } = resolveTargetAndIndex();
-                if (!el) return;
-                el.style.opacity = '1';
-            });
-
-            closeBtn.addEventListener('click', () => popup.remove());
-            popup.addEventListener('click', (e) => e.stopPropagation());
-            setTimeout(() => {
-                const closePopupHandler = (e) => {
-                    if (!popup.contains(e.target)) { popup.remove(); document.removeEventListener('click', closePopupHandler); }
-                };
-                document.addEventListener('click', closePopupHandler);
-            }, 50);
-
-            document.body.appendChild(popup);
-        }
-
-        // 犯罪现场弹窗
-        function showCrimeScenesPopup(item, index) {
-            const title = `🔍 犯罪现场 #${index + 1}`;
-            const content = `前 5 次完成该随机事件时，每次您都将获得 5.000 GTA$、2.000 RP 与 1 个卡宾枪部件。集齐 5 个部件后，您将获得 50.000 GTA$ 与 制式卡宾步枪。此后，完成一次该随机事件可获得 25.000 GTA$ 与 2.000 RP 奖励。`;
-            const imageUrl = 'https://gta-maps.antwen.com/collectibles_images/crime_scenes/crime_scenes.webp';
-            
-            const popup = document.createElement('div');
-            popup.className = 'crime-scenes-popup';
-            popup.style.cssText = `
-                position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-                background: #fff; border: 3px solid #FF5722; border-radius: 12px; padding: 18px;
-                z-index: 10000; max-width: 520px; max-height: 80vh; box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-                font-family: Arial, sans-serif; text-align: left; overflow-y: auto;`;
-
-            popup.innerHTML = `
-                <div style="margin-bottom: 14px; font-size: 20px; font-weight: bold; color: #D84315; text-align:center;">${title}</div>
-                <img src="${imageUrl}" alt="犯罪现场图片" style="max-width: 100%; height: auto; border-radius: 6px; margin: 8px 0; display:block;"/>
-                <div style="margin: 10px 0; padding: 10px; background: #FFF3E0; border-radius: 8px; color: #3e2723; font-size: 13px; line-height: 1.6;">
-                    ${content}
-                </div>
-                <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px;">
-                    <button id="hide-crime-scenes-btn" style="padding: 10px 18px; background: #4CAF50; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">隐藏</button>
-                    <button id="show-crime-scenes-btn" style="padding: 10px 18px; background: #2196F3; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">显示</button>
-                    <button id="close-crime-scenes-btn" style="padding: 10px 18px; background: #f44336; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">关闭</button>
-                </div>
-            `;
-
-            const hideBtn = popup.querySelector('#hide-crime-scenes-btn');
-            const showBtn = popup.querySelector('#show-crime-scenes-btn');
-            const closeBtn = popup.querySelector('#close-crime-scenes-btn');
-
-            function resolveTargetAndIndex() {
-                const el = document.querySelector(`.item-marker[data-type="crime_scenes"][data-index="${index}"]`);
-                return { el, globalIndex: index };
-            }
-
-            hideBtn.addEventListener('click', () => {
-                const { el } = resolveTargetAndIndex();
-                if (!el) return;
-                el.style.opacity = '0.25';
-            });
-
-            showBtn.addEventListener('click', () => {
-                const { el } = resolveTargetAndIndex();
-                if (!el) return;
-                el.style.opacity = '1';
-            });
-
-            closeBtn.addEventListener('click', () => popup.remove());
-            popup.addEventListener('click', (e) => e.stopPropagation());
-            setTimeout(() => {
-                const closePopupHandler = (e) => {
-                    if (!popup.contains(e.target)) { popup.remove(); document.removeEventListener('click', closePopupHandler); }
-                };
-                document.addEventListener('click', closePopupHandler);
-            }, 50);
-
-            document.body.appendChild(popup);
-        }
+        
+        // 犯罪现场 DOM 弹窗已迁移至 showSimpleInfoPopup()
 
         // UFO观光弹窗模板（含隐藏/显示联动与计数器、缓存集成）
         function showUfoPopup(item, index) {
@@ -19334,6 +19228,7 @@
 
         // 地狱犬弹窗
         function showCerberusPopup(item, index) {
+            return showSimpleInfoPopup('cerberus', index);
             const title = `地狱犬 #${index + 1}`;
             const content = `偷窃外贸出口载具的同时，请务必小心紧追您的地狱犬。`;
             
@@ -19392,6 +19287,7 @@
 
         // 节日快乐卡车弹窗
         function showHappyHolidaysHaulerPopup(group, index) {
+            return showSimpleInfoPopup('happy_holidays_hauler', index);
 
             const title = `🎄 节日快乐卡车 #${index + 1}`;
             const content = `节日欢乐货运车已开始在洛圣都四处行驶，每 85-95 秒投放一次节日礼物。<br><br>可能的礼物清单：<br>– <span id="coca-cola-sweater-link" style="color: #2196F3; cursor: pointer; text-decoration: underline;">易可乐节庆毛衣</span><br>– <span id="sprite-sweater-link" style="color: #2196F3; cursor: pointer; text-decoration: underline;">霜碧节庆毛衣</span><br>– 9.000-11.000 GTA$，1.000 RP和零食<br>– 9.000-11.000 GTA$，1.000 RP和弹药`;
@@ -19453,6 +19349,7 @@
 
         // 威泽尔大楼枪战弹窗
         function showWeaPopup(wea, index) {
+            return showSimpleInfoPopup('wea', index);
 
             const title = `🏢 威泽尔大楼枪战`;
             const content = `该事件可以在晚上 800至次日早上 600之间触发。首次完成该活动，您将获得 1.000 RP，WM 29 手枪和 Mk 2 手枪的节日快乐涂装。再次完成该活动，您将获得25.000 GTA$和1.000 RP。`;
@@ -20266,187 +20163,11 @@
             document.body.appendChild(popup);
         }
 
-        // 车队弹窗
-        function showConvoyPopup(item, index) {
-            const title = `🚛 车队 #${index + 1}`;
-            const content = `车队从起始点出发，沿着红色路线行驶。车队走完路线后，将随机选择一个终点位置继续行驶，并在抵达该位置后消失。<br><br>偷取车队载具并将其送至您的产业，您将获得原材料补给和 1.000 RP。<br><br>每个地点分别对应不同的载具与产业。<br><br>如果您没有对应的产业，可以把目标载具送至指定投放点，您将获得 25.000 GTA$ 与 1.000 RP。`;
-            
-            const popup = document.createElement('div');
-            popup.className = 'convoy-popup';
-            popup.style.cssText = `
-                position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-                background: #fff; border: 3px solid #F44336; border-radius: 12px; padding: 18px;
-                z-index: 10000; max-width: 520px; max-height: 80vh; box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-                font-family: Arial, sans-serif; text-align: left; overflow-y: auto;`;
+        // 车队 DOM 弹窗已迁移至 showSimpleInfoPopup()
 
-            popup.innerHTML = `
-                <div style="margin-bottom: 14px; font-size: 20px; font-weight: bold; color: #C62828; text-align:center;">${title}</div>
-                <div style="margin: 10px 0; padding: 10px; background: #FFEBEE; border-radius: 8px; color: #3e2723; font-size: 13px; line-height: 1.6;">
-                    ${content}
-                </div>
-                <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px;">
-                    <button id="hide-convoy-btn" style="padding: 10px 18px; background: #4CAF50; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">隐藏</button>
-                    <button id="show-convoy-btn" style="padding: 10px 18px; background: #2196F3; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">显示</button>
-                    <button id="close-convoy-btn" style="padding: 10px 18px; background: #f44336; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">关闭</button>
-                </div>
-            `;
+        // 车队终点 DOM 弹窗已迁移至 showSimpleInfoPopup()
 
-            const hideBtn = popup.querySelector('#hide-convoy-btn');
-            const showBtn = popup.querySelector('#show-convoy-btn');
-            const closeBtn = popup.querySelector('#close-convoy-btn');
-
-            function resolveTargetAndIndex() {
-                const el = document.querySelector(`.item-marker[data-type="convoy"][data-index="${index}"]`);
-                return { el, globalIndex: index };
-            }
-
-            hideBtn.addEventListener('click', () => {
-                const { el } = resolveTargetAndIndex();
-                if (!el) return;
-                el.style.opacity = '0.25';
-                // 同时隐藏对应的路线
-                const lines = document.querySelectorAll(`.convoy-route-line[data-index="${index}"]`);
-                lines.forEach(line => line.style.opacity = '0.25');
-            });
-
-            showBtn.addEventListener('click', () => {
-                const { el } = resolveTargetAndIndex();
-                if (!el) return;
-                el.style.opacity = '1';
-                // 同时显示对应的路线
-                const lines = document.querySelectorAll(`.convoy-route-line[data-index="${index}"]`);
-                lines.forEach(line => line.style.opacity = '1');
-            });
-
-            closeBtn.addEventListener('click', () => popup.remove());
-            popup.addEventListener('click', (e) => e.stopPropagation());
-            setTimeout(() => {
-                const closePopupHandler = (e) => {
-                    if (!popup.contains(e.target)) { popup.remove(); document.removeEventListener('click', closePopupHandler); }
-                };
-                document.addEventListener('click', closePopupHandler);
-            }, 50);
-
-            document.body.appendChild(popup);
-        }
-
-        // 车队终点弹窗
-        function showConvoyFinalPopup(item, index) {
-            const title = `🏁 车队终点 #${index + 1}`;
-            const content = `这是车队可能到达的终点位置之一。车队走完路线后，将随机选择一个终点位置继续行驶，并在抵达该位置后消失。<br><br>您可以在车队路线上拦截车队，或者在终点等候车队到达。`;
-            
-            const popup = document.createElement('div');
-            popup.className = 'convoy-final-popup';
-            popup.style.cssText = `
-                position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-                background: #fff; border: 3px solid #4CAF50; border-radius: 12px; padding: 18px;
-                z-index: 10000; max-width: 520px; max-height: 80vh; box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-                font-family: Arial, sans-serif; text-align: left; overflow-y: auto;`;
-
-            popup.innerHTML = `
-                <div style="margin-bottom: 14px; font-size: 20px; font-weight: bold; color: #388E3C; text-align:center;">${title}</div>
-                <div style="margin: 10px 0; padding: 10px; background: #E8F5E8; border-radius: 8px; color: #3e2723; font-size: 13px; line-height: 1.6;">
-                    ${content}
-                </div>
-                <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px;">
-                    <button id="hide-convoy-final-btn" style="padding: 10px 18px; background: #4CAF50; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">隐藏</button>
-                    <button id="show-convoy-final-btn" style="padding: 10px 18px; background: #2196F3; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">显示</button>
-                    <button id="close-convoy-final-btn" style="padding: 10px 18px; background: #4CAF50; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">关闭</button>
-                </div>
-            `;
-
-            const hideBtn = popup.querySelector('#hide-convoy-final-btn');
-            const showBtn = popup.querySelector('#show-convoy-final-btn');
-            const closeBtn = popup.querySelector('#close-convoy-final-btn');
-
-            function resolveTargetAndIndex() {
-                const el = document.querySelector(`.item-marker[data-type="convoy_final"][data-index="${index}"]`);
-                return { el, globalIndex: index };
-            }
-
-            hideBtn.addEventListener('click', () => {
-                const { el } = resolveTargetAndIndex();
-                if (!el) return;
-                el.style.opacity = '0.25';
-            });
-
-            showBtn.addEventListener('click', () => {
-                const { el } = resolveTargetAndIndex();
-                if (!el) return;
-                el.style.opacity = '1';
-            });
-
-            closeBtn.addEventListener('click', () => popup.remove());
-            popup.addEventListener('click', (e) => e.stopPropagation());
-            setTimeout(() => {
-                const closePopupHandler = (e) => {
-                    if (!popup.contains(e.target)) { popup.remove(); document.removeEventListener('click', closePopupHandler); }
-                };
-                document.addEventListener('click', closePopupHandler);
-            }, 50);
-
-            document.body.appendChild(popup);
-        }
-
-        // 装甲运钞车弹窗
-        function showArmoredTruckPopup(item, index) {
-            const title = `💰 装甲运钞车 #${index + 1}`;
-            const content = `使用黏弹炸开运钞车的后门以获取里面的现金——25.000 GTA$和1.000 RP。`;
-            const imageUrl = 'https://gta-maps.antwen.com/collectibles_images/armored_truck/armored_truck.webp';
-            
-            const popup = document.createElement('div');
-            popup.className = 'armored-truck-popup';
-            popup.style.cssText = `
-                position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-                background: #fff; border: 3px solid #9C27B0; border-radius: 12px; padding: 18px;
-                z-index: 10000; max-width: 520px; max-height: 80vh; box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-                font-family: Arial, sans-serif; text-align: left; overflow-y: auto;`;
-
-            popup.innerHTML = `
-                <div style="margin-bottom: 14px; font-size: 20px; font-weight: bold; color: #7B1FA2; text-align:center;">${title}</div>
-                <img src="${imageUrl}" alt="装甲运钞车图片" style="max-width: 100%; height: auto; border-radius: 6px; margin: 8px 0; display:block;"/>
-                <div style="margin: 10px 0; padding: 10px; background: #F3E5F5; border-radius: 8px; color: #3e2723; font-size: 13px; line-height: 1.6;">
-                    ${content}
-                </div>
-                <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px;">
-                    <button id="hide-armored-truck-btn" style="padding: 10px 18px; background: #4CAF50; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">隐藏</button>
-                    <button id="show-armored-truck-btn" style="padding: 10px 18px; background: #2196F3; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">显示</button>
-                    <button id="close-armored-truck-btn" style="padding: 10px 18px; background: #9C27B0; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">关闭</button>
-                </div>
-            `;
-
-            const hideBtn = popup.querySelector('#hide-armored-truck-btn');
-            const showBtn = popup.querySelector('#show-armored-truck-btn');
-            const closeBtn = popup.querySelector('#close-armored-truck-btn');
-
-            function resolveTargetAndIndex() {
-                const el = document.querySelector(`.item-marker[data-type="armored_truck"][data-index="${index}"]`);
-                return { el, globalIndex: index };
-            }
-
-            hideBtn.addEventListener('click', () => {
-                const { el } = resolveTargetAndIndex();
-                if (!el) return;
-                el.style.opacity = '0.25';
-            });
-
-            showBtn.addEventListener('click', () => {
-                const { el } = resolveTargetAndIndex();
-                if (!el) return;
-                el.style.opacity = '1';
-            });
-
-            closeBtn.addEventListener('click', () => popup.remove());
-            popup.addEventListener('click', (e) => e.stopPropagation());
-            setTimeout(() => {
-                const closePopupHandler = (e) => {
-                    if (!popup.contains(e.target)) { popup.remove(); document.removeEventListener('click', closePopupHandler); }
-                };
-                document.addEventListener('click', closePopupHandler);
-            }, 50);
-
-            document.body.appendChild(popup);
-        }
+        
 
         // 玛德拉索雇凶弹窗模板（含隐藏/显示联动与计数器、缓存集成）
         function showMadrazoHitsPopup(item, index) {
@@ -20570,94 +20291,7 @@
         }
 
         // 帕特里克救援 DOM 弹窗已迁移至简洁文本弹窗（使用 showSimpleInfoPopup）
-
-        // 随机任务弹窗
-        function showRandomMissionPopup(mission, timeSlot, index) {
-            if (!Array.isArray(mission) || mission.length < 4) return;
-            
-            const taskName = Array.isArray(mission[2]) ? mission[2][0] : mission[2];
-            const details = mission[3];
-            
-            if (!Array.isArray(details) || details.length < 3) return;
-            
-            const level = details[0];
-            const players = details[1];
-            const timeRange = details[2];
-            
-            const title = `🎲 随机任务 - ${taskName}`;
-            const content = `
-                <div style="margin-bottom: 10px;">
-                    <strong>任务名:</strong> ${taskName}
-                </div>
-                <div style="margin-bottom: 10px;">
-                    <strong>开放等级:</strong> ${level}
-                </div>
-                <div style="margin-bottom: 10px;">
-                    <strong>人数:</strong> ${players}
-                </div>
-                <div style="margin-bottom: 10px;">
-                    <strong>开放时间:</strong> ${timeRange}
-                </div>
-            `;
-            
-            const popup = document.createElement('div');
-            popup.className = 'random-mission-popup';
-            popup.style.cssText = `
-                position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-                background: #fff; border: 3px solid #9C27B0; border-radius: 12px; padding: 18px;
-                z-index: 10000; max-width: 520px; max-height: 80vh; box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-                font-family: Arial, sans-serif; text-align: left; overflow-y: auto;`;
-
-            popup.innerHTML = `
-                <div style="margin-bottom: 14px; font-size: 20px; font-weight: bold; color: #7B1FA2;">${title}</div>
-                <div style="margin: 10px 0; padding: 10px; background: #f3e5f5; border-radius: 8px; color: #4e342e; font-size: 14px; line-height: 1.6;">
-                    ${content}
-                </div>
-                <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px;">
-                    <button id="hide-random-mission-btn" style="padding: 10px 18px; background: #4CAF50; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">隐藏</button>
-                    <button id="show-random-mission-btn" style="padding: 10px 18px; background: #9C27B0; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">显示</button>
-                    <button id="close-random-mission-btn" style="padding: 10px 18px; background: #f44336; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">关闭</button>
-                </div>
-            `;
-
-            // 隐藏/显示/关闭按钮
-            const hideBtn = popup.querySelector('#hide-random-mission-btn');
-            const showBtn = popup.querySelector('#show-random-mission-btn');
-            const closeBtn = popup.querySelector('#close-random-mission-btn');
-
-            // 解析目标标记和索引
-            function resolveTargetAndIndex() {
-                const el = document.querySelector(`.item-marker[data-type="random_missions"][data-time-slot="${timeSlot}"][data-mission-index="${index}"]`);
-                return { el, globalIndex: index };
-            }
-
-            // 隐藏按钮：设置标记透明度为25%
-            hideBtn.addEventListener('click', () => {
-                const { el } = resolveTargetAndIndex();
-                if (!el) return;
-                el.style.opacity = '0.25';
-            });
-
-            // 显示按钮：恢复标记透明度为100%
-            showBtn.addEventListener('click', () => {
-                const { el } = resolveTargetAndIndex();
-                if (!el) return;
-                el.style.opacity = '1';
-            });
-
-            // 关闭按钮
-            closeBtn.addEventListener('click', () => popup.remove());
-            
-            popup.addEventListener('click', (e) => e.stopPropagation());
-            setTimeout(() => {
-                const closePopupHandler = (e) => {
-                    if (!popup.contains(e.target)) { popup.remove(); document.removeEventListener('click', closePopupHandler); }
-                };
-                document.addEventListener('click', closePopupHandler);
-            }, 50);
-
-            document.body.appendChild(popup);
-        }
+        // 随机任务 DOM 弹窗已迁移至 showSimpleInfoPopup()
 
         // 电影道具弹窗模板（含隐藏/显示联动与计数器、缓存集成）
         function showMoviePropsPopup(item, globalIndex, subtype) {
@@ -21655,84 +21289,9 @@
                     const attackIndex = itemData.gang_attacks.findIndex(attack => 
                         attack.x === nearbyAttack.x && attack.y === nearbyAttack.y
                     );
-                    showGangAttackPopup(nearbyAttack, attackIndex);
+                    showSimpleInfoPopup('gang_attacks', attackIndex);
                 }
             }
-        }
-
-        // 显示帮派攻击弹窗
-        function showGangAttackPopup(item, index) {
-            // 创建弹窗
-            const popup = document.createElement('div');
-            popup.className = 'gang-attack-popup';
-            popup.style.cssText = `
-                position: fixed;
-                top: 50%;
-                left: 50%;
-                transform: translate(-50%, -50%);
-                background: white;
-                border: 3px solid #ff0000;
-                border-radius: 12px;
-                padding: 20px;
-                z-index: 10000;
-                max-width: 400px;
-                max-height: 80vh;
-                box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-                font-family: Arial, sans-serif;
-                text-align: center;
-            `;
-
-            // 弹窗内容
-            popup.innerHTML = `
-                <div style="margin-bottom: 20px; font-size: 24px; font-weight: bold; color: #ff0000;">
-                    ⚔️ 帮派攻击
-                </div>
-                <div style="margin: 15px 0; padding: 15px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #ff0000;">
-                    <div style="font-weight: bold; color: #ff0000; margin-bottom: 8px; font-size: 16px;">⏰ 时间限制</div>
-                    <div style="color: #333; font-size: 18px; margin-bottom: 15px;">${item.time || '未知时间'}</div>
-                </div>
-                
-                <div style="margin: 15px 0; padding: 12px; background: #ffebee; border-radius: 6px; color: #c62828; font-size: 14px; line-height: 1.6;">
-                    🎯 <strong>帮派攻击事件</strong><br>
-                    • 在指定时间内前往该区域<br>
-                    • 与敌对帮派成员战斗<br>
-                    • 完成可获得<strong>经验值</strong>和<strong>游戏币奖励</strong><br>
-                    • 注意安全，准备充足的武器和弹药！
-                </div>
-                
-                <button id="close-gang-attack-popup-btn" 
-                        style="padding: 12px 24px; 
-                               background: #ff0000; color: white; 
-                               border: none; border-radius: 6px; 
-                               cursor: pointer; font-size: 16px;
-                               font-weight: bold;
-                               transition: background-color 0.3s;">
-                    关闭
-                </button>
-            `;
-
-            // 添加关闭按钮事件
-            const closeBtn = popup.querySelector('#close-gang-attack-popup-btn');
-            closeBtn.addEventListener('click', () => {
-                popup.remove();
-            });
-
-            // 点击弹窗外部关闭
-            popup.addEventListener('click', (e) => e.stopPropagation());
-            
-            // 使用setTimeout延迟添加document点击事件，避免立即触发
-            setTimeout(() => {
-                const closePopupHandler = (e) => {
-                    if (!popup.contains(e.target)) {
-                        popup.remove();
-                        document.removeEventListener('click', closePopupHandler);
-                    }
-                };
-                document.addEventListener('click', closePopupHandler);
-            }, 100);
-
-            // 添加到页面
-            document.body.appendChild(popup);
         }
 
         // 显示武器厢型车武器信息

@@ -282,7 +282,6 @@
                 min-width: 160px;
                 backdrop-filter: blur(6px);
             }
-
             .mobile-menu.show { display: flex; }
 
             .mobile-menu .nav-button,
@@ -349,6 +348,12 @@
         }
 
         /* 搜索框样式（匹配侧边栏风格） */
+        .item-search-wrapper {
+            position: sticky;
+            top: 0;
+            z-index: 5;
+            background: var(--gta-bg-medium);
+        }
         .item-search-wrapper input[type="text"] {
             width: 100%;
             box-sizing: border-box;
@@ -4346,6 +4351,18 @@
 
         // 简洁文本弹窗（无计数器、无隐藏/显示按钮；如有图片链接才显示图片）
         function showSimpleInfoPopup(type, index) {
+            // 特殊处理：车行类型 -> 直接显示车辆信息（采用简洁弹窗样式）
+            if (['casino','car_meet','premium_deluxe_motorsport','luxury_autos'].includes(type)) {
+                try {
+                    const name = (typeof dealershipData !== 'undefined' && dealershipData[type] && dealershipData[type].name)
+                        ? dealershipData[type].name
+                        : (window.itemData?.[type]?.[index]?.name || type);
+                    if (typeof showDealershipVehicles === 'function') {
+                        showDealershipVehicles(type, name);
+                        return;
+                    }
+                } catch (e) { /* ignore and fall through */ }
+            }
             const TYPE_LABELS = {
                 // 线下挑战与活动（已存在）
                 stock_car_racing: '改装车竞速',
@@ -4394,6 +4411,8 @@
                 gang_attacks: '帮派攻击',
                 wea: '威泽尔大楼枪战',
                 cerberus: '万圣节地狱犬事件',
+                halloween_slashers: '万圣节杀人狂',
+                possessed_animals: '鬼上身的动物',
                 // 事件与活动与地点
                 golf_holes: '高尔夫球洞',
                 community_outreach: '社区边界',
@@ -4423,6 +4442,11 @@
                 atms: 'ATM机',
                 vend_sprunk: '霜碧售卖机',
                 vend_ecola: '易可乐售卖机',
+                // 车行位置
+                casino: '赌场',
+                car_meet: '车友会',
+                premium_deluxe_motorsport: '西米恩',
+                luxury_autos: '豪华',
                 // 迁移的弹窗类型
                 random_missions: '随机任务',
                 drug_vehicle: '🚗 毒品载具',
@@ -4519,6 +4543,8 @@
                 wea: `该事件可以在晚上 800至次日早上 600之间触发。首次完成该活动，您将获得 1.000 RP，WM 29 手枪和 Mk 2 手枪的节日快乐涂装。再次完成该活动，您将获得25.000 GTA$和1.000 RP。`,
                 community_outreach: `该事件既没有任务目标，也没有完成奖励。不过，您可以藉此免费试驾非凡 艳妇 D10 追逐和威拉德 边界宗派。`,
                 store_robbery: `在 2 分钟内将被盗的现金还给商店，即可获得 20.000 GTA$ 与 2.500 RP 奖励。或者，您也可以选择将其据为己有：25.000 GTA$ 和 2 个通缉等级。`,
+                halloween_slashers: `杀人狂可能会在 早上 100至早上 600 之间出现在对应区域。每次出现都有 50% 的概率被克隆杀人狂替代。`,
+                possessed_animals: `鬼上身的动物在晚上 800至次日早上 100之间活跃。`,
                 convoy: `车队从起始点出发，沿着红色路线行驶。车队走完路线后，将随机选择一个终点位置继续行驶，并在抵达该位置后消失。<br><br>偷取车队载具并将其送至您的产业，您将获得原材料补给和 1.000 RP。<br><br>每个地点分别对应不同的载具与产业。<br><br>如果您没有对应的产业，可以把目标载具送至指定投放点，您将获得 25.000 GTA$ 与 1.000 RP。`,
                 convoy_final: `这是车队可能到达的终点位置之一。车队走完路线后，将随机选择一个终点位置继续行驶，并在抵达该位置后消失。<br><br>您可以在车队路线上拦截车队，或者在终点等候车队到达。`,
                 armored_truck: `使用黏弹炸开运钞车的后门以获取里面的现金——25.000 GTA$和1.000 RP。`,
@@ -4548,6 +4574,7 @@
                 yeti_award: 'https://gta-maps.antwen.com/collectibles_images/yeti/yeti_award.webp',
                 // 事件与活动
                 wea: 'https://gta-maps.antwen.com/collectibles_images/wea/wea.webp',
+                halloween_slashers: 'https://gta-maps.antwen.com/collectibles_images/halloween_slashers/halloween_slashers.webp',
                 community_outreach: 'https://gta-maps.antwen.com/collectibles_images/community_outreach/community_outreach_x.webp',
                 golf_holes: 'https://gta-maps.antwen.com/collectibles_images/golf_holes/golf_holes_x.webp',
                 store_robbery: 'https://gta-maps.antwen.com/collectibles_images/store_robbery/store_robbery.webp',
@@ -4625,6 +4652,36 @@
                     label = '雪怪';
                     title = `${label}${sequenceNumber}`;
                 }
+            }
+
+            // 特殊处理：万圣节杀人狂（动态标题，不使用序号）
+            if (type === 'halloween_slashers' && typeof index === 'number') {
+                const list = (window.itemData && Array.isArray(window.itemData.halloween_slashers)) ? window.itemData.halloween_slashers : [];
+                const it = list[index] || {};
+                label = '万圣节杀人狂';
+                sequenceNumber = '';
+                const kind = it.type || 'slasher';
+                title = `🎃 ${kind}`;
+                // 保持图片为统一的 halloween_slashers.webp（已在 TYPE_IMAGES 配置）
+            }
+
+            // 特殊处理：鬼上身的动物（动态标题与图片）
+            if (type === 'possessed_animals' && typeof index === 'number') {
+                const list = (window.itemData && Array.isArray(window.itemData.possessed_animals)) ? window.itemData.possessed_animals : [];
+                const it = list[index] || {};
+                const animalType = it.animalType || it.type || 'boar';
+                const animalName = animalType === 'boar' ? '野猪' :
+                                   animalType === 'cougar' ? '美洲狮' :
+                                   animalType === 'coyote' ? '郊狼' :
+                                   animalType === 'deer' ? '鹿' :
+                                   animalType === 'pug' ? '哈巴狗' : animalType;
+                label = '鬼上身的动物';
+                sequenceNumber = '';
+                title = `🐺 ${animalName}`;
+                // 动态图片，仅对cougar使用专属图，其余沿用野猪图（与旧实现一致）
+                imageUrl = animalType === 'cougar'
+                    ? 'https://gta-maps.antwen.com/collectibles_images/possessed_animals/possessed_animals_cougar.webp'
+                    : 'https://gta-maps.antwen.com/collectibles_images/possessed_animals/possessed_animals_boar.webp';
             }
 
             // 特殊处理：帮派攻击（显示时间与说明，无图片）
@@ -4745,6 +4802,20 @@
                 content = descMap[type] || `${type}位置信息。<br><br>${baseInfo}${labelInfo}`;
             }
 
+            // 特殊处理：车行位置（casino/car_meet/premium_deluxe_motorsport/luxury_autos）
+            if (['casino','car_meet','premium_deluxe_motorsport','luxury_autos'].includes(type) && typeof index === 'number') {
+                try {
+                    const ds = (typeof dealershipData !== 'undefined') ? dealershipData[type] : null;
+                    const coords = Array.isArray(ds?.coordinates) ? ds.coordinates[index] : null;
+                    if (coords && coords.length >= 2) {
+                        const baseInfo = `坐标: ${coords[0]}, ${coords[1]}`;
+                        const nameInfo = ds?.name ? `<br><br>名称: ${ds.name}` : '';
+                        content = `${baseInfo}${nameInfo}`;
+                        imageUrl = null;
+                    }
+                } catch (e) { /* ignore */ }
+            }
+
             const existing = document.querySelector(`.simple-info-popup-${type}`);
             if (existing) existing.remove();
 
@@ -4756,23 +4827,25 @@
                 border: 1px solid var(--gta-border);
                 border-radius: 8px; box-shadow: 0 2px 15px rgba(0,0,0,0.5);
                 padding: 16px; z-index: 10000; width: min(92vw, 540px); max-height: 80vh;
-                color: var(--gta-text); overflow-y: auto;`;
+                color: var(--gta-text); overflow-y: auto; text-align: center; line-height: 1.6;`;
 
-            const imgHtml = imageUrl ? `<img src="${imageUrl}" alt="${label}" class="simple-popup-image" style="max-width:100%;height:auto;border-radius:6px;margin:8px 0;display:block;cursor: zoom-in;"/>` : '';
+            const imgHtml = imageUrl ? `<img src="${imageUrl}" alt="${label}" class="simple-popup-image" style="max-width:100%;height:auto;border-radius:6px;margin:8px auto;display:block;cursor: zoom-in;"/>` : '';
             const contentHtml = content ? `
-                <div style="padding: 8px 10px; background: rgba(33,150,243,0.08); border: 1px solid var(--gta-border); border-radius: 6px;">
+                <div style="padding: 8px 10px; background: rgba(33,150,243,0.08); border: 1px solid var(--gta-border); border-radius: 6px; text-align: center;">
                     <div style="white-space: normal; line-height:1.7;">${content}</div>
                 </div>
             ` : '';
+            const actionButtonsHtml = "";
 
             popup.innerHTML = `
-                <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;position:relative;">
+                <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:10px;position:relative;">
                     <h3 style="color: var(--gta-primary); font-size: 18px; margin: 0; font-weight: 700;">${title}</h3>
                     <span class="popup-close" style="position:absolute;right:0;top:0;cursor:pointer;color:var(--gta-text-secondary);font-size:20px;">×</span>
                 </div>
                 ${imgHtml}
                 ${contentHtml}
                 <div style="margin-top: 14px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
+                    ${actionButtonsHtml}
                     <button class="close-btn" style="padding: 8px 16px; background: var(--gta-primary); color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 500;">关闭</button>
                 </div>
             `;
@@ -4789,6 +4862,8 @@
             const removePopup = () => popup.remove();
             closeBtn && closeBtn.addEventListener('click', removePopup);
             popupClose && popupClose.addEventListener('click', removePopup);
+
+            // 无额外按钮
 
             // 绑定：雪怪套装链接，打开奖励弹窗
             const awardLinkEl = popup.querySelector('#yeti-award-link');
@@ -10224,7 +10299,7 @@
                 
                 // 为圆形和图标都添加点击事件
                 const clickHandler = function(e) {
-                    showHalloweenSlasherPopup(item, index);
+                    showSimpleInfoPopup('halloween_slashers', index);
                 };
                 
                 circle.on('click', clickHandler);
@@ -10282,7 +10357,7 @@
                 
                 // 为圆形和图标都添加点击事件
                 const clickHandler = function(e) {
-                    showPossessedAnimalPopup(item, index);
+                    showSimpleInfoPopup('possessed_animals', index);
                 };
                 
                 circle.on('click', clickHandler);
@@ -11230,9 +11305,9 @@
                 ].includes(type)) {
                     showSimpleInfoPopup(type, index);
                 }
-                // 特殊处理车行标记，使用专门的车辆展示函数
+                // 特殊处理车行标记，统一入口至 showSimpleInfoPopup（内部委托原有车辆弹窗）
                 else if (['casino', 'car_meet', 'premium_deluxe_motorsport', 'luxury_autos'].includes(type)) {
-                    showDealershipVehicles(type, item.name);
+                    showSimpleInfoPopup(type, index);
                 }
                 // 特殊处理treasure_hunt_dba_revolver（按随机/固定展示）
                 else if (type === 'treasure_hunt_dba_revolver') {
@@ -11324,9 +11399,9 @@
                 else if (type === 'cerberus') {
                     showSimpleInfoPopup('cerberus', index);
                 }
-                // 新增：特殊处理地点与服务类型，使用通用弹窗
+                // 新增：特殊处理地点与服务类型，迁移至统一的简单弹窗
                 else if (['metro', 'police', 'fire_stations', 'hospitals', 'clothing', 'tattoos', 'barbers', 'ammunation', 'mod_shop', 'car_wash', 'shops_to_rob', 'gas_stations', 'atms', 'vend_sprunk', 'vend_ecola'].includes(type)) {
-                    showNewItemPopup(type, item, index);
+                    showSimpleInfoPopup(type, index);
                 }
                 else {
                     showItemInfo(item, type, index);
@@ -13105,34 +13180,22 @@
             }
         }
         
-        // 显示车辆弹窗
+        // 显示车辆弹窗（采用简洁弹窗样式）
         function showVehiclePopup(vehicles, dealershipName, vehicleTypes) {
-
-
-            
             const popup = document.createElement('div');
             popup.className = 'vehicle-popup';
             popup.style.cssText = `
-                position: fixed;
-                top: 50%;
-                left: 50%;
-                transform: translate(-50%, -50%);
-                background: white;
-                border: 3px solid #FFD700;
-                border-radius: 15px;
-                padding: 25px;
-                z-index: 10000;
-                max-width: 800px;
-                max-height: 80vh;
-                overflow-y: auto;
-                box-shadow: 0 10px 40px rgba(0,0,0,0.3);
-                font-family: Arial, sans-serif;
-                text-align: center;
-            `;
-            
+                position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+                background: var(--gta-bg-medium);
+                border: 1px solid var(--gta-border);
+                border-radius: 8px; box-shadow: 0 2px 15px rgba(0,0,0,0.5);
+                padding: 16px; z-index: 10000; width: min(92vw, 800px); max-height: 80vh;
+                color: var(--gta-text); overflow-y: auto; text-align: center; line-height: 1.6;`;
+
             let popupContent = `
-                <div style="margin-bottom: 20px; font-size: 24px; font-weight: bold; color: #333; border-bottom: 2px solid #FFD700; padding-bottom: 10px;">
-                    🏦 ${dealershipName}车行
+                <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:10px;position:relative;">
+                    <h3 style="color: var(--gta-primary); font-size: 18px; margin: 0; font-weight: 700;">🏦 ${dealershipName}车行</h3>
+                    <span class="popup-close" style="position:absolute;right:0;top:0;cursor:pointer;color:var(--gta-text-secondary);font-size:20px;">×</span>
                 </div>
             `;
             
@@ -13148,59 +13211,77 @@
                 } else if (vehicle.liveryPrice) {
                     liveryPriceDisplay = `<span style="color: #4caf50; font-weight: bold;">涂装价格: ${vehicle.liveryPrice}</span>`;
                 }
+                const statusText = vehicle.isPurchaseable ? '可购买' : '不可购买';
+                const statusColor = vehicle.isPurchaseable ? 'var(--gta-text)' : '#f44336';
+                // 车友会标题按类型显示
+                const isCarMeet = (dealershipName || '').includes('车友会');
+                let vehicleTitle = vehicle.name || '未知车辆';
+                if (isCarMeet) {
+                    const vt = (vehicleType || '').toString();
+                    let typeCode = '';
+                    if (/奖品/.test(vt)) typeCode = 'prize_ride';
+                    else if (/HSW/i.test(vt)) typeCode = 'hao';
+                    else if (/测试/.test(vt)) typeCode = 'test';
+                    switch (typeCode) {
+                        case 'prize_ride':
+                            vehicleTitle = `奖品载具：${vehicle.name || '未知车辆'}`;
+                            break;
+                        case 'test':
+                            vehicleTitle = `测试载具：${vehicle.name || '未知车辆'}`;
+                            break;
+                        case 'hao':
+                            vehicleTitle = `阿浩测试载具：${vehicle.name || '未知车辆'}`;
+                            break;
+                        default:
+                            break;
+                    }
+                }
                 
                 popupContent += `
-                    <div style="margin: 20px 0; padding: 20px; background: #f8f9fa; border-radius: 10px; border-left: 4px solid #FFD700;">
-                        <div style="font-weight: bold; color: #333; margin-bottom: 10px; font-size: 18px;">
-                            🚗 ${vehicleType}
-                        </div>
-                        <div style="color: #333; font-size: 20px; font-weight: bold; margin-bottom: 15px;">
-                            ${vehicle.name || '未知车辆'}
+                    <div style="margin: 12px 0; padding: 12px; background: rgba(33,150,243,0.08); border: 1px solid var(--gta-border); border-radius: 6px; text-align: center;">
+
+                        <div style="color: var(--gta-text); font-size: 18px; font-weight: 700; margin-bottom: 12px;">
+                            ${vehicleTitle}
                         </div>
                         ${imageUrl ? `
                             <img src="${imageUrl}" 
                                  alt="${vehicle.name}" 
-                                 style="max-width: 100%; max-height: 300px; border-radius: 8px; margin-bottom: 15px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+                                 class="vehicle-popup-image"
+                                 style="max-width: 100%; max-height: 320px; border-radius: 6px; margin: 0 auto 12px; border: 1px solid var(--gta-border); cursor: zoom-in; display: block;">
                         ` : ''}
-                        <div style="margin: 10px 0; display: flex; justify-content: space-around; flex-wrap: wrap; gap: 10px;">
-                            <div style="background: white; padding: 8px 12px; border-radius: 6px; border: 1px solid #ddd;">
+                        <div style="margin: 8px 0; display: flex; justify-content: center; flex-wrap: nowrap; gap: 12px; overflow-x: auto;">
+                            <div style="background: var(--gta-bg-medium); padding: 8px 12px; border-radius: 6px; border: 1px solid var(--gta-border); color: var(--gta-text);">
                                 <strong>车类:</strong> ${vehicle.class || '未知'}
                             </div>
-                            <div style="background: white; padding: 8px 12px; border-radius: 6px; border: 1px solid #ddd;">
+                            <div style="background: var(--gta-bg-medium); padding: 8px 12px; border-radius: 6px; border: 1px solid var(--gta-border); color: var(--gta-text);">
                                 <strong>价格:</strong> ${vehicle.price || '未知'}
                             </div>
-                            <div style="background: white; padding: 8px 12px; border-radius: 6px; border: 1px solid #ddd;">
-                                <strong>状态:</strong> ${vehicle.isPurchaseable ? '可购买' : '不可购买'}
+                            <div style="background: var(--gta-bg-medium); padding: 8px 12px; border-radius: 6px; border: 1px solid var(--gta-border); color: var(--gta-text);">
+                                <strong>状态:</strong> <span style="color: ${statusColor};">${statusText}</span>
                             </div>
+                            ${detailUrl ? `
+                                <a href="${detailUrl}" target="_blank" 
+                                   style="display: inline-block; padding: 8px 14px; 
+                                          background: var(--gta-primary); color: #fff; text-decoration: none; 
+                                          border-radius: 6px; font-weight: 600;">
+                                    🔍 车辆详细信息
+                                </a>
+                            ` : ''}
                         </div>
                         ${vehicle.liveryName ? `
-                            <div style="margin: 10px 0; padding: 10px; background: white; border-radius: 6px; border: 1px solid #ddd;">
+                            <div style="margin: 8px 0; padding: 10px; background: var(--gta-bg-medium); border-radius: 6px; border: 1px solid var(--gta-border); color: var(--gta-text);">
                                 <strong>涂装:</strong> ${vehicle.liveryName}<br>
                                 ${liveryPriceDisplay}
                             </div>
-                        ` : ''}
-                        ${detailUrl ? `
-                            <a href="${detailUrl}" target="_blank" 
-                               style="display: inline-block; margin-top: 10px; padding: 10px 20px; 
-                                      background: #2196F3; color: white; text-decoration: none; 
-                                      border-radius: 6px; font-weight: bold; transition: background 0.3s;"
-                               onmouseover="this.style.background='#1976D2'" 
-                               onmouseout="this.style.background='#2196F3'">
-                                🔍 车辆详细信息
-                            </a>
                         ` : ''}
                     </div>
                 `;
             });
             
             popupContent += `
-                <div style="margin-top: 20px; display: flex; justify-content: center; gap: 10px;">
+                <div style="margin-top: 14px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
                     <button id="close-vehicle-popup" 
-                            style="padding: 12px 24px; 
-                                   background: #f44336; color: white; 
-                                   border: none; border-radius: 6px; 
-                                   cursor: pointer; font-size: 16px;
-                                   font-weight: bold; transition: background 0.3s;">
+                            style="padding: 8px 16px; background: var(--gta-primary); color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 500;">
                         关闭
                     </button>
                 </div>
@@ -13208,10 +13289,10 @@
             
             popup.innerHTML = popupContent;
             
-            // 添加关闭按钮事件监听
-            popup.querySelector('#close-vehicle-popup').addEventListener('click', () => {
-                popup.remove();
-            });
+            // 关闭按钮与右上角关闭
+            popup.querySelector('#close-vehicle-popup').addEventListener('click', () => popup.remove());
+            const popupClose = popup.querySelector('.popup-close');
+            if (popupClose) popupClose.addEventListener('click', () => popup.remove());
             
             // 添加到页面
             document.body.appendChild(popup);
@@ -13219,16 +13300,49 @@
             // 点击弹窗外部关闭
             popup.addEventListener('click', (e) => e.stopPropagation());
             
-            // 使用setTimeout延迟添加document点击事件，避免立即触发
+            // 点击弹窗外部关闭（与简洁弹窗一致，并避免覆盖层点击关闭）
             setTimeout(() => {
-                const closePopupHandler = (e) => {
+                const onDoc = (e) => {
+                    const overlayEl = document.querySelector('.simple-image-overlay');
+                    if (overlayEl && overlayEl.contains(e.target)) return;
                     if (!popup.contains(e.target)) {
                         popup.remove();
-                        document.removeEventListener('click', closePopupHandler);
+                        document.removeEventListener('click', onDoc);
                     }
                 };
-                document.addEventListener('click', closePopupHandler);
-            }, 100);
+                document.addEventListener('click', onDoc);
+            }, 20);
+
+            // 图片点击放大（沿用简洁弹窗覆盖层）
+            const imgEls = popup.querySelectorAll('.vehicle-popup-image');
+            imgEls.forEach((imgEl) => {
+                imgEl.addEventListener('click', () => {
+                    const existing = document.querySelector('.simple-image-overlay');
+                    if (existing) existing.remove();
+                    const overlay = document.createElement('div');
+                    overlay.className = 'simple-image-overlay';
+                    overlay.style.cssText = `
+                        position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+                        display: flex; align-items: center; justify-content: center; z-index: 10050;`;
+                    overlay.innerHTML = `
+                        <img src="${imgEl.src}" alt="${imgEl.alt || ''}" style="max-width: 96vw; max-height: 96vh; border-radius: 8px; box-shadow: 0 10px 40px rgba(0,0,0,0.6); cursor: zoom-out;" />
+                        <span class="overlay-close" style="position: fixed; top: 12px; right: 16px; color: #fff; font-size: 28px; cursor: pointer; user-select: none;">×</span>
+                    `;
+                    document.body.appendChild(overlay);
+                    const closeOverlay = () => {
+                        document.removeEventListener('keydown', onKeyDown);
+                        overlay.remove();
+                    };
+                    const onKeyDown = (e) => { if (e.key === 'Escape') closeOverlay(); };
+                    document.addEventListener('keydown', onKeyDown);
+                    overlay.addEventListener('click', (e) => {
+                        const target = e.target;
+                        if (target === overlay || (target && (target.classList?.contains('overlay-close') || target.tagName?.toLowerCase() === 'img'))) {
+                            closeOverlay();
+                        }
+                    });
+                });
+            });
         }
 
         // 检查特技跳跃点点击事件（用于标记元素直接点击）
@@ -17826,22 +17940,14 @@
             
             // 检查当前是否显示车行（支持多选）
             if (activeItemTypes.has('dealerships')) {
-                // 已迁移到Leaflet的车行类型，跳过DOM点击检测（由Leaflet处理）
-                const migratedDealerships = ['casino', 'car_meet', 'premium_deluxe_motorsport', 'luxury_autos'];
-                
-                // 遍历所有车行坐标进行检测
+                // 遍历所有车行坐标进行检测（包括已迁移到Leaflet的 4 个车行）
                 Object.keys(dealershipData).forEach(dealershipType => {
-                    // 跳过已迁移的车行类型
-                    if (migratedDealerships.includes(dealershipType)) {
-                        return;
-                    }
-                    
                     const dealership = dealershipData[dealershipType];
-                    dealership.coordinates.forEach(coord => {
+                    dealership.coordinates.forEach((coord, idx) => {
                         const distance = Math.sqrt(Math.pow(coord[0] - clickX, 2) + Math.pow(coord[1] - clickY, 2));
                         if (distance <= DEALERSHIP_RADIUS) {
-
-                            showDealershipVehicles(dealershipType, dealership.name);
+                            // 统一入口：委托 showSimpleInfoPopup，内部再调用原车辆弹窗
+                            showSimpleInfoPopup(dealershipType, idx);
                         }
                     });
                 });
@@ -18447,7 +18553,7 @@
                         animal.x === nearbyAnimal.x && animal.y === nearbyAnimal.y && 
                         animal.type === nearbyAnimal.type && animal.animalType === nearbyAnimal.animalType
                     );
-                    showPossessedAnimalPopup(nearbyAnimal, animalIndex);
+                    showSimpleInfoPopup('possessed_animals', animalIndex);
                     return; // 找到鬼上身动物，停止后续检测
                 }
             }
@@ -18617,11 +18723,8 @@
                         const itemIndex = itemData[type].findIndex(item => 
                             item.x === nearbyItem.x && item.y === nearbyItem.y
                         );
-                        if (type === 'v_telescopes') {
-                            showSimpleInfoPopup('v_telescopes', itemIndex);
-                        } else {
-                            showNewItemPopup(type, nearbyItem, itemIndex);
-                        }
+                        // 统一：服务类地点与设施全部使用简单弹窗
+                        showSimpleInfoPopup(type, itemIndex);
                         return; // 找到物品，停止后续检测
                     }
                 }
@@ -19027,204 +19130,9 @@
             return false;
         }
 
-        // 万圣节杀人狂弹窗
-        function showHalloweenSlasherPopup(item, index) {
-            const title = `🎃 ${item.type}`;
-            const content = `杀人狂可能会在 早上 100至早上 600 之间出现在对应区域。每次出现都有 50% 的概率被克隆杀人狂替代。`;
-            const imageUrl = 'https://gta-maps.antwen.com/collectibles_images/halloween_slashers/halloween_slashers.webp';
-            
-            // 为不同种类的杀人狂设置不同的颜色
-            let borderColor, titleColor, bgColor;
-            switch(item.type) {
-                case 'clown':
-                    borderColor = '#FF9800'; // 橙色
-                    titleColor = '#E65100';
-                    bgColor = '#FFF3E0';
-                    break;
-                case 'psycho':
-                    borderColor = '#F44336'; // 红色
-                    titleColor = '#C62828';
-                    bgColor = '#FFEBEE';
-                    break;
-                case 'driver':
-                    borderColor = '#9C27B0'; // 紫色
-                    titleColor = '#7B1FA2';
-                    bgColor = '#F3E5F5';
-                    break;
-                case 'sackslasher':
-                    borderColor = '#607D8B'; // 蓝灰色
-                    titleColor = '#37474F';
-                    bgColor = '#ECEFF1';
-                    break;
-                default:
-                    borderColor = '#795548'; // 棕色
-                    titleColor = '#5D4037';
-                    bgColor = '#EFEBE9';
-            }
-            
-            const popup = document.createElement('div');
-            popup.className = 'halloween-slasher-popup';
-            popup.style.cssText = `
-                position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-                background: #fff; border: 3px solid ${borderColor}; border-radius: 12px; padding: 18px;
-                z-index: 10000; max-width: 520px; max-height: 80vh; box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-                font-family: Arial, sans-serif; text-align: left; overflow-y: auto;`;
+        // 万圣节杀人狂 DOM 弹窗已迁移至 showSimpleInfoPopup()
 
-            popup.innerHTML = `
-                <div style="margin-bottom: 14px; font-size: 20px; font-weight: bold; color: ${titleColor}; text-align:center;">${title}</div>
-                <img src="${imageUrl}" alt="万圣节杀人狂图片" style="max-width: 100%; height: auto; border-radius: 6px; margin: 8px 0; display:block;"/>
-                <div style="margin: 10px 0; padding: 10px; background: ${bgColor}; border-radius: 8px; color: ${titleColor}; font-size: 13px; line-height: 1.6;">
-                    ${content}
-                </div>
-                <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px;">
-                    <button id="hide-halloween-slasher-btn" style="padding: 10px 18px; background: #4CAF50; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">隐藏</button>
-                    <button id="show-halloween-slasher-btn" style="padding: 10px 18px; background: #2196F3; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">显示</button>
-                    <button id="close-halloween-slasher-btn" style="padding: 10px 18px; background: #f44336; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">关闭</button>
-                </div>
-            `;
-
-            const hideBtn = popup.querySelector('#hide-halloween-slasher-btn');
-            const showBtn = popup.querySelector('#show-halloween-slasher-btn');
-            const closeBtn = popup.querySelector('#close-halloween-slasher-btn');
-
-            function resolveTargetAndIndex() {
-                const el = document.querySelector(`.item-marker[data-type="halloween_slashers"][data-index="${index}"]`);
-                return { el, globalIndex: index };
-            }
-
-            hideBtn.addEventListener('click', () => {
-                const { el } = resolveTargetAndIndex();
-                if (!el) return;
-                el.style.opacity = '0.25';
-            });
-
-            showBtn.addEventListener('click', () => {
-                const { el } = resolveTargetAndIndex();
-                if (!el) return;
-                el.style.opacity = '1';
-            });
-
-            closeBtn.addEventListener('click', () => popup.remove());
-            popup.addEventListener('click', (e) => e.stopPropagation());
-            setTimeout(() => {
-                const closePopupHandler = (e) => {
-                    if (!popup.contains(e.target)) { popup.remove(); document.removeEventListener('click', closePopupHandler); }
-                };
-                document.addEventListener('click', closePopupHandler);
-            }, 50);
-
-            document.body.appendChild(popup);
-        }
-
-        // 鬼上身动物弹窗
-        function showPossessedAnimalPopup(item, index) {
-            const animalName = item.animalType === 'boar' ? '野猪' : 
-                              item.animalType === 'cougar' ? '美洲狮' : 
-                              item.animalType === 'coyote' ? '郊狼' : 
-                              item.animalType === 'deer' ? '鹿' : 
-                              item.animalType === 'pug' ? '哈巴狗' : 
-                              item.animalType;
-            const title = `🐺 ${animalName}`;
-            const content = `鬼上身的动物在晚上 800至次日早上 100之间活跃。`;
-            
-            // 根据动物类型选择图片
-            let imageUrl;
-            if (item.animalType === 'boar') {
-                imageUrl = 'https://gta-maps.antwen.com/collectibles_images/possessed_animals/possessed_animals_boar.webp';
-            } else if (item.animalType === 'cougar') {
-                imageUrl = 'https://gta-maps.antwen.com/collectibles_images/possessed_animals/possessed_animals_cougar.webp';
-            } else {
-                // 默认使用野猪图片
-                imageUrl = 'https://gta-maps.antwen.com/collectibles_images/possessed_animals/possessed_animals_boar.webp';
-            }
-            
-            // 为不同种类的动物设置不同的颜色
-            let borderColor, titleColor, bgColor;
-            switch(item.animalType) {
-                case 'boar':
-                    borderColor = '#8D6E63'; // 棕色
-                    titleColor = '#5D4037';
-                    bgColor = '#EFEBE9';
-                    break;
-                case 'cougar':
-                    borderColor = '#FF5722'; // 橙红色
-                    titleColor = '#D84315';
-                    bgColor = '#FFF3E0';
-                    break;
-                case 'coyote':
-                    borderColor = '#795548'; // 深棕色
-                    titleColor = '#4E342E';
-                    bgColor = '#F3E5F5';
-                    break;
-                case 'deer':
-                    borderColor = '#4CAF50'; // 绿色
-                    titleColor = '#2E7D32';
-                    bgColor = '#E8F5E8';
-                    break;
-                case 'pug':
-                    borderColor = '#9C27B0'; // 紫色
-                    titleColor = '#6A1B9A';
-                    bgColor = '#F3E5F5';
-                    break;
-                default:
-                    borderColor = '#607D8B'; // 蓝灰色
-                    titleColor = '#37474F';
-                    bgColor = '#ECEFF1';
-            }
-            
-            const popup = document.createElement('div');
-            popup.className = 'possessed-animal-popup';
-            popup.style.cssText = `
-                position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-                background: #fff; border: 3px solid ${borderColor}; border-radius: 12px; padding: 18px;
-                z-index: 10000; max-width: 520px; max-height: 80vh; box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-                font-family: Arial, sans-serif; text-align: left; overflow-y: auto;`;
-
-            popup.innerHTML = `
-                <div style="margin-bottom: 14px; font-size: 20px; font-weight: bold; color: ${titleColor}; text-align:center;">${title}</div>
-                <img src="${imageUrl}" alt="鬼上身动物图片" style="max-width: 100%; height: auto; border-radius: 6px; margin: 8px 0; display:block;"/>
-                <div style="margin: 10px 0; padding: 10px; background: ${bgColor}; border-radius: 8px; color: ${titleColor}; font-size: 13px; line-height: 1.6;">
-                    ${content}
-                </div>
-                <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px;">
-                    <button id="hide-possessed-animal-btn" style="padding: 10px 18px; background: #4CAF50; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">隐藏</button>
-                    <button id="show-possessed-animal-btn" style="padding: 10px 18px; background: #2196F3; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">显示</button>
-                    <button id="close-possessed-animal-btn" style="padding: 10px 18px; background: #f44336; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">关闭</button>
-                </div>
-            `;
-
-            const hideBtn = popup.querySelector('#hide-possessed-animal-btn');
-            const showBtn = popup.querySelector('#show-possessed-animal-btn');
-            const closeBtn = popup.querySelector('#close-possessed-animal-btn');
-
-            function resolveTargetAndIndex() {
-                const el = document.querySelector(`.item-marker[data-type="possessed_animals"][data-index="${index}"]`);
-                return { el, globalIndex: index };
-            }
-
-            hideBtn.addEventListener('click', () => {
-                const { el } = resolveTargetAndIndex();
-                if (!el) return;
-                el.style.opacity = '0.25';
-            });
-
-            showBtn.addEventListener('click', () => {
-                const { el } = resolveTargetAndIndex();
-                if (!el) return;
-                el.style.opacity = '1';
-            });
-
-            closeBtn.addEventListener('click', () => popup.remove());
-            popup.addEventListener('click', (e) => e.stopPropagation());
-            setTimeout(() => {
-                const closePopupHandler = (e) => {
-                    if (!popup.contains(e.target)) { popup.remove(); document.removeEventListener('click', closePopupHandler); }
-                };
-                document.addEventListener('click', closePopupHandler);
-            }, 50);
-
-            document.body.appendChild(popup);
-        }
+        // 鬼上身的动物 DOM 弹窗已迁移至 showSimpleInfoPopup()
 
         // 地狱犬弹窗
         function showCerberusPopup(item, index) {
@@ -19761,134 +19669,9 @@
             return false;
         }
 
-        // 新物品弹窗（地铁站、警察局、望远镜、消防局、医院）
-        function showNewItemPopup(type, item, index) {
+        // 地点与服务类 DOM 弹窗已迁移至 showSimpleInfoPopup()
 
-            
-            const typeNames = {
-                metro: { name: '地铁站', emoji: '🚇', color: '#2196F3' },
-                police: { name: '警察局', emoji: '🚔', color: '#2196F3' },
-                v_telescopes: { name: '望远镜', emoji: '🔭', color: '#9C27B0' },
-                fire_stations: { name: '消防局', emoji: '🚒', color: '#f44336' },
-                hospitals: { name: '医院', emoji: '🏥', color: '#4CAF50' },
-                clothing: { name: '服装店', emoji: '👕', color: '#FF9800' },
-                tattoos: { name: '纹身店', emoji: '🎨', color: '#E91E63' },
-                barbers: { name: '理发店', emoji: '💇', color: '#795548' },
-                ammunation: { name: '武装国度', emoji: '🔫', color: '#FF5722' },
-                mod_shop: { name: '洛圣都改车王', emoji: '🔧', color: '#607D8B' },
-                car_wash: { name: '洗车店', emoji: '🧽', color: '#00BCD4' },
-                shops_to_rob: { name: '可抢劫的商店', emoji: '🏪', color: '#F44336' },
-                gas_stations: { name: '加油站', emoji: '⛽', color: '#FFC107' },
-                atms: { name: 'ATM机', emoji: '💰', color: '#4CAF50' },
-                vend_sprunk: { name: '霜碧售卖机', emoji: '🥤', color: '#8BC34A' },
-                vend_ecola: { name: '易可乐售卖机', emoji: '🥤', color: '#CDDC39' }
-            };
-            
-            const typeInfo = typeNames[type];
-            const title = `${typeInfo.emoji} ${typeInfo.name} #${index + 1}`;
-            const content = getNewItemContent(type, item);
-            
-            const popup = document.createElement('div');
-            popup.className = `${type}-popup`;
-            popup.style.cssText = `
-                position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-                background: #fff; border: 3px solid ${typeInfo.color}; border-radius: 12px; padding: 18px;
-                z-index: 10000; max-width: 520px; max-height: 80vh; box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-                overflow-y: auto; font-family: 'Microsoft YaHei', sans-serif;
-            `;
-            
-            popup.innerHTML = `
-                <div style="text-align: center; margin-bottom: 12px;">
-                    <h3 style="margin: 0; color: ${typeInfo.color}; font-size: 18px; font-weight: bold;">${title}</h3>
-                </div>
-                <div style="color: #333; line-height: 1.5; margin-bottom: 16px; font-size: 14px;">
-                    ${content}
-                </div>
-                <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px;">
-                    <button id="hide-${type}-btn" style="padding: 10px 18px; background: ${typeInfo.color}; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">隐藏</button>
-                    <button id="show-${type}-btn" style="padding: 10px 18px; background: #4CAF50; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">显示</button>
-                    <button id="close-${type}-btn" style="padding: 10px 18px; background: #f44336; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">关闭</button>
-                </div>
-            `;
-            
-            const hideBtn = popup.querySelector(`#hide-${type}-btn`);
-            const showBtn = popup.querySelector(`#show-${type}-btn`);
-            const closeBtn = popup.querySelector(`#close-${type}-btn`);
-
-            function resolveTargetAndIndex() {
-                const el = document.querySelector(`.item-marker[data-type="${type}"][data-index="${index}"]`);
-                return { el, globalIndex: index };
-            }
-
-            hideBtn.addEventListener('click', () => {
-                const { el } = resolveTargetAndIndex();
-                if (!el) return;
-                el.style.opacity = '0.25';
-            });
-
-            showBtn.addEventListener('click', () => {
-                const { el } = resolveTargetAndIndex();
-                if (!el) return;
-                el.style.opacity = '1';
-            });
-
-            closeBtn.addEventListener('click', () => popup.remove());
-            
-            popup.addEventListener('click', (e) => e.stopPropagation());
-            
-            // 点击外部关闭
-            setTimeout(() => {
-                const closePopupHandler = (e) => {
-                    if (!popup.contains(e.target)) { popup.remove(); document.removeEventListener('click', closePopupHandler); }
-                };
-                document.addEventListener('click', closePopupHandler);
-            }, 50);
-
-            document.body.appendChild(popup);
-        }
-
-        // 获取新物品的内容信息
-        function getNewItemContent(type, item) {
-            const baseInfo = `坐标: ${item.x}, ${item.y}`;
-            const labelInfo = item.label ? `<br><br>标签: ${item.label}` : '';
-            
-            switch(type) {
-                case 'metro':
-                    return `地铁站位置信息。<br><br>${baseInfo}${labelInfo}<br><br>地铁站是洛圣都公共交通系统的重要组成部分，连接城市各个区域。`;
-                case 'police':
-                    return `警察局位置信息。<br><br>${baseInfo}${labelInfo}<br><br>警察局是执法部门的重要设施，提供各种执法服务。`;
-                case 'v_telescopes':
-                    return `望远镜位置信息。<br><br>${baseInfo}<br><br>望远镜是观察和探索洛圣都美景的理想工具。`;
-                case 'fire_stations':
-                    return `消防局位置信息。<br><br>${baseInfo}${labelInfo}<br><br>消防局负责处理火灾和其他紧急情况，保护市民安全。`;
-                case 'hospitals':
-                    return `医院位置信息。<br><br>${baseInfo}${labelInfo}<br><br>医院提供医疗服务，是市民健康的重要保障。`;
-                case 'clothing':
-                    return `服装店位置信息。<br><br>${baseInfo}${labelInfo}<br><br>服装店提供各种服装和配饰，让您打造独特的个人风格。`;
-                case 'tattoos':
-                    return `纹身店位置信息。<br><br>${baseInfo}${labelInfo}<br><br>纹身店提供专业的纹身服务，让您展现个性。`;
-                case 'barbers':
-                    return `理发店位置信息。<br><br>${baseInfo}${labelInfo}<br><br>理发店提供理发和造型服务，让您保持最佳形象。`;
-                case 'ammunation':
-                    return `武装国度位置信息。<br><br>${baseInfo}${labelInfo}<br><br>武装国度是购买武器和弹药的专业商店。`;
-                case 'mod_shop':
-                    return `洛圣都改车王位置信息。<br><br>${baseInfo}${labelInfo}<br><br>洛圣都改车王提供专业的车辆改装服务，包括LSC、班尼改装坊和洛圣都车友会等不同类型的改装服务。`;
-                case 'car_wash':
-                    return `洗车店位置信息。<br><br>${baseInfo}${labelInfo}<br><br>洗车店提供专业的车辆清洁服务。`;
-                case 'shops_to_rob':
-                    return `可抢劫的商店位置信息。<br><br>${baseInfo}${labelInfo}<br><br>这些商店可以进行抢劫活动，但请注意风险。`;
-                case 'gas_stations':
-                    return `加油站位置信息。<br><br>${baseInfo}${labelInfo}<br><br>加油站为您的车辆提供燃料补给服务。`;
-                case 'atms':
-                    return `ATM机位置信息。<br><br>${baseInfo}${labelInfo}<br><br>ATM机提供便捷的现金存取服务。`;
-                case 'vend_sprunk':
-                    return `霜碧售卖机位置信息。<br><br>${baseInfo}${labelInfo}<br><br>霜碧售卖机提供清爽的霜碧饮料。`;
-                case 'vend_ecola':
-                    return `易可乐售卖机位置信息。<br><br>${baseInfo}${labelInfo}<br><br>易可乐售卖机提供经典的易可乐饮料。`;
-                default:
-                    return `${type}位置信息。<br><br>${baseInfo}${labelInfo}`;
-            }
-        }
+        // 地点与服务类内容已在 showSimpleInfoPopup() 的 SERVICE_TYPES 分支中动态生成
 
         // 易可乐节庆毛衣弹窗
         function showCocaColaSweaterPopup() {
@@ -21948,11 +21731,10 @@
                         'gun_van',
                         'dead_drop',
                         'street_dealers',
-                        'smoke_on_the_water_product'
-                    ],
-                    '每日收藏品': [
+                        'smoke_on_the_water_product',
                         'shoot_animals_photography'
                     ],
+
                     '任务与活动': [
                         'yuanbao',
                         'stunt_jumps',
@@ -23375,14 +23157,18 @@
             const resetBtn = document.getElementById('reset-checkboxes');
             if (resetBtn) {
                 resetBtn.addEventListener('click', () => {
-                    document.querySelectorAll('#sidebar-item-selectors .item-checkbox').forEach(c => c.checked = false);
-                    // 清空所有 item markers
-                    clearAllItemMarkers();
-                    // 清空 activeItemTypes，确保重置后不会在后续操作中重新显示已取消的类型
-                    try { if (activeItemTypes && typeof activeItemTypes.clear === 'function') activeItemTypes.clear(); } catch(e) {}
-                    // 同步更新车行标记（全部隐藏）并刷新 tilePane 位置
-                    if (typeof updateDealershipMarkers === 'function') updateDealershipMarkers();
-                    if (typeof updateTilePanePosition === 'function') updateTilePanePosition();
+                    openConfirmModal('是否要隐藏全部内容？此操作不会清空您的进度。', () => {
+                        // 取消全选
+                        document.querySelectorAll('#sidebar-item-selectors .item-checkbox').forEach(c => c.checked = false);
+                        // 清除标记与激活集合
+                        clearAllItemMarkers();
+                        if (typeof clearLeafletMarkers === 'function') clearLeafletMarkers();
+                        try { if (activeItemTypes && typeof activeItemTypes.clear === 'function') activeItemTypes.clear(); } catch(e) {}
+                        if (typeof updateDealershipMarkers === 'function') updateDealershipMarkers();
+                        if (typeof updateTilePanePosition === 'function') updateTilePanePosition();
+                    }, () => {
+                        // 取消无操作
+                    });
                 });
             }
         })();

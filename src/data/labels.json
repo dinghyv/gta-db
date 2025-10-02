@@ -119,5 +119,6 @@
   "WEAPON_UNARMED": "徒手",
   "WEAPON_VINTAGEPISTOL": "老式手枪",
   "WEAPON_WRENCH": "管钳扳手",
-  "WEAPON_STRICKLER":"毒枭金步枪*"
+  "WEAPON_STRICKLER":"毒枭金步枪*",
+  "WEAPON_STUNROD":"电击棒*"
 }

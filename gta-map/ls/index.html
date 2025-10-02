@@ -7755,7 +7755,7 @@
         const styleSelect = document.getElementById('map-style-select');
         // 右上角的 item-type-select 已移除，侧边栏使用静态选项数组生成复选框
         const sidebarItemOptions = [
-            { value: 'dealerships', text: '🏦 车行位置' },
+            { value: 'dealerships', text: '🏦 查看车行' },
             { value: 'hidden_caches', text: '隐藏包裹' },
             { value: 'shipwrecked', text: '沉船' },
             { value: 'gun_van', text: '武器厢型车' },
@@ -22105,13 +22105,13 @@
                         'vend_sprunk',
                         'vend_ecola'
                     ],
-                    '季节性/特殊事件': [
-                        'jack_o_lanterns',
+                    '季节性/特殊事件（未启用）': [
+                        //'jack_o_lanterns',
                         'snowmen',
                         'ghosts3',
                         'ufo',
                         'halloween_slashers',
-                        'possessed_animals',
+                        //'possessed_animals',
                         'cerberus',
                         'yeti',
                         'happy_holidays_hauler',
@@ -23530,6 +23530,12 @@
                 });
             }
         });
+
+        // 禁止右键菜单
+        document.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+            return false;
+        }, { passive: false });
     </script>
 
     <script>

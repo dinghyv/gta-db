@@ -54,7 +54,6 @@
             -ms-touch-action: manipulation;
             -webkit-text-size-adjust: 100%; /* 防止 iOS 双击放大文本 */
         }
-
         /* 隐藏整体页面的滚动条（右侧和底部），但不影响内部可滚动面板样式 */
         html, body {
             overflow: hidden; /* 隐藏全局滚动 */
@@ -7004,8 +7003,13 @@
         // 恢复缓存后的显示状态（优先调用显示逻辑而非加载坐标）
         function restoreCachedDisplayState() {
             try {
-                // 1) 应用侧边栏缓存到 activeItemTypes
-                const hadState = SidebarCache.applyState(activeItemTypes);
+                // 1) URL状态优先：如有URL类型，跳过缓存覆盖
+                let hadState;
+                if (typeof urlTypesApplied !== 'undefined' && urlTypesApplied) {
+                    hadState = activeItemTypes && typeof activeItemTypes.size === 'number' ? activeItemTypes.size > 0 : false;
+                } else {
+                    hadState = SidebarCache.applyState(activeItemTypes);
+                }
 
                 // 2) 同步侧边栏复选框的勾选状态
                 try {
@@ -7924,6 +7928,7 @@
         const fileStatus = document.getElementById('file-status');
         const itemInfo = document.getElementById('item-info');
 
+        const defaultStyle = styleSelect.value;
         let currentStyle = styleSelect.value;
     let currentItemType = '';
     // 支持同时显示多个物品类型
@@ -7991,6 +7996,153 @@
 
         resetViewForZoom(initialZoom);
 
+        // =============================
+        // URL 状态同步（hash）
+        // 保存/恢复：选中物品类型、地图中心像素坐标与缩放级别、地图样式
+        // =============================
+        let urlTypesApplied = false;
+
+        function getSelectedTypesForState() {
+            try {
+                const nodes = document.querySelectorAll('#sidebar-item-selectors .item-checkbox');
+                if (nodes && nodes.length > 0) {
+                    return Array.from(nodes)
+                        .filter(chk => chk && chk.checked)
+                        .map(chk => chk.dataset.itemType)
+                        .filter(Boolean);
+                }
+            } catch (e) { /* no-op */ }
+            try {
+                return Array.from(activeItemTypes || []);
+            } catch (e) { return []; }
+        }
+
+        function buildHashFromState({ types, z, x, y, style }) {
+            const params = new URLSearchParams();
+            if (Array.isArray(types) && types.length > 0) params.set('types', types.join(','));
+            if (typeof z === 'number' && !Number.isNaN(z)) params.set('z', String(z));
+            if (typeof x === 'number' && !Number.isNaN(x)) params.set('x', String(Math.round(x)));
+            if (typeof y === 'number' && !Number.isNaN(y)) params.set('y', String(Math.round(y)));
+            if (style) params.set('style', style);
+            return '#' + params.toString();
+        }
+
+        const APP_BASE_PATH = '/gta-map/ls/';
+
+        function updateUrlState() {
+            try {
+                const z = map.getZoom();
+                const centerPoint = map.project(map.getCenter(), z);
+                const types = getSelectedTypesForState();
+                const style = (typeof styleSelect !== 'undefined' && styleSelect) ? styleSelect.value : '';
+                // 当样式等于默认样式时，不在URL中包含 style 参数
+                const styleParam = (style && typeof defaultStyle !== 'undefined' && style === defaultStyle) ? '' : style;
+
+                // 检查是否处于“默认视图”（无类型、默认样式、初始缩放、中心在初始中心）
+                const hasTypes = Array.isArray(types) && types.length > 0;
+                const isDefaultZoom = (typeof z === 'number') && (z === initialZoom);
+                const cx = Math.round(centerPoint.x);
+                const cy = Math.round(centerPoint.y);
+                const icx = Math.round(initialCenterPoint.x);
+                const icy = Math.round(initialCenterPoint.y);
+                const isDefaultCenter = (cx === icx) && (cy === icy);
+                const isDefaultStyle = !styleParam; // 若 styleParam 为空，表示使用默认样式
+                const isDefault = (!hasTypes) && isDefaultZoom && isDefaultCenter && isDefaultStyle;
+
+                const nextHash = isDefault ? '' : buildHashFromState({ types, z, x: centerPoint.x, y: centerPoint.y, style: styleParam });
+                const base = window.location.origin + APP_BASE_PATH + (window.location.search || '');
+                const newHref = isDefault ? base : (base + nextHash);
+                if (window.location.href !== newHref) {
+                    history.replaceState(null, '', newHref);
+                }
+            } catch (e) { /* no-op */ }
+        }
+
+        function parseUrlState() {
+            try {
+                const raw = (location.hash || '').replace(/^#/, '');
+                if (!raw) return null;
+                const sp = new URLSearchParams(raw);
+                const zStr = sp.get('z');
+                const xStr = sp.get('x');
+                const yStr = sp.get('y');
+                const typesStr = sp.get('types');
+                const style = sp.get('style');
+                const z = zStr != null && zStr !== '' ? Number(zStr) : undefined;
+                const x = xStr != null && xStr !== '' ? Number(xStr) : undefined;
+                const y = yStr != null && yStr !== '' ? Number(yStr) : undefined;
+                const types = typesStr ? typesStr.split(',').filter(Boolean) : [];
+                return { z, x, y, types, style };
+            } catch (e) { return null; }
+        }
+
+        function applyUrlStateOnLoad() {
+            const state = parseUrlState();
+            if (!state) return;
+            try {
+                // 样式
+                if (state.style && typeof styleSelect !== 'undefined' && styleSelect) {
+                    if (styleSelect.value !== state.style) {
+                        try { styleSelect.value = state.style; styleSelect.dispatchEvent(new Event('change')); } catch (e) { /* no-op */ }
+                    }
+                }
+                // 视图：像素坐标 + 缩放
+                if (typeof state.z === 'number' && typeof state.x === 'number' && typeof state.y === 'number') {
+                    resetViewForZoom(state.z, { x: state.x, y: state.y });
+                }
+                // 物品类型（优先级高于缓存）
+                if (Array.isArray(state.types) && state.types.length > 0) {
+                    const migratedDealerships = ['casino', 'car_meet', 'premium_deluxe_motorsport', 'luxury_autos'];
+                    try { if (activeItemTypes && typeof activeItemTypes.clear === 'function') activeItemTypes.clear(); } catch (e) {}
+                    state.types.forEach(t => {
+                        activeItemTypes.add(t);
+                        if (t === 'dealerships') migratedDealerships.forEach(d => activeItemTypes.add(d));
+                    });
+                    urlTypesApplied = true;
+                }
+            } catch (e) { /* no-op */ }
+        }
+
+        window.addEventListener('hashchange', () => {
+            const s = parseUrlState();
+            if (!s) return;
+            try {
+                if (s.style && typeof styleSelect !== 'undefined' && styleSelect && styleSelect.value !== s.style) {
+                    try { styleSelect.value = s.style; styleSelect.dispatchEvent(new Event('change')); } catch (e) {}
+                }
+                if (typeof s.z === 'number' && typeof s.x === 'number' && typeof s.y === 'number') {
+                    resetViewForZoom(s.z, { x: s.x, y: s.y });
+                }
+                if (Array.isArray(s.types)) {
+                    const migratedDealerships = ['casino', 'car_meet', 'premium_deluxe_motorsport', 'luxury_autos'];
+                    try { if (activeItemTypes && typeof activeItemTypes.clear === 'function') activeItemTypes.clear(); } catch (e) {}
+                    s.types.forEach(t => {
+                        activeItemTypes.add(t);
+                        if (t === 'dealerships') migratedDealerships.forEach(d => activeItemTypes.add(d));
+                    });
+                    // 同步已有复选框
+                    document.querySelectorAll('#sidebar-item-selectors .item-checkbox').forEach(chk => {
+                        const t = chk && chk.dataset ? chk.dataset.itemType : undefined;
+                        if (t) chk.checked = s.types.includes(t);
+                    });
+                    if (activeItemTypes.size > 0) {
+                        updateItemMarkers();
+                        if (typeof updateDealershipMarkers === 'function') updateDealershipMarkers();
+                        if (typeof updateTilePanePosition === 'function') updateTilePanePosition();
+                    } else {
+                        clearAllItemMarkers();
+                        if (typeof clearLeafletMarkers === 'function') clearLeafletMarkers();
+                        if (typeof updateDealershipMarkers === 'function') updateDealershipMarkers();
+                        if (typeof updateTilePanePosition === 'function') updateTilePanePosition();
+                    }
+                }
+                try { updateUrlState(); } catch (e) {}
+            } catch (e) { /* no-op */ }
+        });
+
+        // 应用URL状态（优先级高于缓存）
+        applyUrlStateOnLoad();
+
         // 根据当前样式获取错误瓦片的纯色背景
         function getErrorTileUrl(style) {
             // 提取样式名称（从URL中获取最后一部分）
@@ -8050,6 +8202,7 @@
             // 更新错误瓦片URL以匹配新样式
             tileLayer.options.errorTileUrl = getErrorTileUrl(currentStyle);
             tileLayer.redraw();
+            try { updateUrlState(); } catch (err) {}
         });
 
         // --- 物品标记功能 ---
@@ -17414,8 +17567,9 @@
             resetViewForZoom(z, { x: centerPixel.x, y: centerPixel.y });
             updateTilePanePosition();
             probeTilesForStyleAndZoom(currentStyle, z);
-
+            try { updateUrlState(); } catch (e) {}
         });
+        map.on('moveend', () => { try { updateUrlState(); } catch (e) {} });
 
         // 地图点击事件 - 检测坐标值
         const mapContainer = document.getElementById('map-container');
@@ -21263,6 +21417,9 @@
             
             // 添加缓存管理按钮
             addCacheManagementButton();
+
+            // 首次就规范化URL：确保保留 /gta-map/ls/ 路径
+            try { updateUrlState(); } catch (e) {}
         });
 
         window.addEventListener('resize', () => {
@@ -22935,6 +23092,7 @@
                         if (t === 'dead_drop') {
                             try { updateDeadDropSidebarCount(); } catch(e) {}
                         }
+                        try { updateUrlState(); } catch(e) {}
                     });
 
                     return wrapper;
@@ -23031,10 +23189,13 @@
                     }, 100);
                 }
 
-                // 应用缓存的侧边栏状态
-                const hasCachedState = SidebarCache.applyState(activeItemTypes);
+                // 应用缓存的侧边栏状态（若URL未提供类型时才应用）
+                let hasCachedState = false;
+                if (!(typeof urlTypesApplied !== 'undefined' && urlTypesApplied)) {
+                    hasCachedState = SidebarCache.applyState(activeItemTypes);
+                }
                 if (hasCachedState) {
-
+                    // no-op: markers will be refreshed below
                 }
 
                 renderSidebar('');
@@ -23049,7 +23210,7 @@
                             updateItemMarkers();
                             if (typeof updateDealershipMarkers === 'function') updateDealershipMarkers();
                             if (typeof updateTilePanePosition === 'function') updateTilePanePosition();
-
+                            try { updateUrlState(); } catch(e) {}
                         } catch (e) {
                             console.warn('重新渲染标记时出错:', e);
                         }
@@ -23130,6 +23291,7 @@
                     updateItemMarkers();
                     if (typeof updateDealershipMarkers === 'function') updateDealershipMarkers();
                     if (typeof updateTilePanePosition === 'function') updateTilePanePosition();
+                    try { updateUrlState(); } catch (e) {}
                     }, () => {
                         // 取消无操作
                     });
@@ -23147,6 +23309,7 @@
                         try { if (activeItemTypes && typeof activeItemTypes.clear === 'function') activeItemTypes.clear(); } catch(e) {}
                         if (typeof updateDealershipMarkers === 'function') updateDealershipMarkers();
                         if (typeof updateTilePanePosition === 'function') updateTilePanePosition();
+                        try { updateUrlState(); } catch (e) {}
                     }, () => {
                         // 取消无操作
                     });
@@ -23166,6 +23329,7 @@
                         try { if (activeItemTypes && typeof activeItemTypes.clear === 'function') activeItemTypes.clear(); } catch(e) {}
                         if (typeof updateDealershipMarkers === 'function') updateDealershipMarkers();
                         if (typeof updateTilePanePosition === 'function') updateTilePanePosition();
+                        try { updateUrlState(); } catch (e) {}
                     }, () => {
                         // 取消无操作
                     });

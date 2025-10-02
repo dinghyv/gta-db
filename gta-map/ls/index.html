@@ -1868,7 +1868,7 @@
         // 车行标记数组
         let dealershipMarkers = [];
 
-        // 武器厢型车位置缓存（每天变化）
+        // 枪支厢型车位置缓存（每天变化）
         let gunVanLocation = null;
         let gunVanLastUpdate = 0;
         
@@ -7758,7 +7758,7 @@
             { value: 'dealerships', text: '🏦 查看车行' },
             { value: 'hidden_caches', text: '隐藏包裹' },
             { value: 'shipwrecked', text: '沉船' },
-            { value: 'gun_van', text: '武器厢型车' },
+            { value: 'gun_van', text: '枪支厢型车' },
             { value: 'dead_drop', text: '杰拉德包裹' },
             { value: 'ls_tags', text: 'LS涂鸦' },
             { value: 'street_dealers', text: '街头毒贩' },
@@ -9466,7 +9466,7 @@
                 // 将itemData赋值给window.itemData，供计数器函数使用
                 window.itemData = itemData;
                 
-                // 动态计算武器厢型车位置
+                // 动态计算枪支厢型车位置
                 await updateGunVanLocation();
                 
                 // 动态获取街头毒贩位置
@@ -9815,7 +9815,7 @@
 
 
 
-        // 动态计算武器厢型车位置
+        // 动态计算枪支厢型车位置
         async function updateGunVanLocation() {
             const currentDay = Math.floor(Date.now() / 86400000); // 每天变化
             
@@ -13525,7 +13525,7 @@
                 stunt_jumps: '特技跳跃点',
                 hidden_caches: '隐藏包裹',
                 shipwrecked: '沉船',
-                gun_van: '武器厢型车',
+                gun_van: '枪支厢型车',
                 ls_tags: 'LS涂鸦',
                 spray: '喷罐位置',
                 street_dealers: '街头毒贩',
@@ -17614,13 +17614,13 @@
 
         });
 
-        // 检测武器厢型车点击
+        // 检测枪支厢型车点击
         function checkGunVanClick(clickX, clickY) {
             const GUN_VAN_RADIUS = 100; // 检测半径100单位
             
-            // 检查当前是否显示武器厢型车（支持多选）
+            // 检查当前是否显示枪支厢型车（支持多选）
             if (activeItemTypes.has('gun_van') && itemData.gun_van) {
-                // 检查点击位置是否在任意武器厢型车附近
+                // 检查点击位置是否在任意枪支厢型车附近
                 const nearbyVan = itemData.gun_van.find(van => {
                     const distance = Math.sqrt(Math.pow(van.x - clickX, 2) + Math.pow(van.y - clickY, 2));
                     return distance <= GUN_VAN_RADIUS;
@@ -21241,7 +21241,7 @@
             }
         }
 
-        // 显示武器厢型车武器信息
+        // 显示枪支厢型车武器信息
         function showGunVanWeapons() {
             // 加载labels.json数据
             let labelsData = {};
@@ -21269,7 +21269,7 @@
                     if ((data && data.success === true) || messageText) {
                         displayGunVanWeapons(messageText, labelsData);
                     } else {
-                        console.error('获取武器厢型车信息失败:', data && data.error);
+                        console.error('获取枪支厢型车信息失败:', data && data.error);
                         alert('获取武器信息失败，请稍后重试');
                     }
                 })
@@ -21389,10 +21389,10 @@
                 const gunVanImageUrl = 'https://gtaweb.eu/_sources/maps_gtao/tips/gun_van.webp';
                 popup.innerHTML = `
                     <div class="popup-header" style="position: relative; margin-bottom: 14px;">
-                        <h3 style="color: var(--gta-primary); font-size: 18px; margin: 0; font-weight: bold;">🚐 武器厢型车商品信息</h3>
+                        <h3 style="color: var(--gta-primary); font-size: 18px; margin: 0; font-weight: bold;">🚐 枪支厢型车商品信息</h3>
                         <span class="popup-close" style="position: absolute; top: 0; right: 0; color: var(--gta-text-secondary); font-size: 20px; cursor: pointer; transition: color 0.3s ease;">×</span>
                     </div>
-                    <img src="${gunVanImageUrl}" alt="武器厢型车图片" style="max-width: 100%; height: auto; border-radius: 6px; margin: 8px 0; display: block; cursor: zoom-in;"/>
+                    <img src="${gunVanImageUrl}" alt="枪支厢型车图片" style="max-width: 100%; height: auto; border-radius: 6px; margin: 8px 0; display: block; cursor: zoom-in;"/>
                     ${contentHtml}
                     <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
                         <button id="close-popup-btn" style="padding: 8px 16px; background: var(--gta-primary); color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease;">关闭</button>

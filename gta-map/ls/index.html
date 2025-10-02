@@ -1093,7 +1093,7 @@
     <!-- GTA风格导航栏 -->
     <div class="gta-nav">
         <div class="nav-left">
-            <h1 class="gta-title">🏙️ 洛圣都地图</h1>
+            <h1 class="gta-title">GTAO交互地图</h1>
             <div class="nav-links">
                 <a href="https://www.antwen.com" target="_blank">安稳</a>
                 <a href="https://share.antwen.com" target="_blank">在线文件</a>
@@ -2377,7 +2377,7 @@
             }
         }
 
-        // ==================== 增强版RC时间挑战赛模板（集成缓存） ====================
+        // ==================== 增强版RC匪徒时间挑战赛模板（集成缓存） ====================
         
         // 创建侧边栏条目时，为 rc_time_trial 增加一个计数器占位
         function attachRCTimeTrialCounterToLabel(sidebarCheckboxId) {
@@ -2397,7 +2397,7 @@
             updateRCTimeTrialSidebarCount();
         }
 
-        // ==================== 增强版自行车时间挑战赛模板（集成缓存） ====================
+        // ==================== 增强版拉机能量每日时间挑战赛模板（集成缓存） ====================
         
         // 创建侧边栏条目时，为 bike_time_trial 增加一个计数器占位
         function attachBikeTimeTrialCounterToLabel(sidebarCheckboxId) {
@@ -2889,11 +2889,11 @@
                     return;
                 }
 
-                // RC时间挑战赛总数固定为1
+                // RC匪徒时间挑战赛总数固定为1
                 const total = 1;
                 let hidden = 0;
 
-                // 获取RC时间挑战赛标记
+                // 获取RC匪徒时间挑战赛标记
                 const markers = (window.rcTimeTrialMarkers && window.rcTimeTrialMarkers) || [];
 
                 if (Array.isArray(markers) && markers.length > 0) {
@@ -2916,7 +2916,7 @@
                 CounterCache.updateCounter('rc_time_trial', hidden, total);
                 counterEl.textContent = ` (${hidden}/${total})`;
             } catch (e) {
-                console.warn('更新RC时间挑战赛计数器失败:', e);
+                console.warn('更新RC匪徒时间挑战赛计数器失败:', e);
             }
         }
 
@@ -2929,11 +2929,11 @@
                     return;
                 }
 
-                // 自行车时间挑战赛总数固定为1
+                // 拉机能量每日时间挑战赛总数固定为1
                 const total = 1;
                 let hidden = 0;
 
-                // 获取自行车时间挑战赛标记
+                // 获取拉机能量每日时间挑战赛标记
                 const markers = (window.bikeTimeTrialMarkers && window.bikeTimeTrialMarkers) || [];
 
                 if (Array.isArray(markers) && markers.length > 0) {
@@ -2956,7 +2956,7 @@
                 CounterCache.updateCounter('bike_time_trial', hidden, total);
                 counterEl.textContent = ` (${hidden}/${total})`;
             } catch (e) {
-                console.warn('更新自行车时间挑战赛计数器失败:', e);
+                console.warn('更新拉机能量每日时间挑战赛计数器失败:', e);
             }
         }
 
@@ -4539,11 +4539,11 @@
                 railgun: `仅限回归玩家生成（PlayStation 3 / Xbox 360）。受漏洞影响，全体玩家均能享受回归玩家福利——即使您并未在上世代主机上游玩过 GTA V，您也可以解锁此生成点。`,
                 // 事件与活动简述
                 cerberus: `偷窃外贸出口载具的同时，请务必小心紧追您的地狱犬。`,
-                wea: `该事件可以在晚上 800至次日早上 600之间触发。首次完成该活动，您将获得 1.000 RP，WM 29 手枪和 Mk 2 手枪的节日快乐涂装。再次完成该活动，您将获得25.000 GTA$和1.000 RP。`,
+                wea: `该事件可以在晚上 8:00至次日早上 6:00之间触发。首次完成该活动，您将获得 1.000 RP，WM 29 手枪和 Mk 2 手枪的节日快乐涂装。再次完成该活动，您将获得25.000 GTA$和1.000 RP。`,
                 community_outreach: `该事件既没有任务目标，也没有完成奖励。不过，您可以藉此免费试驾非凡 艳妇 D10 追逐和威拉德 边界宗派。`,
                 store_robbery: `在 2 分钟内将被盗的现金还给商店，即可获得 20.000 GTA$ 与 2.500 RP 奖励。或者，您也可以选择将其据为己有：25.000 GTA$ 和 2 个通缉等级。`,
-                halloween_slashers: `杀人狂可能会在 早上 100至早上 600 之间出现在对应区域。每次出现都有 50% 的概率被克隆杀人狂替代。`,
-                possessed_animals: `鬼上身的动物在晚上 800至次日早上 100之间活跃。`,
+                halloween_slashers: `杀人狂可能会在 早上 10:0至早上 6:00 之间出现在对应区域。每次出现都有 50% 的概率被克隆杀人狂替代。`,
+                possessed_animals: `鬼上身的动物在晚上 8:00至次日早上 10:0之间活跃。`,
                 convoy: `车队从起始点出发，沿着红色路线行驶。车队走完路线后，将随机选择一个终点位置继续行驶，并在抵达该位置后消失。<br><br>偷取车队载具并将其送至您的产业，您将获得原材料补给和 1.000 RP。<br><br>每个地点分别对应不同的载具与产业。<br><br>如果您没有对应的产业，可以把目标载具送至指定投放点，您将获得 25.000 GTA$ 与 1.000 RP。`,
                 convoy_final: `这是车队可能到达的终点位置之一。车队走完路线后，将随机选择一个终点位置继续行驶，并在抵达该位置后消失。<br><br>您可以在车队路线上拦截车队，或者在终点等候车队到达。`,
                 armored_truck: `使用黏弹炸开运钞车的后门以获取里面的现金——25.000 GTA$和1.000 RP。`,
@@ -5701,7 +5701,8 @@
                 </div>
                 <img src="${imageUrl}" alt="LS涂鸦 #${sequenceNumber}" style="max-width: 100%; height: auto; border-radius: 6px; margin: 8px 0; display: block; cursor: zoom-in;"/>
                 <div style="margin: 10px 0; padding: 10px; background: rgba(255, 87, 34, 0.1); border-radius: 8px; color: var(--gta-text); font-size: 14px; line-height: 1.6;">
-                    可在上图位置找到！找到并收集所有LS涂鸦，解锁独特奖励！
+                    每现实时间一天，游戏中都会出现 5 张海报。在获取喷罐  后，您可在海报上喷洛圣都涂鸦。每喷一个涂鸦，您将获得 15.000 GTA$ 与 500 RP 奖励。喷完当天全部 5 处涂鸦后，您还可额外获得 25.000 GTA$。首次喷完当天全部涂鸦，您将获得街头艺术家套装。
+每日总收益：100.000 GTA$、2.500 RP。
                 </div>
                 <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
                     <button id="hide-ls-tags-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease; display: ${isCurrentHidden ? 'none' : 'inline-block'};">隐藏</button>
@@ -6460,7 +6461,7 @@
             return false;
         }
 
-        // 应用缓存的可见性状态到RC时间挑战赛标记
+        // 应用缓存的可见性状态到RC匪徒时间挑战赛标记
         function applyRCTimeTrialVisibilityCache() {
             const markers = (window.rcTimeTrialMarkers && window.rcTimeTrialMarkers) || [];
             if (markers.length > 0) {
@@ -6481,7 +6482,7 @@
             return false;
         }
 
-        // 应用缓存的可见性状态到自行车时间挑战赛标记
+        // 应用缓存的可见性状态到拉机能量每日时间挑战赛标记
         function applyBikeTimeTrialVisibilityCache() {
             const markers = (window.bikeTimeTrialMarkers && window.bikeTimeTrialMarkers) || [];
             if (markers.length > 0) {
@@ -7186,7 +7187,9 @@
 
         // 杰拉德包裹增强版弹窗（集成缓存，特殊处理：隐藏全部标记）
         function showDeadDropPopup(item, index) {
-            const content = `杰拉德提供的秘密包裹投递点，完成可获得丰厚奖励。`;
+            const content = `杰拉德的包裹是每日收藏品。它随机生成在 15 个可能区域之一。游戏内地图以  标示区域。
+包裹随机生成在该区域里 5 个可能位置之一。包裹会发出声音以帮助您定位。
+拾取包裹后，您将获得 30.000 – 40.000 GTA$、4.000 RP、零食与弹药奖励。。`;
             const imageUrl = `https://gta-maps.antwen.com/collectibles_images/dead_drop/dead_drop_${index + 1}.webp`;
 
             // 关闭已存在的弹窗
@@ -7837,13 +7840,13 @@
             { value: 'spray', text: '喷罐位置' },
             { value: 'ld_organics_products', text: '有机坊产品' },
             { value: 'signal_jammers', text: '信号干扰器' },
-            { value: 'jack_o_lanterns', text: '南瓜灯' },
+            { value: 'jack_o_lanterns', text: '南瓜灯（每日刷新）' },
             { value: 'payphone_hits', text: '电话暗杀' },
             { value: 'golf_holes', text: '高尔夫球洞' },
             { value: 'snowmen', text: '雪人' },
-            { value: 'rc_time_trial', text: 'RC时间挑战赛' },
-            { value: 'bike_time_trial', text: '自行车时间挑战赛' },
-            { value: 'skydives', text: '跳伞' },
+            { value: 'rc_time_trial', text: 'RC匪徒时间挑战赛' },
+            { value: 'bike_time_trial', text: '拉机能量每日时间挑战赛' },
+            { value: 'skydives', text: '拉机能量跳伞' },
             { value: 'gang_attacks', text: '🎆 帮派攻击' },
             { value: 'ghosts3', text: '幽灵曝光2025' },
             { value: 'treasure_hunt_dba_revolver', text: '左轮寻宝' },
@@ -9730,7 +9733,7 @@
                     // 使用API返回的时间挑战赛坐标数据
                     const { rc_time_trial, bike_time_trial } = result.data.coordinate;
                     
-                    // 设置RC时间挑战赛数据（仅一个位置）
+                    // 设置RC匪徒时间挑战赛数据（仅一个位置）
                     if (rc_time_trial) {
                         itemData.rc_time_trial = [{
                             x: rc_time_trial.x,
@@ -9743,7 +9746,7 @@
                         itemData.rc_time_trial = [];
                     }
                     
-                    // 设置自行车时间挑战赛数据（仅一个位置）
+                    // 设置拉机能量每日时间挑战赛数据（仅一个位置）
                     if (bike_time_trial) {
                         itemData.bike_time_trial = [{
                             x: bike_time_trial.x,
@@ -11337,11 +11340,11 @@
                 else if (type === 'jack_o_lanterns') {
                     showJackOLanternImage(index);
                 }
-                // 特殊处理RC时间挑战赛，显示图片弹窗
+                // 特殊处理RC匪徒时间挑战赛，显示图片弹窗
                 else if (type === 'rc_time_trial') {
                     showRCTimeTrialImage(index);
                 }
-                // 特殊处理自行车时间挑战赛，显示图片弹窗
+                // 特殊处理拉机能量每日时间挑战赛，显示图片弹窗
                 else if (type === 'bike_time_trial') {
                     showBikeTimeTrialImage(index);
                 }
@@ -13536,8 +13539,8 @@
                 payphone_hits: '电话暗杀',
                 golf_holes: '高尔夫球洞',
                 snowmen: '雪人',
-                rc_time_trial: 'RC时间挑战赛',
-                bike_time_trial: '自行车时间挑战赛',
+                rc_time_trial: 'RC匪徒时间挑战赛',
+                bike_time_trial: '拉机能量每日时间挑战赛',
                 skydives: '跳伞',
                 gang_attacks: '帮派攻击',
                 ghosts3: '幽灵曝光2025',
@@ -13767,7 +13770,7 @@
             itemInfo.style.display = 'none';
         }
 
-        // RC时间挑战赛弹窗模板（含隐藏/显示联动与计数器、缓存集成）
+        // RC匪徒时间挑战赛弹窗模板（含隐藏/显示联动与计数器、缓存集成）
         function showRCTimeTrialPopup(item, index) {
             // 关闭已存在的弹窗
             const existingPopup = document.querySelector('.rc-time-trial-popup');
@@ -13792,7 +13795,7 @@
                 isCurrentHidden = el && el.style.opacity === '0.3';
             }
 
-            const title = `🏁 RC时间挑战赛 #${index + 1} (${hiddenCount}/${totalCount})`;
+            const title = `🏁 RC匪徒时间挑战赛 #${index + 1} (${hiddenCount}/${totalCount})`;
 
             // 构建弹窗
             const popup = document.createElement('div');
@@ -13875,7 +13878,7 @@
                 hideBtn.addEventListener('click', () => {
                     setCurrentMarkerVisibility(0.3);
                     const newHiddenCount = hiddenCount + (isCurrentHidden ? 0 : 1);
-                    titleElement.textContent = `🏁 RC时间挑战赛 #${index + 1} (${newHiddenCount}/${totalCount})`;
+                    titleElement.textContent = `🏁 RC匪徒时间挑战赛 #${index + 1} (${newHiddenCount}/${totalCount})`;
                     hideBtn.style.display = 'none';
                     showBtn.style.display = 'inline-block';
                     isCurrentHidden = true;
@@ -13890,7 +13893,7 @@
                 showBtn.addEventListener('click', () => {
                     setCurrentMarkerVisibility(1);
                     const newHiddenCount = hiddenCount - (isCurrentHidden ? 1 : 0);
-                    titleElement.textContent = `🏁 RC时间挑战赛 #${index + 1} (${newHiddenCount}/${totalCount})`;
+                    titleElement.textContent = `🏁 RC匪徒时间挑战赛 #${index + 1} (${newHiddenCount}/${totalCount})`;
                     showBtn.style.display = 'none';
                     hideBtn.style.display = 'inline-block';
                     isCurrentHidden = false;
@@ -13910,7 +13913,7 @@
             showRCTimeTrialPopup(item, index);
         }
 
-        // 自行车时间挑战赛弹窗模板（含隐藏/显示联动与计数器、缓存集成）
+        // 拉机能量每日时间挑战赛弹窗模板（含隐藏/显示联动与计数器、缓存集成）
         function showBikeTimeTrialPopup(item, index) {
             // 关闭已存在的弹窗
             const existingPopup = document.querySelector('.bike-time-trial-popup');
@@ -13935,7 +13938,7 @@
                 isCurrentHidden = el && el.style.opacity === '0.3';
             }
 
-            const title = `🚴 自行车时间挑战赛 #${index + 1} (${hiddenCount}/${totalCount})`;
+            const title = `🚴 拉机能量每日时间挑战赛 #${index + 1} (${hiddenCount}/${totalCount})`;
 
             // 构建弹窗
             const popup = document.createElement('div');
@@ -14018,7 +14021,7 @@
                 hideBtn.addEventListener('click', () => {
                     setCurrentMarkerVisibility(0.3);
                     const newHiddenCount = hiddenCount + (isCurrentHidden ? 0 : 1);
-                    titleElement.textContent = `🚴 自行车时间挑战赛 #${index + 1} (${newHiddenCount}/${totalCount})`;
+                    titleElement.textContent = `🚴 拉机能量每日时间挑战赛 #${index + 1} (${newHiddenCount}/${totalCount})`;
                     hideBtn.style.display = 'none';
                     showBtn.style.display = 'inline-block';
                     isCurrentHidden = true;
@@ -14033,7 +14036,7 @@
                 showBtn.addEventListener('click', () => {
                     setCurrentMarkerVisibility(1);
                     const newHiddenCount = hiddenCount - (isCurrentHidden ? 1 : 0);
-                    titleElement.textContent = `🚴 自行车时间挑战赛 #${index + 1} (${newHiddenCount}/${totalCount})`;
+                    titleElement.textContent = `🚴 拉机能量每日时间挑战赛 #${index + 1} (${newHiddenCount}/${totalCount})`;
                     showBtn.style.display = 'none';
                     hideBtn.style.display = 'inline-block';
                     isCurrentHidden = false;
@@ -14310,12 +14313,19 @@
                     <span class="popup-close" style="position: absolute; top: 0; right: 0; color: var(--gta-text-secondary); font-size: 20px; cursor: pointer; transition: color 0.3s ease;">×</span>
                 </div>
                 <img src="${imageUrl}" alt="南瓜灯 #${sequenceNumber}" style="max-width: 100%; height: auto; border-radius: 6px; margin: 8px 0; display: block; cursor: zoom-in;"/>
-                <div style="margin: 10px 0; padding: 10px; background: rgba(242, 111, 23, 0.12); border-radius: 8px; color: var(--gta-text); font-size: 14px; line-height: 1.6;">
-                    可在上图位置找到！
-                </div>
+
                 <div style="margin: 10px 0; padding: 10px; background: rgba(242, 111, 23, 0.12); border-radius: 8px; color: var(--gta-text); font-size: 14px; line-height: 1.6;">
                     <div style="font-weight: bold; color: #f26f17; margin-bottom: 5px;">🎯 收集奖励</div>
-                    收集全部南瓜灯可获得特殊万圣节奖励！
+                    <div>每收集一个南瓜灯，您将被 <b>给糖</b> 或 <b>捣乱</b>，并获得以下效果/奖励之一：</div>
+                    <ul style="margin: 6px 0 0 18px; padding: 0;">
+                        <li>现金（2.500 ~ 5.000 GTA$/1.000 RP</li>
+                        <li>生命值和护甲/零食（每种零食最大容量的25%）</li>
+                        <li>迷幻仙人掌（2 分钟）</li>
+                        <li>电击/嗨翻（30 秒）/爆炸/能量脉冲</li>
+                    </ul>
+                    <div style="margin-top: 8px;">
+                        在一天内收集 10 个南瓜灯，您将获得 <b>恐怖南瓜头面具</b> 和额外的 <b>50.000 GTA$</b>，在一天内收集所有 200 个南瓜灯，您将获得 <b>南瓜 T 恤</b> 和额外的 <b>50.000 GTA$</b>。南瓜灯的机制与每日收藏品一致，它于 <b>UTC 时间 6:00（北京时间 14:00）</b> 重置。尽管南瓜灯一共有 200 个，但游戏内的收集进度计数器只计算 10 个。
+                    </div>
                 </div>
                 <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
                     <button id="hide-jack-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease; display: ${isCurrentHidden ? 'none' : 'inline-block'};">隐藏</button>
@@ -17168,7 +17178,7 @@
                     🎆 <strong>每日跳伞挑战</strong><br>
                     • 每天共有10个跳伞位置<br>
                     • 完成可获得<strong>经验值</strong>和<strong>游戏币奖励</strong><br>
-                    • 从高空跳下，体验极限刺激！
+                    • 可练习跳伞，推荐新手游玩
                 </div>
                 <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
                     <button id="hide-skydives-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease; display: ${isCurrentHidden ? 'none' : 'inline-block'};">隐藏</button>
@@ -18019,13 +18029,13 @@
             }
         }
 
-        // 检测RC时间挑战赛点击（坐标检测）
+        // 检测RC匪徒时间挑战赛点击（坐标检测）
         function checkRCTimeTrialClickNew(clickX, clickY) {
             const RC_TIME_TRIAL_RADIUS = 100; // 检测半径100单位
             
-            // 检查当前是否显示RC时间挑战赛（支持多选）
+            // 检查当前是否显示RC匪徒时间挑战赛（支持多选）
             if (activeItemTypes.has('rc_time_trial') && itemData.rc_time_trial) {
-                // 检查点击位置是否在任意RC时间挑战赛附近
+                // 检查点击位置是否在任意RC匪徒时间挑战赛附近
                 const nearbyTrial = itemData.rc_time_trial.find(trial => {
                     const distance = Math.sqrt(Math.pow(trial.x - clickX, 2) + Math.pow(trial.y - clickY, 2));
                     return distance <= RC_TIME_TRIAL_RADIUS;
@@ -18042,13 +18052,13 @@
             }
         }
 
-        // 检测自行车时间挑战赛点击（坐标检测）
+        // 检测拉机能量每日时间挑战赛点击（坐标检测）
         function checkBikeTimeTrialClickNew(clickX, clickY) {
             const BIKE_TIME_TRIAL_RADIUS = 100; // 检测半径100单位
             
-            // 检查当前是否显示自行车时间挑战赛（支持多选）
+            // 检查当前是否显示拉机能量每日时间挑战赛（支持多选）
             if (activeItemTypes.has('bike_time_trial') && itemData.bike_time_trial) {
-                // 检查点击位置是否在任意自行车时间挑战赛附近
+                // 检查点击位置是否在任意拉机能量每日时间挑战赛附近
                 const nearbyTrial = itemData.bike_time_trial.find(trial => {
                     const distance = Math.sqrt(Math.pow(trial.x - clickX, 2) + Math.pow(trial.y - clickY, 2));
                     return distance <= BIKE_TIME_TRIAL_RADIUS;
@@ -21235,19 +21245,31 @@
         function showGunVanWeapons() {
             // 加载labels.json数据
             let labelsData = {};
-            fetch('../src/data/labels.json')
-                .then(response => response.json())
+            fetch('../../src/data/labels.json')
+                .then(resp => resp && resp.ok ? resp.json() : fetch('../src/data/labels.json').then(r => r && r.ok ? r.json() : fetch('/src/data/labels.json').then(r2 => r2 && r2.ok ? r2.json() : {})))
+                .catch(() => ({}))
                 .then(labels => {
-                    labelsData = labels;
+                    labelsData = labels || {};
                     // 从API动态获取武器信息
                     return fetch('https://api-gta.antwen.com/api/items/gun-van');
                 })
                 .then(response => response.json())
                 .then(data => {
-                    if (data.success) {
-                        displayGunVanWeapons(data.data.message, labelsData);
+                    try { console.debug('gun-van api raw', data); } catch (e) {}
+                    let messageText = '';
+                    try {
+                        if (data && typeof data.data?.message === 'string') {
+                            messageText = data.data.message;
+                        } else if (data && typeof data.message === 'string') {
+                            messageText = data.message;
+                        } else if (data && typeof data.data === 'string') {
+                            messageText = data.data;
+                        }
+                    } catch (e) {}
+                    if ((data && data.success === true) || messageText) {
+                        displayGunVanWeapons(messageText, labelsData);
                     } else {
-                        console.error('获取武器厢型车信息失败:', data.error);
+                        console.error('获取武器厢型车信息失败:', data && data.error);
                         alert('获取武器信息失败，请稍后重试');
                     }
                 })
@@ -21263,31 +21285,39 @@
                 const throwables = [];
                 let currentSection = '';
 
-                lines.forEach(line => {
-                    if (line.includes('武器:')) {
+                lines.forEach(raw => {
+                    const line = raw.trim();
+                    // 兼容多种中文标题："武器:" / "主武器:"，"投掷物:" / "投掷武器:"，且允许前缀为项目符号（如"·"、"-"）
+                    if (/^[·•*\-\s]*(主?武器)[:：]/.test(line)) {
                         currentSection = 'weapons';
-                    } else if (line.includes('投掷物:')) {
+                    } else if (/^[·•*\-\s]*(投掷(物|武器))[:：]/.test(line)) {
                         currentSection = 'throwables';
-                    } else if (line.trim() && line.includes('-')) {
-                        const match = line.match(/- (.+?) \((\d+)折\)/);
+                    } else if (line) {
+                        // 兼容多种折扣格式：可选项目符号"-"；"名称 (9折)" 或 "名称 - 9折"（含全/半角括号；"折"前允许空格）
+                        const match =
+                            line.match(/^\s*-?\s*(.+?)\s*[（(]\s*(\d+)\s*折\s*[)）]/) ||
+                            line.match(/^\s*-?\s*(.+?)\s*-\s*(\d+)\s*折/);
                         if (match) {
-                            // 尝试从labels中查找武器的中文名称
-                            let weaponName = match[1];
-                            if (labels.hasOwnProperty(weaponName)) {
-                                weaponName = labels[weaponName];
+                            let rawName = match[1];
+                            // 处理尾部星号（如 ** 或 *）用于展示标记，同时用于labels查找时剥离
+                            const starMatch = rawName.match(/\*+$/);
+                            const starSuffix = starMatch ? starMatch[0] : '';
+                            const baseName = rawName.replace(/\*+$/, '').trim();
+                            // 尝试从labels中查找中文名称
+                            let displayName = baseName;
+                            if (labels && Object.prototype.hasOwnProperty.call(labels, baseName)) {
+                                displayName = labels[baseName];
                             }
-                            
-                            const discountText = match[2] + '折';
-                            
-                            const weaponEntry = {
-                                name: weaponName,
-                                discountText: discountText
-                            };
-
+                            // 追加星标（高亮显示）
+                            displayName = displayName + (starSuffix ? `<span class=\"star-suffix\">${starSuffix}</span>` : '');
+                            const discountText = (match[2] || match[3]) + '折';
+                            const entry = { name: displayName, discountText };
+                            // 若尚未识别到分节标题，默认归类为“主武器”
+                            if (!currentSection) currentSection = 'weapons';
                             if (currentSection === 'weapons') {
-                                weapons.push(weaponEntry);
+                                weapons.push(entry);
                             } else if (currentSection === 'throwables') {
-                                throwables.push(weaponEntry);
+                                throwables.push(entry);
                             }
                         }
                     }
@@ -21312,6 +21342,50 @@
                 `;
 
                 // 弹窗内容
+                const safeMessage = String(message || '').replace(/&/g, '&amp;').replace(/</g, '&lt;');
+                const buildTwoColTable = (items, title) => {
+                    if (!items || !items.length) return '';
+                    let body = '';
+                    for (let i = 0; i < items.length; i += 2) {
+                        const a = items[i];
+                        const b = items[i + 1];
+                        const cellA = a ? ('<td class="cell"><div class="cell-inner"><span class="name">' + a.name + '</span><span class="discount">' + a.discountText + '</span></div></td>') : '<td class="cell empty"></td>';
+                        const cellB = b ? ('<td class="cell"><div class="cell-inner"><span class="name">' + b.name + '</span><span class="discount">' + b.discountText + '</span></div></td>') : '<td class="cell empty"></td>';
+                        body += '<tr>' + cellA + cellB + '</tr>';
+                    }
+                    return (
+                        '<div class="gun-van-section">' +
+                            '<h4 class="section-title">' + title + '</h4>' +
+                            '<table class="gun-van-table2">' +
+                                '<tbody>' + body + '</tbody>' +
+                            '</table>' +
+                        '</div>'
+                    );
+                };
+                const haveAny = (weapons.length + throwables.length) > 0;
+                const contentHtml = haveAny
+                    ? `
+                    <div class="gun-van-sections-wrap" style="margin-top: 8px;">
+                        <style>
+                            .gun-van-sections-wrap { width: 100%; }
+                            .gun-van-section { margin-bottom: 12px; }
+                            .gun-van-section .section-title { margin: 0 0 8px 2px; font-size: 15px; color: var(--gta-primary); font-weight: 700; }
+                            .gun-van-table2 { width: 100%; border-collapse: separate; border-spacing: 0 6px; }
+                            .gun-van-table2 td.cell { width: 50%; padding: 6px 8px; }
+                            .gun-van-table2 td.cell.empty { opacity: 0.5; }
+                            .gun-van-table2 .cell-inner { display: flex; align-items: center; justify-content: space-between; gap: 10px; background: rgba(255,255,255,0.04); border: 1px solid var(--gta-border); border-radius: 6px; padding: 8px 10px; }
+                            .gun-van-table2 .name { color: var(--gta-text); }
+                            .gun-van-table2 .discount { color: var(--gta-accent, #ff7043); font-weight: 600; }
+                            .star-suffix { color: #FFD54F; margin-left: 4px; font-weight: 600; }
+                        </style>
+                        ${buildTwoColTable(weapons, '主武器')}
+                        ${buildTwoColTable(throwables, '投掷武器')}
+                    </div>
+                    `
+                    : `
+                    <div style="margin-top: 8px; font-size: 14px; color: var(--gta-text-secondary);">未能解析出商品列表，原始信息：</div>
+                    <pre style="white-space: pre-wrap; background: rgba(255,255,255,0.04); padding: 8px; border-radius: 6px; border: 1px solid var(--gta-border); color: var(--gta-text);">${safeMessage}</pre>
+                    `;
                 const gunVanImageUrl = 'https://gtaweb.eu/_sources/maps_gtao/tips/gun_van.webp';
                 popup.innerHTML = `
                     <div class="popup-header" style="position: relative; margin-bottom: 14px;">
@@ -21319,10 +21393,7 @@
                         <span class="popup-close" style="position: absolute; top: 0; right: 0; color: var(--gta-text-secondary); font-size: 20px; cursor: pointer; transition: color 0.3s ease;">×</span>
                     </div>
                     <img src="${gunVanImageUrl}" alt="武器厢型车图片" style="max-width: 100%; height: auto; border-radius: 6px; margin: 8px 0; display: block; cursor: zoom-in;"/>
-                    <div style="margin-bottom: 10px; font-weight: bold; color: #555;">主武器:</div>
-                    ${weapons.map(weapon => `<div style=\"margin: 5px 0; color: #666;\">${weapon.name} - <span style=\"color: #e74c3c;\">${weapon.discountText}</span></div>`).join('')}
-                        <div style="margin: 10px 0; font-weight: bold; color: #555;">投掷武器:</div>
-                    ${throwables.map(throwable => `<div style=\"margin: 5px 0; color: #666;\">${throwable.name} - <span style=\"color: #e74c3c;\">${throwable.discountText}</span></div>`).join('')}
+                    ${contentHtml}
                     <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
                         <button id="close-popup-btn" style="padding: 8px 16px; background: var(--gta-primary); color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease;">关闭</button>
                         </div>
@@ -21881,30 +21952,38 @@
             const searchInput = document.getElementById('sidebar-item-search');
             if (sidebarContainer) {
                 const groupMap = {
-                    '车行配置': [
+                    '万圣节精选内容': [
+                        'jack_o_lanterns',
+                        'possessed_animals'
+                    ],
+                    '本周车行配置': [
                         'dealerships'
                     ],
                     '每日活动': [
                         'gun_van',
                         'dead_drop',
                         'street_dealers',
+                        'hidden_caches',
+                        'shipwrecked',
+                        'ls_tags',
                         'smoke_on_the_water_product',
-                        'shoot_animals_photography'
-                    ],
-
-                    '任务与活动': [
-                        'yuanbao',
-                        'stunt_jumps',
-                        'payphone_hits',
+                        'shoot_animals_photography',
                         'rc_time_trial',
                         'bike_time_trial',
                         'skydives',
+                        'stash_houses',
+                        'madrazo_hits',
+                        'exotic_exports1',
+                        'exotic_exports2'
+                    ],
+
+                    '任务与活动': [
+                        'stunt_jumps',
+                        'payphone_hits',
                         'gang_attacks',
                         'treasure_hunt_dba_revolver',
                         'serial_killer_slasher',
                         'maude_bounty_targets',
-                        'stash_houses',
-                        'madrazo_hits',
                         'police_rescue_patrick_mcreary',
                         'random_missions',
                         'drug_vehicle',
@@ -21913,18 +21992,12 @@
                         'smuggler_plane',
                         'smuggler_trail',
                         'crime_scenes',
-                        'wea',
                         'community_outreach',
                         'store_robbery',
                         'convoy',
                         'armored_truck',
-                        'exotic_exports1',
-                        'exotic_exports2'
                     ],
                     '收藏品': [
-                        'hidden_caches',
-                        'shipwrecked',
-                        'ls_tags',
                         'playing_cards',
                         'action_figures',
                         'spray',
@@ -21932,7 +22005,6 @@
                         'signal_jammers',
                         'movie_props',
                         'media_sticks',
-                        'v_telescopes',
                         'ppl',
                         'ppw'
                     ],
@@ -22016,6 +22088,7 @@
                     ],
                     '地点与服务': [
                         'golf_holes',
+                        'v_telescopes',
                         'metro',
                         'police',
                         'fire_stations',
@@ -22041,7 +22114,9 @@
                         'possessed_animals',
                         'cerberus',
                         'yeti',
-                        'happy_holidays_hauler'
+                        'happy_holidays_hauler',
+                        'wea',
+                        'yuanbao'
                     ],
                     '动物': [
                         'boar',
@@ -22704,7 +22779,7 @@
                         // 初始渲染一次
                         try { updateSkydivesSidebarCount(); } catch(e) {}
                     }
-                    // RC时间挑战赛计数器
+                    // RC匪徒时间挑战赛计数器
                     else if (type === 'rc_time_trial') {
                         const counter = document.createElement('span');
                         counter.className = 'rc-time-trial-counter';
@@ -22715,7 +22790,7 @@
                         // 初始渲染一次
                         try { updateRCTimeTrialSidebarCount(); } catch(e) {}
                     }
-                    // 自行车时间挑战赛计数器
+                    // 拉机能量每日时间挑战赛计数器
                     else if (type === 'bike_time_trial') {
                         const counter = document.createElement('span');
                         counter.className = 'bike-time-trial-counter';
@@ -23017,11 +23092,11 @@
                         if (t === 'skydives') {
                             try { updateSkydivesSidebarCount(); } catch(e) {}
                         }
-                        // RC时间挑战赛计数器
+                        // RC匪徒时间挑战赛计数器
                         if (t === 'rc_time_trial') {
                             try { updateRCTimeTrialSidebarCount(); } catch(e) {}
                         }
-                        // 自行车时间挑战赛计数器
+                        // 拉机能量每日时间挑战赛计数器
                         if (t === 'bike_time_trial') {
                             try { updateBikeTimeTrialSidebarCount(); } catch(e) {}
                         }

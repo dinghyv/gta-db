@@ -21738,6 +21738,13 @@
             displayElement.id = 'game-time-weather';
             displayElement.className = 'nav-weather';
             displayElement.innerHTML = '<span style="color: white;">🕐 加载中...</span>';
+            displayElement.style.cursor = 'pointer';
+            displayElement.title = '点击查看天气预报';
+            // 添加点击事件监听器
+            displayElement.addEventListener('click', (e) => {
+                e.stopPropagation();
+                showWeatherForecastPopup();
+            });
             // 默认放在地图容器的右上角（会在初始化时移动到合适位置）
             document.getElementById('map-container').appendChild(displayElement);
 
@@ -21759,7 +21766,7 @@
                             displayElement.style.marginLeft = '8px';
                             displayElement.style.color = 'white';
                             displayElement.style.fontSize = '13px';
-                            displayElement.style.pointerEvents = 'none';
+                            displayElement.style.pointerEvents = 'auto';
                             displayElement.style.background = 'transparent';
                             displayElement.style.padding = '0 6px';
                         }
@@ -21776,7 +21783,7 @@
                             displayElement.style.position = '';
                             displayElement.style.bottom = '';
                             displayElement.style.right = '';
-                            displayElement.style.pointerEvents = 'none';
+                            displayElement.style.pointerEvents = 'auto';
                             displayElement.style.background = 'transparent';
                             displayElement.style.padding = '0';
                             displayElement.style.border = 'none';
@@ -21884,6 +21891,324 @@
                     displayElement.textContent = '❌ 计算失败';
                     console.error('计算游戏时间和天气信息失败:', error);
                 }
+            }
+
+            // 天气预测功能
+            function getWeatherPredictions() {
+                const WEATHERS = {
+                  0: '☁️多云', 4: '🌫️薄雾', 7: '⛅大部多云', 11: '☀️晴朗', 14: '🌫️薄雾', 16: '☀️晴朗',
+                  28: '🌫️薄雾', 31: '☀️晴朗', 41: '🌁阴霾', 45: '☁️多云', 52: '🌫️薄雾', 55: '☁️多云',
+                  62: '🌁雾天', 66: '☁️多云', 72: '☁️多云', 78: '🌁雾天', 82: '☁️多云', 92: '🌤️大部晴朗',
+                  104: '☁️多云', 105: '🌦️毛毛雨', 108: '☁️多云', 125: '🌫️薄雾', 128: '☁️多云',
+                  131: '🌧️下雨', 134: '🌦️毛毛雨', 137: '☁️多云', 148: '🌫️薄雾', 151: '⛅大部多云',
+                  155: '🌁雾天', 159: '☀️晴朗', 176: '🌤️大部晴朗', 196: '🌁雾天', 201: '☁️多云',
+                  220: '🌫️薄雾', 222: '🌤️大部晴朗', 244: '🌫️薄雾', 246: '🌤️大部晴朗', 247: '🌧️下雨',
+                  250: '🌦️毛毛雨', 252: '☁️多云', 268: '🌫️薄雾', 270: '☁️多云', 272: '☁️多云',
+                  277: '☁️多云', 292: '🌫️薄雾', 295: '☁️多云', 300: '⛅大部多云',
+                  306: '☁️多云', 318: '⛅大部多云', 330: '☁️多云', 337: '☀️晴朗',
+                  367: '☁️多云', 369: '🌧️下雨', 376: '🌦️毛毛雨', 377: '☁️多云'
+                };
+
+                const periods = Object.keys(WEATHERS).map(Number).sort((a, b) => a - b);
+                const currentTimestamp = Math.floor(Date.now() / 1000);
+                const currentWeatherPeriod = currentTimestamp / 120 % 384;
+                
+                // 预测未来5个天气变化
+                const futureWeathers = [];
+                let searchPeriod = currentWeatherPeriod;
+                
+                for (let i = 0; i < 5; i++) {
+                    // 找到下一个天气变化点
+                    let nextPeriod = null;
+                    for (const period of periods) {
+                        if (period > searchPeriod) {
+                            nextPeriod = period;
+                            break;
+                        }
+                    }
+                    
+                    // 如果没找到，说明要到下一个周期
+                    if (nextPeriod === null) {
+                        nextPeriod = periods[0] + 384; // 下一个周期的第一个天气
+                        searchPeriod = 0; // 重置搜索起点
+                    }
+                    
+                    // 计算现实时间
+                    const periodDiff = nextPeriod - currentWeatherPeriod;
+                    const realTimeSeconds = periodDiff * 120; // 每个游戏分钟 = 2秒现实时间
+                    const futureTimestamp = currentTimestamp + realTimeSeconds;
+                    const futureDate = new Date(futureTimestamp * 1000);
+                    
+                    const weatherKey = nextPeriod % 384;
+                    const weather = WEATHERS[weatherKey] || '☁️多云';
+                    
+                    futureWeathers.push({
+                        weather: weather,
+                        realTime: futureDate,
+                        timeString: futureDate.toLocaleString('zh-CN', {
+                            month: '2-digit',
+                            day: '2-digit',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        })
+                    });
+                    
+                    searchPeriod = nextPeriod % 384;
+                }
+                
+                return futureWeathers;
+            }
+
+            // 预测下两场雨天
+            function getNextRainTimes() {
+                const WEATHERS = {
+                  0: '☁️多云', 4: '🌫️薄雾', 7: '⛅大部多云', 11: '☀️晴朗', 14: '🌫️薄雾', 16: '☀️晴朗',
+                  28: '🌫️薄雾', 31: '☀️晴朗', 41: '🌁阴霾', 45: '☁️多云', 52: '🌫️薄雾', 55: '☁️多云',
+                  62: '🌁雾天', 66: '☁️多云', 72: '☁️多云', 78: '🌁雾天', 82: '☁️多云', 92: '🌤️大部晴朗',
+                  104: '☁️多云', 105: '🌦️毛毛雨', 108: '☁️多云', 125: '🌫️薄雾', 128: '☁️多云',
+                  131: '🌧️下雨', 134: '🌦️毛毛雨', 137: '☁️多云', 148: '🌫️薄雾', 151: '⛅大部多云',
+                  155: '🌁雾天', 159: '☀️晴朗', 176: '🌤️大部晴朗', 196: '🌁雾天', 201: '☁️多云',
+                  220: '🌫️薄雾', 222: '🌤️大部晴朗', 244: '🌫️薄雾', 246: '🌤️大部晴朗', 247: '🌧️下雨',
+                  250: '🌦️毛毛雨', 252: '☁️多云', 268: '🌫️薄雾', 270: '☁️多云', 272: '☁️多云',
+                  277: '☁️多云', 292: '🌫️薄雾', 295: '☁️多云', 300: '⛅大部多云',
+                  306: '☁️多云', 318: '⛅大部多云', 330: '☁️多云', 337: '☀️晴朗',
+                  367: '☁️多云', 369: '🌧️下雨', 376: '🌦️毛毛雨', 377: '☁️多云'
+                };
+
+                const periods = Object.keys(WEATHERS).map(Number).sort((a, b) => a - b);
+                const currentTimestamp = Math.floor(Date.now() / 1000);
+                const currentWeatherPeriod = currentTimestamp / 120 % 384;
+                
+                const rainTimes = [];
+                let searchPeriod = currentWeatherPeriod;
+                let cycleOffset = 0;
+                
+                // 查找雨天天气的周期点
+                const rainPeriods = periods.filter(period => {
+                    const weather = WEATHERS[period];
+                    return weather.includes('雨') || weather.includes('毛毛雨');
+                });
+                
+                while (rainTimes.length < 2) {
+                    for (const rainPeriod of rainPeriods) {
+                        const adjustedPeriod = rainPeriod + cycleOffset * 384;
+                        if (adjustedPeriod > searchPeriod) {
+                            const periodDiff = adjustedPeriod - currentWeatherPeriod;
+                            const realTimeSeconds = periodDiff * 120;
+                            const futureTimestamp = currentTimestamp + realTimeSeconds;
+                            const futureDate = new Date(futureTimestamp * 1000);
+                            
+                            rainTimes.push({
+                                weather: WEATHERS[rainPeriod],
+                                realTime: futureDate,
+                                timeString: futureDate.toLocaleString('zh-CN', {
+                                    month: '2-digit',
+                                    day: '2-digit',
+                                    hour: '2-digit',
+                                    minute: '2-digit'
+                                })
+                            });
+                            
+                            searchPeriod = adjustedPeriod;
+                            break;
+                        }
+                    }
+                    cycleOffset++;
+                    if (cycleOffset > 10) break; // 防止无限循环
+                }
+                
+                return rainTimes;
+            }
+
+            // 显示天气预报弹窗
+            function showWeatherForecastPopup() {
+                // 移除已存在的弹窗
+                const existingPopup = document.getElementById('weather-forecast-popup');
+                if (existingPopup) {
+                    existingPopup.remove();
+                }
+
+                const futureWeathers = getWeatherPredictions();
+                const rainTimes = getNextRainTimes();
+                
+                // 获取当前时间和天气
+                const now = new Date();
+                const currentTimeString = now.toLocaleString('zh-CN', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit'
+                });
+
+                // 获取当前游戏天气
+                const timestamp = Math.floor(Date.now() / 1000);
+                const weather_period = timestamp / 120 % 384;
+                const WEATHERS = {
+                  0: '☁️多云', 4: '🌫️薄雾', 7: '⛅大部多云', 11: '☀️晴朗', 14: '🌫️薄雾', 16: '☀️晴朗',
+                  28: '🌫️薄雾', 31: '☀️晴朗', 41: '🌁阴霾', 45: '☁️多云', 52: '🌫️薄雾', 55: '☁️多云',
+                  62: '🌁雾天', 66: '☁️多云', 72: '☁️多云', 78: '🌁雾天', 82: '☁️多云', 92: '🌤️大部晴朗',
+                  104: '☁️多云', 105: '🌦️毛毛雨', 108: '☁️多云', 125: '🌫️薄雾', 128: '☁️多云',
+                  131: '🌧️下雨', 134: '🌦️毛毛雨', 137: '☁️多云', 148: '🌫️薄雾', 151: '⛅大部多云',
+                  155: '🌁雾天', 159: '☀️晴朗', 176: '🌤️大部晴朗', 196: '🌁雾天', 201: '☁️多云',
+                  220: '🌫️薄雾', 222: '🌤️大部晴朗', 244: '🌫️薄雾', 246: '🌤️大部晴朗', 247: '🌧️下雨',
+                  250: '🌦️毛毛雨', 252: '☁️多云', 268: '🌫️薄雾', 270: '☁️多云', 272: '☁️多云',
+                  277: '☁️多云', 292: '🌫️薄雾', 295: '☁️多云', 300: '⛅大部多云',
+                  306: '☁️多云', 318: '⛅大部多云', 330: '☁️多云', 337: '☀️晴朗',
+                  367: '☁️多云', 369: '🌧️下雨', 376: '🌦️毛毛雨', 377: '☁️多云'
+                };
+                const periods = Object.keys(WEATHERS).map(Number).sort((a, b) => a - b);
+                let currIdx = 0;
+                for (let i = periods.length - 1; i >= 0; i--) {
+                    if (periods[i] <= weather_period) {
+                        currIdx = i;
+                        break;
+                    }
+                }
+                const currentWeather = WEATHERS[periods[currIdx]];
+
+                // 创建弹窗
+                const popup = document.createElement('div');
+                popup.id = 'weather-forecast-popup';
+                popup.style.cssText = `
+                    position: fixed;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    background: var(--gta-bg-medium);
+                    border: 2px solid var(--gta-border);
+                    border-radius: 12px;
+                    padding: 20px;
+                    max-width: 400px;
+                    width: 90%;
+                    max-height: 80vh;
+                    overflow-y: auto;
+                    z-index: 10000;
+                    color: var(--gta-text);
+                    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+                    backdrop-filter: blur(10px);
+                `;
+
+                popup.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h3 style="margin: 0; color: var(--gta-primary); font-size: 18px;">🌤️ 天气预报</h3>
+                        <button id="close-weather-popup" style="
+                            background: none;
+                            border: none;
+                            color: var(--gta-text);
+                            font-size: 20px;
+                            cursor: pointer;
+                            padding: 5px;
+                            border-radius: 4px;
+                            transition: background 0.2s;
+                        ">✕</button>
+                    </div>
+                    
+                    <div style="margin-bottom: 20px; padding: 15px; background: var(--gta-bg-light); border-radius: 8px; border-left: 4px solid var(--gta-primary);">
+                        <h4 style="margin: 0 0 10px 0; color: var(--gta-accent);">📅 当前状态</h4>
+                        <div id="current-time-weather" style="font-size: 14px; line-height: 1.6;">
+                            <div><strong>现实时间：</strong><span id="real-time-display">${currentTimeString}</span></div>
+                            <div><strong>游戏时间：</strong><span id="game-time-display">加载中...</span></div>
+                            <div><strong>游戏天气：</strong>${currentWeather}</div>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-bottom: 20px; padding: 15px; background: var(--gta-bg-light); border-radius: 8px; border-left: 4px solid #2196f3;">
+                        <h4 style="margin: 0 0 10px 0; color: #42a5f5;">🌧️ 下两场雨天</h4>
+                        <div style="font-size: 14px; line-height: 1.8;">
+                            ${rainTimes.map((rain, index) => `
+                                <div style="margin-bottom: 8px;">
+                                    <strong>第${index + 1}场：</strong>${rain.weather} - ${rain.timeString}
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                    
+                    <div style="padding: 15px; background: var(--gta-bg-light); border-radius: 8px; border-left: 4px solid #4caf50;">
+                        <h4 style="margin: 0 0 10px 0; color: #66bb6a;">🔮 未来5个天气变化</h4>
+                        <div style="font-size: 14px; line-height: 1.8;">
+                            ${futureWeathers.map((weather, index) => `
+                                <div style="margin-bottom: 8px; display: flex; justify-content: space-between;">
+                                    <span>${weather.weather}</span>
+                                    <span style="color: var(--gta-text-secondary);">${weather.timeString}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+
+                // 添加关闭按钮事件
+                popup.querySelector('#close-weather-popup').addEventListener('click', () => {
+                    popup.remove();
+                });
+
+                // 点击弹窗外部关闭
+                popup.addEventListener('click', (e) => {
+                    if (e.target === popup) {
+                        popup.remove();
+                    }
+                });
+
+                // ESC键关闭
+                const handleEsc = (e) => {
+                    if (e.key === 'Escape') {
+                        popup.remove();
+                        document.removeEventListener('keydown', handleEsc);
+                    }
+                };
+                document.addEventListener('keydown', handleEsc);
+
+                // 实时更新当前时间和游戏时间
+                const updateCurrentTime = () => {
+                    const timeDisplay = popup.querySelector('#real-time-display');
+                    const gameTimeDisplay = popup.querySelector('#game-time-display');
+                    
+                    if (timeDisplay) {
+                        const now = new Date();
+                        timeDisplay.textContent = now.toLocaleString('zh-CN', {
+                            year: 'numeric',
+                            month: '2-digit',
+                            day: '2-digit',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            second: '2-digit'
+                        });
+                    }
+                    
+                    if (gameTimeDisplay) {
+                        // 计算游戏时间
+                        const timestamp = Math.floor(Date.now() / 1000);
+                        const hour = Math.floor(timestamp / 120) % 24;
+                        const minute = Math.floor(timestamp / 2) % 60;
+                        const formatted_hour = hour < 10 ? '0' + hour : hour.toString();
+                        const formatted_minute = minute < 10 ? '0' + minute : minute.toString();
+                        
+                        // 获取星期几
+                        const weekday_correction = Math.floor(timestamp / (365 * 2880)) % 7;
+                        const weekdayIdx = Math.floor(timestamp / 2880 + 2 - weekday_correction) % 7;
+                        const WEEKDAYS = {
+                          0: '星期日', 1: '星期一', 2: '星期二', 3: '星期三', 4: '星期四', 5: '星期五', 6: '星期六'
+                        };
+                        const weekday = WEEKDAYS[weekdayIdx];
+                        
+                        gameTimeDisplay.textContent = `${weekday} ${formatted_hour}:${formatted_minute}`;
+                    }
+                };
+
+                // 立即更新一次时间
+                updateCurrentTime();
+                
+                const timeInterval = setInterval(() => {
+                    if (document.contains(popup)) {
+                        updateCurrentTime();
+                    } else {
+                        clearInterval(timeInterval);
+                    }
+                }, 1000);
+
+                document.body.appendChild(popup);
             }
 
             // 初始加载

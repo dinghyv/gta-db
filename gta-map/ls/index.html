@@ -21745,6 +21745,13 @@
                 e.stopPropagation();
                 showWeatherForecastPopup();
             });
+            
+            // 为移动端添加触摸事件监听器
+            displayElement.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                showWeatherForecastPopup();
+            });
             // 默认放在地图容器的右上角（会在初始化时移动到合适位置）
             document.getElementById('map-container').appendChild(displayElement);
 
@@ -21760,7 +21767,7 @@
                             // 无论之前在哪，都把元素移到标题后面
                             if (displayElement.parentElement) displayElement.parentElement.removeChild(displayElement);
                             titleEl.insertAdjacentElement('afterend', displayElement);
-                            // 强制样式以确保可见
+                            // 强制样式以确保可见和可点击
                             displayElement.style.display = 'inline-flex';
                             displayElement.style.alignItems = 'center';
                             displayElement.style.marginLeft = '8px';
@@ -21769,6 +21776,16 @@
                             displayElement.style.pointerEvents = 'auto';
                             displayElement.style.background = 'transparent';
                             displayElement.style.padding = '0 6px';
+                            displayElement.style.cursor = 'pointer';
+                            displayElement.style.zIndex = '1000';
+                            displayElement.style.position = 'relative';
+                            
+                            // 确保点击事件正常工作
+                            displayElement.title = '点击查看天气预报';
+                            
+                            // 移动端特殊处理：确保触摸事件也能工作
+                            displayElement.style.touchAction = 'manipulation';
+                            displayElement.style.userSelect = 'none';
                         }
                     }
                 } else {

@@ -112,8 +112,8 @@
                 animation: floatingPumpkin ${duration}s linear infinite;
                 animation-delay: ${delay}s;
                 opacity: ${0.5 + Math.random() * 0.3};
-                filter: drop-shadow(0 0 10px rgba(255, 107, 0, 0.6));
                 transform: rotate(${Math.random() * 360}deg);
+                will-change: transform;
             `;
             container.appendChild(element);
         }

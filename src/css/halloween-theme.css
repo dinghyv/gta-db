@@ -120,8 +120,8 @@ input[type="submit"] {
 
 button:hover,
 .btn:hover {
-    box-shadow: 0 0 25px rgba(255, 107, 0, 0.8), 0 0 50px rgba(139, 0, 255, 0.5) !important;
-    transform: translateY(-2px) scale(1.05);
+    box-shadow: 0 0 15px rgba(255, 107, 0, 0.6) !important;
+    transform: translateY(-2px);
 }
 
 /* 🎃 链接万圣节效果 */
@@ -275,19 +275,7 @@ tr:hover {
     background: rgba(255, 107, 0, 0.1) !important;
 }
 
-/* 🎃 地图标记万圣节效果 */
-.leaflet-marker-icon,
-.marker {
-    filter: drop-shadow(0 0 8px var(--halloween-orange));
-    animation: markerPulse 2s ease-in-out infinite;
-}
-
-@keyframes markerPulse {
-    0%, 100% { filter: drop-shadow(0 0 8px var(--halloween-orange)); }
-    50% { filter: drop-shadow(0 0 15px var(--halloween-purple)); }
-}
-
-/* 🎃 蝙蝠飞行动画 */
+/* 🎃 蝙蝠飞行动画 - 优化性能 */
 .halloween-bat {
     position: fixed;
     font-size: 30px;
@@ -295,6 +283,7 @@ tr:hover {
     pointer-events: none;
     z-index: 9999;
     animation: batFly 15s linear infinite;
+    will-change: transform;
 }
 
 @keyframes batFly {

@@ -5570,10 +5570,8 @@
                     <div style="margin-top: 10px; padding: 8px; background: rgba(255, 152, 0, 0.1); border-radius: 6px; border-left: 3px solid #FF9800;">
                         <div style="font-weight: bold; color: #F57C00; margin-bottom: 5px;">🎯 收集奖励</div>
                         <div style="color: var(--gta-text); font-size: 13px; line-height: 1.4;">
-                            收集所有吞云吐雾馆产品可获得：<br>
-                            • 特殊载具奖励<br>
-                            • 游戏币奖励<br>
-                            • 解锁隐藏成就
+                            拥有喷云吐雾馆后解锁。每天都有 10 袋产品可供收集。收集一袋，您将获得 7.500 GTA$ 与 500 RP 奖励。收集所有产品还可获得额外 25.000 GTA$。首次完成收集，您还将获得喷云吐雾馆 T 恤。
+每日总收益：100.000 GTA$ 与 5.000 RP。
                         </div>
                     </div>
                 </div>
@@ -15112,7 +15110,8 @@
                 </div>
                 <div style="margin: 10px 0; padding: 10px; background: rgba(233, 30, 99, 0.1); border-radius: 8px; color: var(--gta-text); font-size: 14px; line-height: 1.6;">
                     <div style="font-weight: bold; color: #E91E63; margin-bottom: 5px;">🎯 收集奖励</div>
-                        收集所有手办可获得：特殊载具奖励、游戏币奖励、解锁隐藏成就
+                        一共有 100 个手办（有趣的是：有 8 种不同的模型，收集每种模型时都会有独特的声音）。
+奖励：150.000 GTA$，100.000 RP（每个 1.000 GTA$ 和 1.000 RP，全部集齐额外奖励 50.000 GTA$）,套装和发型： 无力狂怒人 和空中别墅的 8 种装饰品。装饰品代表收集到的手办模型。要想获得完成全部收集的奖励（现金、衣服、发型和装饰品），请前往游戏内的图标。
                     </div>
                 <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
                     <button id="hide-action-figures-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease; display: ${isCurrentHidden ? 'none' : 'inline-block'};">隐藏</button>
@@ -15573,7 +15572,7 @@
                 </div>
                 <div style="margin: 10px 0; padding: 10px; background: rgba(33, 150, 243, 0.1); border-radius: 8px; color: var(--gta-text); font-size: 14px; line-height: 1.6;">
                     <div style="font-weight: bold; color: #2196F3; margin-bottom: 5px;">🎯 收集说明</div>
-                    找到喷罐位置，收集喷罐道具！
+                    喷罐可于 30 处地点之一获得，并于海报上喷洛圣都涂鸦。
                 </div>
                 <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
                     <button id="hide-spray-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease; display: ${isCurrentHidden ? 'none' : 'inline-block'};">隐藏</button>
@@ -16349,7 +16348,8 @@
                 </div>
                 <div style="margin: 10px 0; padding: 10px; background: rgba(76, 175, 80, 0.1); border-radius: 8px; color: var(--gta-text); font-size: 14px; line-height: 1.6;">
                     <div style="font-weight: bold; color: #4CAF50; margin-bottom: 5px;">🎯 收集奖励</div>
-                        收集全部有机坊产品可获得特殊衣服和帽子奖励！
+                        收集一个拉玛有机坊产品即可获得 1.000 GTA$ 与 1.000 RP 奖励。于集齐 100 个产品后拜访 LD Organics  即可获得 拉玛有机坊服饰 与额外 50.000 GTA$ 奖励。
+总收益：150.000 GTA$、100.000 RP。
                     </div>
                 <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
                     <button id="hide-organic-farm-btn" style="padding: 8px 16px; background: var(--gta-bg-dark); color: var(--gta-text); border: 1px solid var(--gta-border); border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s ease; display: ${isCurrentHidden ? 'none' : 'inline-block'};">隐藏</button>

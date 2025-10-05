@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>主题 API 测试</title>
+    <style>
+        body {
+            font-family: monospace;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 10px 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        pre {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        .success { color: green; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+    <h1>🎨 主题 API 测试工具</h1>
+    
+    <h2>1. 测试获取主题</h2>
+    <button onclick="testGetTheme()">GET /gta-db/api/theme/global</button>
+    <pre id="get-result">点击按钮测试...</pre>
+    
+    <h2>2. 测试更新主题</h2>
+    <select id="theme-select">
+        <option value="default">默认主题</option>
+        <option value="halloween">万圣节主题</option>
+        <option value="christmas">圣诞节主题</option>
+        <option value="dark">暗黑主题</option>
+    </select>
+    <button onclick="testUpdateTheme()">POST /gta-db/api/admin/update-theme</button>
+    <pre id="post-result">选择主题后点击按钮测试...</pre>
+    
+    <h2>3. API 配置</h2>
+    <p>当前 API 地址: <strong id="api-base">加载中...</strong></p>
+    <button onclick="changeApiBase()">切换到 Workers 默认域名</button>
+    
+    <script src="/src/js/theme-manager.js"></script>
+    <script>
+        let API_BASE = 'https://theme-api.antwen.com';
+        
+        document.getElementById('api-base').textContent = API_BASE;
+        
+        function changeApiBase() {
+            API_BASE = API_BASE.includes('antwen.com') 
+                ? 'https://theme-api.dinghyv.workers.dev'
+                : 'https://theme-api.antwen.com';
+            document.getElementById('api-base').textContent = API_BASE;
+            alert('API 地址已切换到: ' + API_BASE);
+        }
+        
+        async function testGetTheme() {
+            const resultEl = document.getElementById('get-result');
+            resultEl.textContent = '⏳ 请求中...';
+            
+            try {
+                const url = `${API_BASE}/gta-db/api/theme/global?t=${Date.now()}`;
+                console.log('GET:', url);
+                
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                resultEl.innerHTML = `<span class="success">✅ 成功</span>\n\n${JSON.stringify(data, null, 2)}`;
+                console.log('GET 响应:', data);
+            } catch (error) {
+                resultEl.innerHTML = `<span class="error">❌ 失败</span>\n\n${error.message}`;
+                console.error('GET 错误:', error);
+            }
+        }
+        
+        async function testUpdateTheme() {
+            const resultEl = document.getElementById('post-result');
+            const theme = document.getElementById('theme-select').value;
+            
+            resultEl.textContent = '⏳ 请求中...';
+            
+            try {
+                const url = `${API_BASE}/gta-db/api/admin/update-theme`;
+                const body = {
+                    theme: theme,
+                    timestamp: Date.now()
+                };
+                
+                console.log('POST:', url);
+                console.log('Body:', body);
+                
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(body)
+                });
+                
+                const data = await response.json();
+                
+                resultEl.innerHTML = `<span class="success">✅ 成功</span>\n\n请求:\n${JSON.stringify(body, null, 2)}\n\n响应:\n${JSON.stringify(data, null, 2)}`;
+                console.log('POST 响应:', data);
+                
+                // 自动刷新获取结果
+                setTimeout(testGetTheme, 1000);
+            } catch (error) {
+                resultEl.innerHTML = `<span class="error">❌ 失败</span>\n\n${error.message}`;
+                console.error('POST 错误:', error);
+            }
+        }
+        
+        // 页面加载时自动测试 GET
+        window.onload = () => {
+            testGetTheme();
+        };
+    </script>
+</body>
+</html>

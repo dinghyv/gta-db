@@ -6,6 +6,7 @@
     <title>GTA地图项目 - 管理面板</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" crossorigin="anonymous" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <script src="/src/js/theme-manager.js"></script>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -203,6 +204,55 @@
 
     <div class="container">
         <h1>🎮 GTA地图项目管理面板</h1>
+        
+        <!-- 🎨 主题管理面板 -->
+        <div class="update-section" style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border: 2px solid #007bff;">
+            <h2 style="color: #007bff;">🎨 全局主题管理</h2>
+            <div class="description">
+                统一管理整个网站的主题风格，更改后将应用到所有页面（主页、地图、车辆百科等）。
+                <br><strong style="color: #dc3545;">注意：</strong>主题设置保存在浏览器本地，清除缓存后需要重新设置。
+            </div>
+            
+            <div style="margin: 20px 0;">
+                <label for="theme-select" style="display: block; font-weight: bold; margin-bottom: 10px; color: #333;">
+                    <i class="fas fa-palette"></i> 选择主题：
+                </label>
+                <select id="theme-select" style="width: 100%; padding: 12px; border: 2px solid #007bff; border-radius: 6px; font-size: 16px; background: white;">
+                    <option value="default">🎮 默认主题 - GTA 经典橙色</option>
+                    <option value="halloween">🎃 万圣节主题 - 恐怖氛围</option>
+                    <option value="christmas">🎄 圣诞节主题 - 即将推出</option>
+                    <option value="dark">🌙 暗黑主题 - 即将推出</option>
+                </select>
+            </div>
+            
+            <div id="theme-preview" style="margin: 20px 0; padding: 15px; border-radius: 8px; background: rgba(0,123,255,0.1); border: 1px dashed #007bff;">
+                <strong style="color: #007bff;">当前主题：</strong>
+                <span id="current-theme-name" style="color: #28a745; font-weight: bold;">加载中...</span>
+                <br>
+                <small id="theme-description" style="color: #666;">GTA 经典橙色主题</small>
+            </div>
+            
+            <div style="display: flex; gap: 10px;">
+                <button id="apply-theme-btn" class="btn" style="background: linear-gradient(135deg, #007bff 0%, #0056b3 100%); flex: 1; font-size: 16px; padding: 15px;">
+                    <i class="fas fa-user"></i> 仅自己使用
+                </button>
+                <button id="apply-global-theme-btn" class="btn" style="background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%); flex: 1; font-size: 16px; padding: 15px;">
+                    <i class="fas fa-globe"></i> 应用到全局
+                </button>
+            </div>
+            
+            <div id="theme-status" style="margin-top: 15px;"></div>
+            
+            <div style="margin-top: 20px; padding: 15px; background: #fff3cd; border: 1px solid #ffc107; border-radius: 6px;">
+                <strong style="color: #856404;"><i class="fas fa-info-circle"></i> 提示：</strong>
+                <ul style="margin: 10px 0; padding-left: 20px; color: #856404;">
+                    <li><strong>"仅自己使用"</strong>：只在你的浏览器生效</li>
+                    <li><strong>"应用到全局"</strong>：所有访问者都会看到此主题（需要重新构建和部署）</li>
+                    <li>全局主题会覆盖默认主题，但用户可以自己切换</li>
+                    <li>修改全局主题后需要运行 <code>npm run build</code> 并重新部署</li>
+                </ul>
+            </div>
+        </div>
         
         <div class="update-section">
             <h2>📊 更新Tunables数据</h2>
@@ -682,16 +732,145 @@
 
             await processEndpoints(dealershipEndpoints, status, '🏎️ 车行信息获取结果');
 
-            status.innerHTML = html;
             btn.disabled = false;
             btn.textContent = '🚗 显示车行信息';
         }
 
-        // 页面加载时自动检查API状态
-        window.addEventListener('load', () => {
-            console.log('🎮 GTA地图项目管理面板已加载');
-            console.log('API基础URL:', API_BASE);
+        // 🎨 主题管理功能
+        document.addEventListener('DOMContentLoaded', function() {
+        const themeSelect = document.getElementById('theme-select');
+        const applyThemeBtn = document.getElementById('apply-theme-btn');
+        const applyGlobalThemeBtn = document.getElementById('apply-global-theme-btn');
+        const themeStatus = document.getElementById('theme-status');
+        const currentThemeName = document.getElementById('current-theme-name');
+        const themeDescription = document.getElementById('theme-description');
+
+        // 更新当前主题显示
+        function updateCurrentThemeDisplay() {
+            if (typeof ThemeManager !== 'undefined') {
+                const currentTheme = ThemeManager.getCurrentTheme();
+                const themeInfo = ThemeManager.themes[currentTheme];
+                
+                if (themeInfo) {
+                    currentThemeName.textContent = themeInfo.name;
+                    themeDescription.textContent = themeInfo.description;
+                    themeSelect.value = currentTheme;
+                }
+            }
+        }
+
+        // 等待全局主题加载完成后再更新显示
+        setTimeout(() => {
+            updateCurrentThemeDisplay();
+        }, 500);
+
+        // 下拉框变化时更新预览
+        themeSelect.addEventListener('change', function() {
+            const selectedTheme = this.value;
+            const themeInfo = ThemeManager.themes[selectedTheme];
+            
+            if (themeInfo) {
+                themeDescription.textContent = themeInfo.description;
+            }
         });
+
+        // 应用主题按钮（仅自己）
+        applyThemeBtn.addEventListener('click', function() {
+            const selectedTheme = themeSelect.value;
+            const themeInfo = ThemeManager.themes[selectedTheme];
+
+            if (!themeInfo) {
+                showThemeStatus('error', '❌ 主题不存在！');
+                return;
+            }
+
+            showThemeStatus('loading', '⏳ 正在应用主题...');
+            applyThemeBtn.disabled = true;
+
+            try {
+                ThemeManager.setTheme(selectedTheme);
+                
+                setTimeout(() => {
+                    showThemeStatus('success', `✅ 主题已切换到：${themeInfo.name}（仅你可见）`);
+                    updateCurrentThemeDisplay();
+                    applyThemeBtn.disabled = false;
+
+                    setTimeout(() => {
+                        themeStatus.innerHTML = '';
+                    }, 3000);
+                }, 500);
+            } catch (error) {
+                showThemeStatus('error', `❌ 应用主题失败：${error.message}`);
+                applyThemeBtn.disabled = false;
+            }
+        });
+
+        // 应用到全局按钮（通过 API）
+        applyGlobalThemeBtn.addEventListener('click', async function() {
+            const selectedTheme = themeSelect.value;
+            const themeInfo = ThemeManager.themes[selectedTheme];
+
+            if (!themeInfo) {
+                showThemeStatus('error', '❌ 主题不存在！');
+                return;
+            }
+
+            if (!confirm(`确定要将"${themeInfo.name}"设置为全局默认主题吗？\n\n这将立即影响所有访问者！`)) {
+                return;
+            }
+
+            showThemeStatus('loading', '⏳ 正在通过 API 更新全局主题...');
+            applyGlobalThemeBtn.disabled = true;
+
+            try {
+                // 调用 API 更新全局主题
+                const result = await ThemeManager.updateGlobalTheme(selectedTheme);
+                
+                if (result.success) {
+                    showThemeStatus('success', `
+                        ✅ 全局主题已成功更新为：${themeInfo.name}<br><br>
+                        <strong>生效范围：</strong>所有访问者（立即生效）<br>
+                        <strong>更新时间：</strong>${new Date().toLocaleString('zh-CN')}<br><br>
+                        <div style="padding: 10px; background: #d1ecf1; border-radius: 6px; margin-top: 10px;">
+                            <i class="fas fa-info-circle"></i> 
+                            新访问者将自动看到此主题，已访问的用户刷新页面后生效。
+                        </div>
+                    `);
+                    
+                    // 3秒后自动隐藏
+                    setTimeout(() => {
+                        themeStatus.innerHTML = '';
+                    }, 5000);
+                } else {
+                    showThemeStatus('error', `
+                        ❌ 更新失败：${result.error}<br><br>
+                        <strong>可能原因：</strong><br>
+                        1. API 服务未启动<br>
+                        2. 网络连接问题<br>
+                        3. 权限不足<br><br>
+                        <strong>降级方案：</strong>使用本地配置文件<br>
+                        <button onclick="location.reload()" class="btn" style="margin-top: 10px;">刷新重试</button>
+                    `);
+                }
+                
+                applyGlobalThemeBtn.disabled = false;
+            } catch (error) {
+                showThemeStatus('error', `❌ 更新失败：${error.message}`);
+                applyGlobalThemeBtn.disabled = false;
+            }
+        });
+
+        // 显示状态消息
+        function showThemeStatus(type, message) {
+            themeStatus.innerHTML = `<div class="status ${type}">${message}</div>`;
+        }
+
+        // 监听主题变化事件
+        window.addEventListener('themeChanged', function(e) {
+            console.log('🎨 主题已变更:', e.detail.theme);
+            updateCurrentThemeDisplay();
+        });
+    });
     </script>
 </body>
 </html>

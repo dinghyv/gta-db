@@ -1,0 +1,12 @@
+name = "theme-api"
+main = "src/index.js"
+compatibility_date = "2024-01-01"
+
+# KV 命名空间（用于存储主题配置）
+kv_namespaces = [
+  { binding = "THEME_KV", id = "320fc4492d9d44e583d8e7dd8b2396de", preview_id = "7f329e4aa5cb414e9c86f53d924bd07f" }
+]
+
+# 环境变量
+[vars]
+ALLOWED_ORIGINS = "https://gta.antwen.com,https://v.antwen.com,http://localhost:8080"

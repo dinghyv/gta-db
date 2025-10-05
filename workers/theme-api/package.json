@@ -1,0 +1,22 @@
+{
+  "name": "theme-api",
+  "version": "1.0.0",
+  "description": "GTA 主题管理 API - Cloudflare Workers",
+  "main": "src/index.js",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "tail": "wrangler tail"
+  },
+  "keywords": [
+    "cloudflare",
+    "workers",
+    "theme",
+    "api"
+  ],
+  "author": "antwen",
+  "license": "MIT",
+  "devDependencies": {
+    "wrangler": "^3.0.0"
+  }
+}

@@ -1,0 +1,477 @@
+/* 🎃 GTA 万圣节主题 - 2025 */
+
+:root {
+    /* 万圣节配色 */
+    --halloween-orange: #ff6b00;
+    --halloween-purple: #8b00ff;
+    --halloween-dark: #1a0a2e;
+    --halloween-blood: #8b0000;
+    --halloween-green: #00ff41;
+    --halloween-glow: #ff6b00;
+}
+
+/* 🎃 全局万圣节效果 */
+body {
+    background: linear-gradient(135deg, #1a0a2e 0%, #0f0519 50%, #1a0a2e 100%) !important;
+    background-attachment: fixed !important;
+    position: relative;
+    overflow-x: hidden;
+}
+
+/* 🎃 万圣节背景动画 */
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: 
+        radial-gradient(circle at 20% 30%, rgba(255, 107, 0, 0.05) 0%, transparent 50%),
+        radial-gradient(circle at 80% 70%, rgba(139, 0, 255, 0.05) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+    animation: halloweenPulse 8s ease-in-out infinite;
+}
+
+@keyframes halloweenPulse {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 0.6; }
+}
+
+/* 🎃 南瓜灯漂浮效果 */
+body::after {
+    content: '🎃';
+    position: fixed;
+    font-size: 60px;
+    opacity: 0.15;
+    pointer-events: none;
+    z-index: 1;
+    animation: floatingPumpkin 20s linear infinite;
+    filter: drop-shadow(0 0 20px var(--halloween-orange));
+}
+
+@keyframes floatingPumpkin {
+    0% {
+        left: -100px;
+        top: 20%;
+        transform: rotate(0deg);
+    }
+    50% {
+        top: 60%;
+        transform: rotate(180deg);
+    }
+    100% {
+        left: calc(100% + 100px);
+        top: 20%;
+        transform: rotate(360deg);
+    }
+}
+
+/* 🎃 导航栏万圣节主题 */
+.gta-nav,
+nav,
+header {
+    background: linear-gradient(90deg, 
+        rgba(26, 10, 46, 0.95) 0%, 
+        rgba(139, 0, 255, 0.3) 50%, 
+        rgba(26, 10, 46, 0.95) 100%) !important;
+    border-bottom: 2px solid var(--halloween-orange) !important;
+    box-shadow: 0 4px 20px rgba(255, 107, 0, 0.4) !important;
+}
+
+/* 保持导航栏布局不变 */
+.gta-nav {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding: 10px 20px !important;
+}
+
+.gta-nav .nav-left,
+.gta-nav .nav-right {
+    display: flex !important;
+    gap: 15px !important;
+    align-items: center !important;
+}
+
+.gta-nav .nav-left {
+    flex-grow: 1 !important;
+}
+
+.nav-links {
+    display: flex !important;
+    gap: 15px !important;
+    align-items: center !important;
+}
+
+/* 🎃 按钮万圣节效果 */
+button,
+.btn,
+input[type="button"],
+input[type="submit"] {
+    background: linear-gradient(135deg, var(--halloween-orange) 0%, var(--halloween-blood) 100%) !important;
+    border: 2px solid var(--halloween-purple) !important;
+    color: #fff !important;
+    text-shadow: 0 0 10px rgba(255, 107, 0, 0.8);
+    box-shadow: 0 0 15px rgba(255, 107, 0, 0.5);
+    transition: all 0.3s ease;
+}
+
+button:hover,
+.btn:hover {
+    box-shadow: 0 0 25px rgba(255, 107, 0, 0.8), 0 0 50px rgba(139, 0, 255, 0.5) !important;
+    transform: translateY(-2px) scale(1.05);
+}
+
+/* 🎃 链接万圣节效果 */
+a {
+    color: var(--halloween-orange) !important;
+    text-shadow: 0 0 5px rgba(255, 107, 0, 0.5);
+    transition: all 0.3s ease;
+}
+
+a:hover {
+    color: var(--halloween-purple) !important;
+    text-shadow: 0 0 10px rgba(139, 0, 255, 0.8);
+}
+
+/* 🎃 卡片/面板万圣节效果 */
+.card,
+.panel,
+.sidebar,
+.side-panel,
+[class*="panel"],
+[class*="card"] {
+    background: linear-gradient(135deg, 
+        rgba(26, 10, 46, 0.95) 0%, 
+        rgba(15, 5, 25, 0.95) 100%) !important;
+    border: 1px solid rgba(139, 0, 255, 0.4) !important;
+    box-shadow: 
+        0 0 15px rgba(139, 0, 255, 0.2),
+        inset 0 0 20px rgba(255, 107, 0, 0.05) !important;
+}
+
+/* 🎃 输入框万圣节效果 */
+input[type="text"],
+input[type="search"],
+textarea,
+select {
+    background: rgba(26, 10, 46, 0.8) !important;
+    border: 1px solid rgba(139, 0, 255, 0.3) !important;
+    color: var(--halloween-orange) !important;
+    box-shadow: inset 0 0 5px rgba(139, 0, 255, 0.2);
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+    border-color: rgba(255, 107, 0, 0.6) !important;
+    box-shadow: 0 0 10px rgba(255, 107, 0, 0.4) !important;
+}
+
+/* 🎃 地图控制面板优化 */
+.leaflet-control,
+.leaflet-bar,
+.map-controls,
+[class*="control"] {
+    background: rgba(26, 10, 46, 0.92) !important;
+    border: 1px solid rgba(139, 0, 255, 0.25) !important;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5) !important;
+    backdrop-filter: blur(10px) !important;
+}
+
+/* 地图控制按钮 */
+.leaflet-control a,
+.map-control-button,
+button[class*="control"] {
+    background: rgba(26, 10, 46, 0.7) !important;
+    border: 1px solid rgba(139, 0, 255, 0.2) !important;
+    color: var(--halloween-orange) !important;
+    transition: all 0.3s ease !important;
+}
+
+.leaflet-control a:hover,
+.map-control-button:hover {
+    background: rgba(139, 0, 255, 0.3) !important;
+    border-color: var(--halloween-orange) !important;
+    box-shadow: 0 0 10px rgba(255, 107, 0, 0.4) !important;
+}
+
+/* 复选框美化 */
+input[type="checkbox"] {
+    accent-color: var(--halloween-orange) !important;
+    border: 1px solid rgba(139, 0, 255, 0.3) !important;
+}
+
+/* 列表项优化 */
+.list-item,
+li,
+[class*="item"] {
+    border-bottom: 1px solid rgba(139, 0, 255, 0.15) !important;
+    transition: all 0.2s ease !important;
+}
+
+.list-item:hover,
+li:hover {
+    background: rgba(139, 0, 255, 0.1) !important;
+    border-left: 2px solid var(--halloween-orange) !important;
+}
+
+/* 🎃 滚动条万圣节主题 */
+::-webkit-scrollbar {
+    width: 10px;
+    background: rgba(26, 10, 46, 0.8);
+}
+
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, var(--halloween-orange) 0%, var(--halloween-purple) 100%);
+    border-radius: 5px;
+    box-shadow: 0 0 8px rgba(255, 107, 0, 0.4);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, var(--halloween-purple) 0%, var(--halloween-orange) 100%);
+    box-shadow: 0 0 15px rgba(139, 0, 255, 0.6);
+}
+
+/* 🎃 标题万圣节效果 */
+h1, h2, h3, h4, h5, h6 {
+    color: var(--halloween-orange) !important;
+    text-shadow: 
+        0 0 10px rgba(255, 107, 0, 0.8),
+        0 0 20px rgba(139, 0, 255, 0.5);
+    font-weight: bold;
+}
+
+/* 🎃 弹窗万圣节效果 */
+.popup,
+.modal,
+[class*="popup"],
+[class*="modal"] {
+    background: linear-gradient(135deg, 
+        rgba(26, 10, 46, 0.98) 0%, 
+        rgba(15, 5, 25, 0.98) 100%) !important;
+    border: 3px solid var(--halloween-orange) !important;
+    box-shadow: 
+        0 0 30px rgba(255, 107, 0, 0.6),
+        0 0 60px rgba(139, 0, 255, 0.4),
+        inset 0 0 50px rgba(255, 107, 0, 0.1) !important;
+}
+
+/* 🎃 表格万圣节效果 */
+table {
+    background: rgba(26, 10, 46, 0.8) !important;
+    border: 2px solid var(--halloween-purple) !important;
+}
+
+th {
+    background: linear-gradient(135deg, var(--halloween-orange) 0%, var(--halloween-blood) 100%) !important;
+    color: #fff !important;
+    text-shadow: 0 0 10px rgba(0, 0, 0, 0.8);
+}
+
+tr:hover {
+    background: rgba(255, 107, 0, 0.1) !important;
+}
+
+/* 🎃 地图标记万圣节效果 */
+.leaflet-marker-icon,
+.marker {
+    filter: drop-shadow(0 0 8px var(--halloween-orange));
+    animation: markerPulse 2s ease-in-out infinite;
+}
+
+@keyframes markerPulse {
+    0%, 100% { filter: drop-shadow(0 0 8px var(--halloween-orange)); }
+    50% { filter: drop-shadow(0 0 15px var(--halloween-purple)); }
+}
+
+/* 🎃 蝙蝠飞行动画 */
+.halloween-bat {
+    position: fixed;
+    font-size: 30px;
+    opacity: 0.3;
+    pointer-events: none;
+    z-index: 9999;
+    animation: batFly 15s linear infinite;
+}
+
+@keyframes batFly {
+    0% {
+        left: -50px;
+        top: 10%;
+    }
+    100% {
+        left: calc(100% + 50px);
+        top: 30%;
+    }
+}
+
+/* 🎃 幽灵漂浮动画 */
+.halloween-ghost {
+    position: fixed;
+    font-size: 40px;
+    opacity: 0.2;
+    pointer-events: none;
+    z-index: 9999;
+    animation: ghostFloat 25s ease-in-out infinite;
+}
+
+@keyframes ghostFloat {
+    0% {
+        right: -60px;
+        top: 50%;
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-30px);
+    }
+    100% {
+        right: calc(100% + 60px);
+        top: 50%;
+        transform: translateY(0);
+    }
+}
+
+/* 🎃 骷髅头装饰 */
+.halloween-skull {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    font-size: 50px;
+    opacity: 0.15;
+    pointer-events: none;
+    z-index: 1;
+    animation: skullRotate 10s linear infinite;
+}
+
+@keyframes skullRotate {
+    0%, 100% { transform: rotate(-10deg); }
+    50% { transform: rotate(10deg); }
+}
+
+/* 🎃 蜘蛛网装饰 */
+.halloween-web {
+    position: fixed;
+    top: 0;
+    left: 0;
+    font-size: 80px;
+    opacity: 0.1;
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* 🎃 闪电效果 */
+@keyframes lightning {
+    0%, 100% { opacity: 0; }
+    50% { opacity: 0.8; }
+}
+
+.halloween-lightning {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.1);
+    pointer-events: none;
+    z-index: 9998;
+    opacity: 0;
+    animation: lightning 0.2s ease-in-out;
+}
+
+/* 🎃 文字发光效果 */
+.glow-text {
+    animation: textGlow 2s ease-in-out infinite;
+}
+
+@keyframes textGlow {
+    0%, 100% {
+        text-shadow: 
+            0 0 10px rgba(255, 107, 0, 0.8),
+            0 0 20px rgba(139, 0, 255, 0.5);
+    }
+    50% {
+        text-shadow: 
+            0 0 20px rgba(255, 107, 0, 1),
+            0 0 40px rgba(139, 0, 255, 0.8);
+    }
+}
+
+/* 🎃 侧边栏特殊效果 */
+.sidebar-item:hover,
+.menu-item:hover {
+    background: rgba(255, 107, 0, 0.2) !important;
+    border-left: 4px solid var(--halloween-orange) !important;
+    box-shadow: inset 0 0 20px rgba(139, 0, 255, 0.3);
+}
+
+/* 🎃 复选框万圣节效果 */
+input[type="checkbox"]:checked {
+    background: var(--halloween-orange) !important;
+    box-shadow: 0 0 10px rgba(255, 107, 0, 0.8);
+}
+
+/* 🎃 加载动画万圣节效果 */
+.loading,
+.spinner {
+    border-color: var(--halloween-purple) !important;
+    border-top-color: var(--halloween-orange) !important;
+    box-shadow: 0 0 20px rgba(255, 107, 0, 0.5);
+}
+
+/* 🎃 提示框万圣节效果 */
+.tooltip,
+.hint {
+    background: rgba(26, 10, 46, 0.95) !important;
+    border: 2px solid var(--halloween-orange) !important;
+    color: var(--halloween-green) !important;
+    box-shadow: 0 0 15px rgba(255, 107, 0, 0.6);
+}
+
+/* 🎃 徽章/标签万圣节效果 */
+.badge,
+.tag,
+.label {
+    background: linear-gradient(135deg, var(--halloween-orange) 0%, var(--halloween-purple) 100%) !important;
+    color: #fff !important;
+    box-shadow: 0 0 10px rgba(255, 107, 0, 0.5);
+}
+
+/* 🎃 进度条万圣节效果 */
+.progress-bar,
+progress {
+    background: rgba(26, 10, 46, 0.8) !important;
+    border: 2px solid var(--halloween-purple) !important;
+}
+
+.progress-bar::after,
+progress::-webkit-progress-value {
+    background: linear-gradient(90deg, var(--halloween-orange) 0%, var(--halloween-purple) 100%) !important;
+    box-shadow: 0 0 15px rgba(255, 107, 0, 0.8);
+}
+
+/* 🎃 响应式调整 */
+@media (max-width: 768px) {
+    body::after {
+        font-size: 40px;
+    }
+    
+    .halloween-bat,
+    .halloween-ghost {
+        font-size: 20px;
+    }
+}
+
+/* 🎃 打印时移除万圣节效果 */
+@media print {
+    body::before,
+    body::after,
+    .halloween-bat,
+    .halloween-ghost,
+    .halloween-skull,
+    .halloween-web {
+        display: none !important;
+    }
+}

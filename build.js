@@ -62,6 +62,8 @@ async function buildProject() {
         'gta-map/ls/js/mobile-controls.js',
         'gta-map/ls/js/protection.js',
         'vehicles/decrypt.js',
+        'src/js/halloween-effects.js',
+        'src/js/theme-manager.js',
     ];
 
     for (const file of otherJsFiles) {

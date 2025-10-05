@@ -6,6 +6,7 @@
     <title>GTA 载具百科</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" crossorigin="anonymous" />
+    <script src="decrypt.js"></script>
     <style>
         /* GTA风格导航栏 - 深蓝色主题 */
         .gta-nav {
@@ -2308,11 +2309,52 @@ let browseState = {
             }
 
             try {
-                const response = await fetch('../src/data/vehicles_database_antwen.json?v=' + Date.now());
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+                // 使用浏览器缓存，只在数据更新时才重新下载
+                // 如果需要强制刷新，可以手动修改版本号
+                const CACHE_VERSION = '1.0.0'; // 数据更新时修改此版本号
+                const CACHE_KEY = 'vehicles_database_cache';
+                const CACHE_VERSION_KEY = 'vehicles_database_version';
+                
+                // 尝试从 localStorage 读取缓存
+                const cachedVersion = localStorage.getItem(CACHE_VERSION_KEY);
+                const cachedData = localStorage.getItem(CACHE_KEY);
+                
+                if (cachedVersion === CACHE_VERSION && cachedData) {
+                    // 使用缓存数据
+                    console.log('✅ 使用缓存的车辆数据');
+                    allVehicles = JSON.parse(cachedData);
+                } else {
+                    // 下载加密的数据
+                    console.log('📥 下载车辆数据...');
+                    const response = await fetch(`../src/data/vehicles_database_encrypted.json?v=${CACHE_VERSION}`);
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    const encryptedData = await response.json();
+                    
+                    // 解密数据
+                    if (encryptedData.encrypted && typeof decryptVehicleData === 'function') {
+                        console.log('🔓 解密车辆数据...');
+                        const SECRET_KEY = 'gta-vehicles-antwen-2025';
+                        allVehicles = decryptVehicleData(encryptedData.data, SECRET_KEY);
+                        if (!allVehicles) {
+                            throw new Error('解密失败');
+                        }
+                        console.log('✅ 解密成功');
+                    } else {
+                        // 兼容未加密的数据
+                        allVehicles = encryptedData;
+                    }
+                    
+                    // 保存解密后的数据到 localStorage
+                    try {
+                        localStorage.setItem(CACHE_KEY, JSON.stringify(allVehicles));
+                        localStorage.setItem(CACHE_VERSION_KEY, CACHE_VERSION);
+                        console.log('💾 已缓存车辆数据到本地');
+                    } catch (e) {
+                        console.warn('⚠️ 无法缓存数据（可能超出 localStorage 限制）:', e);
+                    }
                 }
-                allVehicles = await response.json();
 
                 // 为所有图片URL添加Cloudflare R2域名前缀
                 console.log('开始处理图片URL...', allVehicles.length, '辆车');

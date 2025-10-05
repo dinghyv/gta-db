@@ -1,0 +1,13 @@
+{
+  "name": "gta-db",
+  "version": "1.0.0",
+  "description": "GTA Online 地图项目",
+  "scripts": {
+    "build": "node build.js",
+    "preview": "npx http-server dist -p 8080",
+    "encrypt": "node scripts/encrypt-json.js"
+  },
+  "devDependencies": {
+    "terser": "^5.27.0"
+  }
+}

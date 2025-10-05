@@ -499,41 +499,43 @@
             status.innerHTML = '<div class="status loading">正在检查API状态...</div>';
 
             const endpoints = [
-                '/api/items/gun-van',
-                '/api/items/street-dealers', 
-                '/api/items/ls-tags',
-                '/api/items/hidden-caches',
-                '/api/items/shipwrecked',
-                '/api/items/dead-drop',
-                '/api/items/treasure-chests',
-                '/api/items/buried-stashes',
-                '/api/items/skydives',
-                '/api/items/time-trials',
-                '/api/items/exotic-exports',
-                '/api/game/time-weather',
-                '/api/dealerships/casino-prize',
-                '/api/dealerships/car-meet-prize',
-                '/api/dealerships/promo-test',
-                '/api/dealerships/simeon-test',
-                '/api/dealerships/luxury-showcase',
-                '/api/dealerships/hsw-test',
-                '/api/dealerships/all'
+                { path: '/api/items/gun-van', name: '武器厢型车' },
+                { path: '/api/items/street-dealers', name: '街头毒贩' }, 
+                { path: '/api/items/ls-tags', name: 'LS涂鸦' },
+                { path: '/api/items/hidden-caches', name: '隐藏包裹' },
+                { path: '/api/items/shipwrecked', name: '沉船' },
+                { path: '/api/items/dead-drop', name: '杰拉德包裹' },
+                { path: '/api/items/treasure-chests', name: '藏宝箱' },
+                { path: '/api/items/buried-stashes', name: '地下藏匿品' },
+                { path: '/api/items/skydives', name: '跳伞' },
+                { path: '/api/items/time-trials', name: '时间挑战赛' },
+                { path: '/api/items/exotic-exports', name: '进出口载具' },
+                { path: '/api/game/time-weather', name: '游戏时间天气' },
+                { path: '/api/dealerships/casino-prize', name: '赌场奖品载具' },
+                { path: '/api/dealerships/car-meet-prize', name: '车友会奖品载具' },
+                { path: '/api/dealerships/promo-test', name: '测试载具' },
+                { path: '/api/dealerships/simeon-test', name: '西米恩测试载具' },
+                { path: '/api/dealerships/luxury-showcase', name: '豪华车展厅' },
+                { path: '/api/dealerships/hsw-test', name: 'HSW车辆' },
+                { path: '/api/dealerships/all', name: '所有车行信息' },
+                { path: 'https://smoke-product-api.antwen.com/', name: '吞云吐雾馆产品', external: true }
             ];
 
             let results = [];
             
             for (const endpoint of endpoints) {
                 try {
-                    const response = await fetch(`https://api-gta.antwen.com${endpoint}`);
+                    const url = endpoint.external ? endpoint.path : `https://api-gta.antwen.com${endpoint.path}`;
+                    const response = await fetch(url);
                     const data = await response.json();
                     results.push({
-                        endpoint,
+                        endpoint: endpoint.name || endpoint.path,
                         status: response.ok ? '✅' : '❌',
                         success: data.success || false
                     });
                 } catch (error) {
                     results.push({
-                        endpoint,
+                        endpoint: endpoint.name || endpoint.path,
                         status: '❌',
                         error: error.message
                     });
@@ -557,8 +559,6 @@
         async function showLocationData() {
             const btn = document.getElementById('showLocationDataBtn');
             const status = document.getElementById('locationDataStatus');
-            
-            btn.disabled = true;
             btn.textContent = '📍 获取中...';
             status.innerHTML = '<div class="status loading">正在获取位置信息...</div>';
 
@@ -573,13 +573,13 @@
                 { path: '/api/items/buried-stashes', name: '地下藏匿品', icon: '⛏️' },
                 { path: '/api/items/skydives', name: '跳伞', icon: '🪂' },
                 { path: '/api/items/time-trials', name: '时间挑战赛', icon: '⏱️' },
-                { path: '/api/items/exotic-exports', name: '进出口载具', icon: '🚢' }
+                { path: '/api/items/exotic-exports', name: '进出口载具', icon: '🚢' },
+                { path: 'https://smoke-product-api.antwen.com/', name: '吞云吐雾馆产品', icon: '💨', external: true }
             ];
 
             await processEndpoints(locationEndpoints, status, '🗺️ 位置信息获取结果');
             
             btn.disabled = false;
-            btn.textContent = '📍 显示位置信息';
         }
 
         async function showTimeWeather() {
@@ -605,7 +605,9 @@
             
             for (const endpoint of endpoints) {
                 try {
-                    const response = await fetch(`https://api-gta.antwen.com${endpoint.path}`);
+                    // 如果是外部API，直接使用完整URL，否则拼接内部API地址
+                    const url = endpoint.external ? endpoint.path : `https://api-gta.antwen.com${endpoint.path}`;
+                    const response = await fetch(url);
                     const data = await response.json();
                     results.push({
                         name: endpoint.name,
@@ -628,6 +630,18 @@
             let html = `<div class="status success"><strong>${title}:</strong></div>`;
             
             results.forEach(result => {
+                // 提取描述信息
+                let description = '无描述';
+                if (!result.error && result.data) {
+                    if (result.data.lastUpdate) {
+                        // 如果有 lastUpdate 字段，显示上次更新时间
+                        const updateTime = new Date(result.data.lastUpdate).toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' });
+                        description = `上次更新时间: ${updateTime}`;
+                    } else if (result.data.data) {
+                        description = result.data.data.description || result.data.data.message || '无描述';
+                    }
+                }
+                
                 html += `
                     <div style="margin: 15px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; background: #f9f9f9;">
                         <h3 style="margin: 0 0 10px 0; color: #333;">${result.status} ${result.icon} ${result.name}</h3>
@@ -635,7 +649,7 @@
                         ${result.error ? 
                             `<p style="color: red;"><strong>错误:</strong> ${result.error}</p>` : 
                             `<div style="margin-top: 10px;">
-                                <p><strong>描述:</strong> ${result.data.data ? (result.data.data.description || result.data.data.message || '无描述') : '无描述'}</p>
+                                <p><strong>描述:</strong> ${description}</p>
                                 <details style="margin-top: 10px;">
                                     <summary style="cursor: pointer; color: #007bff;">查看详细数据</summary>
                                     <pre style="background: #f5f5f5; padding: 10px; border-radius: 3px; overflow-x: auto; font-size: 12px; margin-top: 10px;">${JSON.stringify(result.data, null, 2)}</pre>

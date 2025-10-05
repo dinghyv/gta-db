@@ -1798,12 +1798,12 @@
 
                 // 获取吞云吐雾馆产品标记
                 const markers = (window.smokeProductMarkers && window.smokeProductMarkers) || [];
-                let total = 5; // 固定显示5个
+                let total = 10; // 固定显示10个
                 let hidden = 0;
 
                 if (Array.isArray(markers) && markers.length > 0) {
-                    // 使用实际渲染的标记数量（最多5个）
-                    total = Math.min(markers.length, 5);
+                    // 使用实际渲染的标记数量（最多10个）
+                    total = Math.min(markers.length, 10);
                     markers.forEach((marker) => {
                         if (marker && typeof marker.getElement === 'function') {
                             const el = marker.getElement();
@@ -1813,8 +1813,8 @@
                         }
                     });
                 } else {
-                    // 回退：仅有数据尚未渲染 Leaflet 标记时，使用固定数量5
-                    total = 5;
+                    // 回退：仅有数据尚未渲染 Leaflet 标记时，使用固定数量10
+                    total = 10;
                     // 从缓存中获取隐藏数量
                     const cachedCounter = CounterCache.getCounter('smoke_on_the_water_product');
                     hidden = cachedCounter.hidden || 0;
@@ -5511,8 +5511,9 @@
 
         // 吞云吐雾馆产品弹窗模板（含隐藏/显示联动与计数器、缓存集成）
         function showSmokeProductPopup(item, index) {
-            // 序号从1开始
-            const sequenceNumber = index + 1;
+            // 使用原始索引（如果有）来生成图片URL，否则使用当前索引
+            const originalIndex = item.originalIndex !== undefined ? item.originalIndex : index;
+            const sequenceNumber = originalIndex + 1;
             const imageUrl = `https://gta-maps.antwen.com/collectibles_images/smoke_on_the_water_product/smoke_on_the_water_product_${sequenceNumber}.webp`;
             
             // 关闭已存在的弹窗
@@ -5521,7 +5522,7 @@
 
             // 统计隐藏/总数
             const markers = (window.smokeProductMarkers && window.smokeProductMarkers) || [];
-            const totalCount = 5; // 固定显示5个
+            const totalCount = markers.length; // 使用实际标记数量
 
             let hiddenCount = 0;
             markers.forEach((marker) => {
@@ -6593,7 +6594,7 @@
             { value: 'ls_tags', text: 'LS涂鸦' },
             { value: 'street_dealers', text: '街头毒贩' },
             { value: 'playing_cards', text: '纸牌' },
-            { value: 'smoke_on_the_water_product', text: '吞云吐雾馆产品（测试）' },
+            { value: 'smoke_on_the_water_product', text: '吞云吐雾馆产品' },
             { value: 'action_figures', text: '手办' },
             { value: 'yuanbao', text: '元宝' },
             { value: 'letter_scraps', text: '残缺信件' },
@@ -7564,7 +7565,12 @@
                             // 特殊：杀人狂（从嵌套对象加载）
                             if (type === 'serial_killer_slasher_first' || type === 'serial_killer_slasher_last') {
                                 // 跳过（我们不再把这两个伪类型放在通用数组里）
-                            } else if (cardsData[type]) {
+                            } 
+                            // 特殊：吞云吐雾馆产品（跳过，稍后从API加载）
+                            else if (type === 'smoke_on_the_water_product') {
+                                // 跳过，将在后续从API加载
+                            }
+                            else if (cardsData[type]) {
                                 // 处理action_figures的特殊嵌套结构
                                 if (type === 'action_figures' && cardsData[type].regular) {
                                     // 合并regular和last_two数组
@@ -7592,6 +7598,59 @@
                             itemData[type] = []; // 提供默认值，避免后续错误
                         }
                     });
+
+                    // 特殊：从API加载吞云吐雾馆产品数据
+                    try {
+                        const smokeApiResponse = await fetch('https://smoke-product-api.antwen.com/');
+                        const smokeApiData = await smokeApiResponse.json();
+                        
+                        if (smokeApiData && smokeApiData.success && Array.isArray(smokeApiData.data) && Array.isArray(cardsData.smoke_on_the_water_product)) {
+                            // 从API获取今日产品的索引数组
+                            const todayIndices = smokeApiData.data;
+                            const allProducts = cardsData.smoke_on_the_water_product;
+                            
+                            // 只加载API返回的索引对应的产品
+                            itemData.smoke_on_the_water_product = todayIndices
+                                .filter(index => index >= 0 && index < allProducts.length)
+                                .map(index => {
+                                    const item = allProducts[index];
+                                    return {
+                                        x: Array.isArray(item) ? item[0] : item.x,
+                                        y: Array.isArray(item) ? item[1] : item.y,
+                                        name: (Array.isArray(item) ? item[2] : item.name) || `吞云吐雾馆产品 ${index + 1}`,
+                                        originalIndex: index // 保存原始索引，用于图片URL
+                                    };
+                                });
+                            
+                            console.log(`✅ 从API加载了 ${itemData.smoke_on_the_water_product.length} 个吞云吐雾馆产品，索引:`, todayIndices);
+                        } else {
+                            // API失败时使用zones.json的数据作为备用
+                            console.warn('吞云吐雾馆产品API返回数据格式异常，使用静态数据');
+                            if (Array.isArray(cardsData.smoke_on_the_water_product)) {
+                                itemData.smoke_on_the_water_product = cardsData.smoke_on_the_water_product.map((item, idx) => ({
+                                    x: Array.isArray(item) ? item[0] : item.x,
+                                    y: Array.isArray(item) ? item[1] : item.y,
+                                    name: (Array.isArray(item) ? item[2] : item.name) || `吞云吐雾馆产品 ${idx + 1}`,
+                                    originalIndex: idx
+                                }));
+                            } else {
+                                itemData.smoke_on_the_water_product = [];
+                            }
+                        }
+                    } catch (error) {
+                        console.warn('获取吞云吐雾馆产品API失败，使用静态数据:', error);
+                        // 使用zones.json中的静态数据作为备用
+                        if (Array.isArray(cardsData.smoke_on_the_water_product)) {
+                            itemData.smoke_on_the_water_product = cardsData.smoke_on_the_water_product.map((item, idx) => ({
+                                x: Array.isArray(item) ? item[0] : item.x,
+                                y: Array.isArray(item) ? item[1] : item.y,
+                                name: (Array.isArray(item) ? item[2] : item.name) || `吞云吐雾馆产品 ${idx + 1}`,
+                                originalIndex: idx
+                            }));
+                        } else {
+                            itemData.smoke_on_the_water_product = [];
+                        }
+                    }
 
                     // 特殊：v_assassinations 为嵌套数组 [[...points]] -> 扁平为 [{x,y,name}]
                     try {

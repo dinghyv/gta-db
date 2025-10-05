@@ -19,11 +19,95 @@
             js: '/src/js/halloween-effects.js',
             description: '🎃 万圣节特别版 - 恐怖氛围'
         },
+        heist: {
+            name: '抢劫月主题',
+            css: '/src/css/heist-theme.css',
+            js: '/src/js/heist-effects.js',
+            description: '💰 抢劫月特别版 - 钞票雨与金库'
+        },
         christmas: {
             name: '圣诞节主题',
             css: '/src/css/christmas-theme.css',
             js: '/src/js/christmas-effects.js',
-            description: '🎄 圣诞节特别版 - 即将推出'
+            description: '🎄 圣诞节特别版 - 雪花飘落'
+        },
+        nationalday: {
+            name: '国庆节主题',
+            css: '/src/css/national-day-theme.css',
+            js: '/src/js/national-day-effects.js',
+            description: '🇨🇳 国庆节特别版 - 烟花绽放'
+        },
+        midautumn: {
+            name: '中秋节主题',
+            css: '/src/css/mid-autumn-theme.css',
+            js: '/src/js/mid-autumn-effects.js',
+            description: '🌕 中秋节特别版 - 月圆人团圆'
+        },
+        springfestival: {
+            name: '农历新年主题',
+            css: '/src/css/spring-festival-theme.css',
+            js: '/src/js/spring-festival-effects.js',
+            description: '🧧 春节特别版 - 恭喜发财'
+        },
+        dragonboat: {
+            name: '端午节主题',
+            css: '/src/css/dragon-boat-theme.css',
+            js: '/src/js/dragon-boat-effects.js',
+            description: '🐉 端午节特别版 - 龙舟竞渡'
+        },
+        laborday: {
+            name: '劳动节主题',
+            css: '/src/css/labor-day-theme.css',
+            js: '/src/js/labor-day-effects.js',
+            description: '🔨 劳动节特别版 - 致敬劳动者'
+        },
+        qingming: {
+            name: '清明节主题',
+            css: '/src/css/qingming-theme.css',
+            js: '/src/js/qingming-effects.js',
+            description: '🌿 清明节特别版 - 踏青时节'
+        },
+        lanternfestival: {
+            name: '元宵节主题',
+            css: '/src/css/lantern-festival-theme.css',
+            js: '/src/js/lantern-festival-effects.js',
+            description: '🏮 元宵节特别版 - 花灯璀璨'
+        },
+        valentine: {
+            name: '情人节主题',
+            css: '/src/css/valentine-theme.css',
+            js: '/src/js/valentine-effects.js',
+            description: '💝 情人节特别版 - 浪漫粉红'
+        },
+        independenceday: {
+            name: '美国独立日主题',
+            css: '/src/css/independence-day-theme.css',
+            js: '/src/js/independence-day-effects.js',
+            description: '🇺🇸 独立日特别版 - 星条旗'
+        },
+        oktoberfest: {
+            name: '啤酒节主题',
+            css: '/src/css/oktoberfest-theme.css',
+            js: '/src/js/oktoberfest-effects.js',
+            description: '🍺 啤酒节特别版 - 巴伐利亚'
+        },
+        cayoperico: {
+            name: '佩里科岛主题',
+            css: '/src/css/cayo-perico-theme.css',
+            js: '/src/js/cayo-perico-effects.js',
+            description: '🏝️ 佩里科岛特别版 - 热带天堂'
+        },
+        casino: {
+            name: '赌场主题',
+            css: '/src/css/casino-theme.css',
+            js: '/src/js/casino-effects.js',
+            description: '🎰 赌场特别版 - 一掷千金'
+        },
+        doomsday: {
+            name: '末日主题',
+            css: '/src/css/doomsday-theme.css',
+            js: '/src/js/doomsday-effects.js',
+            description: '☢️ 末日特别版 - 世界末日'
         },
         dark: {
             name: '暗黑主题',

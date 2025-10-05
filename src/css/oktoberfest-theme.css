@@ -1,0 +1,80 @@
+/* 🍺 GTA 啤酒节主题 - Oktoberfest Theme */
+
+:root {
+    --beer-gold: #d4af37;           /* 啤酒金 */
+    --beer-brown: #8b4513;          /* 棕色 */
+    --beer-blue: #4169e1;           /* 巴伐利亚蓝 */
+}
+
+/* 🍺 导航栏 */
+.gta-nav,
+nav,
+header {
+    background: linear-gradient(90deg, 
+        rgba(212, 175, 55, 0.15) 0%, 
+        rgba(65, 105, 225, 0.15) 100%) !important;
+    border-bottom: none !important;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2) !important;
+}
+
+.gta-nav {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding: 10px 20px !important;
+}
+
+.gta-nav .nav-left,
+.gta-nav .nav-right {
+    display: flex !important;
+    gap: 15px !important;
+    align-items: center !important;
+}
+
+.gta-nav .nav-left {
+    flex-grow: 1 !important;
+}
+
+.nav-links {
+    display: flex !important;
+    gap: 15px !important;
+    align-items: center !important;
+}
+
+/* 🍺 按钮 */
+button,
+.btn,
+.nav-button,
+a.nav-button {
+    background: linear-gradient(135deg, 
+        #d4af37 0%, 
+        #8b4513 100%) !important;
+    border: 1px solid rgba(65, 105, 225, 0.3) !important;
+    color: #fff !important;
+    text-shadow: none;
+    box-shadow: none !important;
+    font-weight: bold;
+    transition: all 0.2s ease;
+    text-decoration: none;
+}
+
+button:hover,
+.btn:hover,
+.nav-button:hover,
+a.nav-button:hover {
+    background: linear-gradient(135deg, 
+        #e6c84e 0%, 
+        #4169e1 100%) !important;
+    border-color: rgba(65, 105, 225, 0.5) !important;
+    box-shadow: none !important;
+    transform: translateY(-1px);
+}
+
+/* 🍺 标题 */
+h1, h2, h3, h4, h5, h6 {
+    color: var(--beer-gold) !important;
+    text-shadow: 
+        0 0 10px rgba(212, 175, 55, 0.5),
+        0 0 20px rgba(139, 69, 19, 0.3);
+    font-weight: bold;
+}

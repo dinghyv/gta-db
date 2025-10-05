@@ -5,23 +5,23 @@
 
     // 🎃 添加万圣节装饰元素
     function addHalloweenDecorations() {
-        // 添加蝙蝠
+        // 添加 UFO（替换蝙蝠）
         for (let i = 0; i < 3; i++) {
             const bat = document.createElement('div');
             bat.className = 'halloween-bat';
-            bat.textContent = '🦇';
+            bat.textContent = '🛸';
             bat.style.animationDelay = `${i * 5}s`;
             bat.style.top = `${10 + i * 15}%`;
             document.body.appendChild(bat);
         }
 
-        // 添加幽灵
+        // 添加 UFO（替换幽灵）
         for (let i = 0; i < 2; i++) {
             const ghost = document.createElement('div');
             ghost.className = 'halloween-ghost';
-            ghost.textContent = '👻';
-            ghost.style.animationDelay = `${i * 12}s`;
-            ghost.style.top = `${40 + i * 20}%`;
+            ghost.textContent = '🛸';
+            ghost.style.animationDelay = `${i * 7}s`;
+            ghost.style.left = `${20 + i * 40}%`;
             document.body.appendChild(ghost);
         }
 
@@ -66,7 +66,7 @@
         ];
         
         // 确保包含 UFO 和南瓜
-        const guaranteedEmojis = ['🎃', '🛸', '👻'];
+        const guaranteedEmojis = ['🎃', '🛸', '🛸'];
         
         const container = document.createElement('div');
         container.className = 'halloween-floating-container';
@@ -249,6 +249,16 @@
             }
         `;
         document.head.appendChild(style);
+    }
+
+    // 🎃 添加标题发光效果（空函数，CSS 已处理）
+    function addGlowToTitles() {
+        // 标题发光效果已在 CSS 中定义，这里不需要额外处理
+    }
+
+    // 🎃 添加导航栏南瓜（空函数，装饰已在其他地方处理）
+    function addPumpkinToNav() {
+        // 导航栏装饰已在其他地方处理
     }
 
     // 🎃 初始化万圣节效果

@@ -1,0 +1,80 @@
+/* 🏝️ GTA 佩里科岛主题 - Cayo Perico Theme */
+
+:root {
+    --island-blue: #00bfff;         /* 海洋蓝 */
+    --island-green: #00fa9a;        /* 热带绿 */
+    --island-yellow: #ffd700;       /* 沙滩金 */
+}
+
+/* 🏝️ 导航栏 */
+.gta-nav,
+nav,
+header {
+    background: linear-gradient(90deg, 
+        rgba(0, 191, 255, 0.15) 0%, 
+        rgba(0, 250, 154, 0.15) 100%) !important;
+    border-bottom: none !important;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2) !important;
+}
+
+.gta-nav {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding: 10px 20px !important;
+}
+
+.gta-nav .nav-left,
+.gta-nav .nav-right {
+    display: flex !important;
+    gap: 15px !important;
+    align-items: center !important;
+}
+
+.gta-nav .nav-left {
+    flex-grow: 1 !important;
+}
+
+.nav-links {
+    display: flex !important;
+    gap: 15px !important;
+    align-items: center !important;
+}
+
+/* 🏝️ 按钮 */
+button,
+.btn,
+.nav-button,
+a.nav-button {
+    background: linear-gradient(135deg, 
+        #00bfff 0%, 
+        #00fa9a 100%) !important;
+    border: 1px solid rgba(255, 215, 0, 0.3) !important;
+    color: #fff !important;
+    text-shadow: none;
+    box-shadow: none !important;
+    font-weight: bold;
+    transition: all 0.2s ease;
+    text-decoration: none;
+}
+
+button:hover,
+.btn:hover,
+.nav-button:hover,
+a.nav-button:hover {
+    background: linear-gradient(135deg, 
+        #1ecfff 0%, 
+        #ffd700 100%) !important;
+    border-color: rgba(255, 215, 0, 0.5) !important;
+    box-shadow: none !important;
+    transform: translateY(-1px);
+}
+
+/* 🏝️ 标题 */
+h1, h2, h3, h4, h5, h6 {
+    color: var(--island-yellow) !important;
+    text-shadow: 
+        0 0 10px rgba(255, 215, 0, 0.5),
+        0 0 20px rgba(0, 191, 255, 0.3);
+    font-weight: bold;
+}

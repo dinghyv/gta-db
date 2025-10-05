@@ -1,0 +1,80 @@
+/* 🇺🇸 GTA 美国独立日主题 - Independence Day Theme */
+
+:root {
+    --usa-red: #b22234;             /* 美国红 */
+    --usa-blue: #3c3b6e;            /* 美国蓝 */
+    --usa-white: #ffffff;           /* 白色 */
+}
+
+/* 🇺🇸 导航栏 */
+.gta-nav,
+nav,
+header {
+    background: linear-gradient(90deg, 
+        rgba(178, 34, 52, 0.15) 0%, 
+        rgba(60, 59, 110, 0.15) 100%) !important;
+    border-bottom: none !important;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2) !important;
+}
+
+.gta-nav {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding: 10px 20px !important;
+}
+
+.gta-nav .nav-left,
+.gta-nav .nav-right {
+    display: flex !important;
+    gap: 15px !important;
+    align-items: center !important;
+}
+
+.gta-nav .nav-left {
+    flex-grow: 1 !important;
+}
+
+.nav-links {
+    display: flex !important;
+    gap: 15px !important;
+    align-items: center !important;
+}
+
+/* 🇺🇸 按钮 */
+button,
+.btn,
+.nav-button,
+a.nav-button {
+    background: linear-gradient(135deg, 
+        #b22234 0%, 
+        #3c3b6e 100%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+    color: #fff !important;
+    text-shadow: none;
+    box-shadow: none !important;
+    font-weight: bold;
+    transition: all 0.2s ease;
+    text-decoration: none;
+}
+
+button:hover,
+.btn:hover,
+.nav-button:hover,
+a.nav-button:hover {
+    background: linear-gradient(135deg, 
+        #d63447 0%, 
+        #5a5a8e 100%) !important;
+    border-color: rgba(255, 255, 255, 0.5) !important;
+    box-shadow: none !important;
+    transform: translateY(-1px);
+}
+
+/* 🇺🇸 标题 */
+h1, h2, h3, h4, h5, h6 {
+    color: #ffffff !important;
+    text-shadow: 
+        0 0 10px rgba(178, 34, 52, 0.5),
+        0 0 20px rgba(60, 59, 110, 0.3);
+    font-weight: bold;
+}

@@ -70,7 +70,9 @@ async function updateGlobalTheme(request, env) {
     const { theme, timestamp } = body;
     
     // 验证主题名称
-    const validThemes = ['default', 'halloween', 'christmas', 'dark'];
+    const validThemes = ['default', 'halloween', 'heist', 'christmas', 'nationalday', 
+                         'midautumn', 'springfestival', 'dragonboat', 'laborday', 'qingming', 'lanternfestival',
+                         'valentine', 'independenceday', 'oktoberfest', 'cayoperico', 'casino', 'doomsday', 'dark'];
     if (!theme || !validThemes.includes(theme)) {
       return jsonResponse({
         success: false,

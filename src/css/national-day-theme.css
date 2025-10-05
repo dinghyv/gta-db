@@ -1,0 +1,328 @@
+/* 🇨🇳 GTA 国庆节主题 - National Day Theme */
+
+:root {
+    --national-red: #de2910;         /* 中国红 */
+    --national-gold: #ffde00;        /* 金黄色 */
+    --national-dark-red: #9e1c0c;    /* 深红 */
+    --national-light-gold: #fff5cc;  /* 浅金 */
+}
+
+/* 🇨🇳 全局背景 */
+body {
+    background: linear-gradient(135deg, 
+        #1a0a0a 0%, 
+        #2a1010 50%, 
+        #1a0a0a 100%) !important;
+}
+
+/* 🇨🇳 导航栏 */
+.gta-nav,
+nav,
+header {
+    background: linear-gradient(90deg, 
+        rgba(222, 41, 16, 0.15) 0%, 
+        rgba(255, 222, 0, 0.15) 100%) !important;
+    border-bottom: none !important;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* 保持导航栏布局不变 */
+.gta-nav {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding: 10px 20px !important;
+}
+
+.gta-nav .nav-left,
+.gta-nav .nav-right {
+    display: flex !important;
+    gap: 15px !important;
+    align-items: center !important;
+}
+
+.gta-nav .nav-left {
+    flex-grow: 1 !important;
+}
+
+.nav-links {
+    display: flex !important;
+    gap: 15px !important;
+    align-items: center !important;
+}
+
+/* 🇨🇳 按钮 */
+button,
+.btn,
+.nav-button,
+a.nav-button {
+    background: linear-gradient(135deg, 
+        #de2910 0%, 
+        #9e1c0c 100%) !important;
+    border: 1px solid rgba(255, 222, 0, 0.3) !important;
+    color: #fff !important;
+    text-shadow: none;
+    box-shadow: none !important;
+    font-weight: bold;
+    transition: all 0.2s ease;
+    text-decoration: none;
+}
+
+button:hover,
+.btn:hover,
+.nav-button:hover,
+a.nav-button:hover {
+    background: linear-gradient(135deg, 
+        #ff3520 0%, 
+        #ffde00 100%) !important;
+    border-color: rgba(255, 222, 0, 0.5) !important;
+    box-shadow: none !important;
+    transform: translateY(-1px);
+}
+
+/* 🇨🇳 链接 */
+a {
+    color: var(--national-red) !important;
+    text-shadow: 0 0 5px rgba(222, 41, 16, 0.3);
+    transition: all 0.3s ease;
+}
+
+a:hover {
+    color: var(--national-gold) !important;
+    text-shadow: 0 0 10px rgba(255, 222, 0, 0.5);
+}
+
+/* 🇨🇳 卡片/面板 */
+.card,
+.panel,
+.sidebar,
+.side-panel,
+[class*="panel"],
+[class*="card"] {
+    background: linear-gradient(135deg, 
+        rgba(26, 10, 10, 0.95) 0%, 
+        rgba(30, 15, 15, 0.95) 100%) !important;
+    border: 1px solid rgba(222, 41, 16, 0.3) !important;
+    box-shadow: none !important;
+}
+
+/* 🇨🇳 输入框 */
+input[type="text"],
+input[type="search"],
+textarea,
+select {
+    background: rgba(26, 10, 10, 0.8) !important;
+    border: 1px solid rgba(222, 41, 16, 0.4) !important;
+    color: var(--national-light-gold) !important;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+    border-color: var(--national-gold) !important;
+    box-shadow: 0 0 10px rgba(255, 222, 0, 0.3) !important;
+}
+
+/* 🇨🇳 地图控制面板 */
+.leaflet-control,
+.leaflet-bar,
+.map-controls,
+[class*="control"] {
+    background: rgba(26, 10, 10, 0.92) !important;
+    border: 1px solid rgba(222, 41, 16, 0.3) !important;
+    box-shadow: 0 2px 10px rgba(222, 41, 16, 0.2) !important;
+    backdrop-filter: blur(10px) !important;
+}
+
+.leaflet-control a,
+.map-control-button,
+button[class*="control"] {
+    background: rgba(26, 10, 10, 0.7) !important;
+    border: 1px solid rgba(222, 41, 16, 0.2) !important;
+    color: var(--national-red) !important;
+    transition: all 0.3s ease !important;
+}
+
+.leaflet-control a:hover,
+.map-control-button:hover {
+    background: rgba(222, 41, 16, 0.15) !important;
+    border-color: var(--national-gold) !important;
+}
+
+/* 🇨🇳 复选框 */
+input[type="checkbox"] {
+    accent-color: var(--national-red) !important;
+}
+
+/* 🇨🇳 列表项 */
+.list-item,
+li,
+[class*="item"] {
+    border-bottom: 1px solid rgba(222, 41, 16, 0.15) !important;
+    transition: all 0.2s ease !important;
+}
+
+.list-item:hover,
+li:hover {
+    background: rgba(222, 41, 16, 0.1) !important;
+    border-left: 3px solid var(--national-gold) !important;
+}
+
+/* 🇨🇳 滚动条 */
+::-webkit-scrollbar {
+    width: 10px;
+    background: rgba(26, 10, 10, 0.8);
+}
+
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, var(--national-red) 0%, var(--national-dark-red) 100%);
+    border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, var(--national-gold) 0%, var(--national-red) 100%);
+}
+
+/* 🇨🇳 标题 */
+h1, h2, h3, h4, h5, h6 {
+    color: var(--national-gold) !important;
+    text-shadow: 
+        0 0 10px rgba(255, 222, 0, 0.5),
+        0 0 20px rgba(222, 41, 16, 0.3);
+    font-weight: bold;
+}
+
+/* 🇨🇳 弹窗 */
+.popup,
+.modal,
+[class*="popup"],
+[class*="modal"] {
+    background: linear-gradient(135deg, 
+        rgba(26, 10, 10, 0.98) 0%, 
+        rgba(30, 15, 15, 0.98) 100%) !important;
+    border: none !important;
+    box-shadow: 
+        0 10px 40px rgba(0, 0, 0, 0.5),
+        inset 0 1px 0 rgba(222, 41, 16, 0.2) !important;
+    border-radius: 12px !important;
+}
+
+/* 弹窗内部元素 */
+.popup *,
+.modal *,
+[class*="popup"] *,
+[class*="modal"] * {
+    border-color: transparent !important;
+}
+
+/* 弹窗内按钮 */
+.popup button,
+.modal button,
+[class*="popup"] button,
+[class*="modal"] button {
+    background: rgba(100, 100, 100, 0.3) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    color: #fff !important;
+    text-shadow: none !important;
+    box-shadow: none !important;
+}
+
+.popup button:hover,
+.modal button:hover,
+[class*="popup"] button:hover,
+[class*="modal"] button:hover {
+    background: rgba(150, 150, 150, 0.4) !important;
+    border-color: rgba(255, 255, 255, 0.3) !important;
+    transform: none !important;
+}
+
+/* 🇨🇳 表格 */
+table {
+    background: rgba(26, 10, 10, 0.9) !important;
+    border: 1px solid rgba(222, 41, 16, 0.3) !important;
+}
+
+th {
+    background: linear-gradient(135deg, 
+        rgba(222, 41, 16, 0.4) 0%, 
+        rgba(255, 222, 0, 0.4) 100%) !important;
+    color: #fff !important;
+    font-weight: bold;
+}
+
+tr:hover {
+    background: rgba(222, 41, 16, 0.08) !important;
+}
+
+/* 🇨🇳 徽章/标签 */
+.badge,
+.label {
+    background: linear-gradient(135deg, var(--national-red) 0%, var(--national-gold) 100%) !important;
+    color: #fff !important;
+    font-weight: bold;
+}
+
+/* 🇨🇳 进度条 */
+.progress,
+progress {
+    background: rgba(26, 10, 10, 0.8) !important;
+    border: 1px solid rgba(222, 41, 16, 0.3) !important;
+}
+
+.progress-bar,
+progress::-webkit-progress-bar,
+progress::-webkit-progress-value {
+    background: linear-gradient(90deg, var(--national-red) 0%, var(--national-gold) 100%) !important;
+}
+
+/* 🇨🇳 提示框 */
+.tooltip,
+.tip {
+    background: rgba(26, 10, 10, 0.95) !important;
+    border: 1px solid var(--national-gold) !important;
+    color: var(--national-light-gold) !important;
+}
+
+/* 🇨🇳 菜单项 */
+.menu-item {
+    border-left: 3px solid transparent !important;
+    transition: all 0.3s ease;
+}
+
+.menu-item:hover {
+    background: rgba(222, 41, 16, 0.15) !important;
+    border-left: 3px solid var(--national-gold) !important;
+}
+
+/* 🇨🇳 加载动画 */
+.spinner,
+.loader {
+    border-color: var(--national-red) !important;
+    border-top-color: var(--national-gold) !important;
+}
+
+/* 🇨🇳 烟花动画 */
+@keyframes fireworks {
+    0% {
+        transform: translateY(0) scale(0);
+        opacity: 1;
+    }
+    50% {
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(-200px) scale(1.5);
+        opacity: 0;
+    }
+}
+
+/* 🇨🇳 响应式调整 */
+@media (max-width: 768px) {
+    body {
+        font-size: 14px;
+    }
+    
+    h1 {
+        font-size: 24px !important;
+    }
+}

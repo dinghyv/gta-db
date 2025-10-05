@@ -220,7 +220,21 @@
                 <select id="theme-select" style="width: 100%; padding: 12px; border: 2px solid #007bff; border-radius: 6px; font-size: 16px; background: white;">
                     <option value="default">🎮 默认主题 - GTA 经典橙色</option>
                     <option value="halloween">🎃 万圣节主题 - 恐怖氛围</option>
-                    <option value="christmas">🎄 圣诞节主题 - 即将推出</option>
+                    <option value="heist">💰 抢劫月主题 - 钞票雨与金库</option>
+                    <option value="christmas">🎄 圣诞节主题 - 雪花飘落</option>
+                    <option value="nationalday">🇨🇳 国庆节主题 - 烟花绽放</option>
+                    <option value="midautumn">🌕 中秋节主题 - 月圆人团圆</option>
+                    <option value="springfestival">🧧 农历新年主题 - 恭喜发财</option>
+                    <option value="dragonboat">🐉 端午节主题 - 龙舟竞渡</option>
+                    <option value="laborday">🔨 劳动节主题 - 致敬劳动者</option>
+                    <option value="qingming">🌿 清明节主题 - 踏青时节</option>
+                    <option value="lanternfestival">🏮 元宵节主题 - 花灯璀璨</option>
+                    <option value="valentine">💝 情人节主题 - 浪漫粉红</option>
+                    <option value="independenceday">🇺🇸 美国独立日主题 - 星条旗</option>
+                    <option value="oktoberfest">🍺 啤酒节主题 - 巴伐利亚</option>
+                    <option value="cayoperico">🏝️ 佩里科岛主题 - 热带天堂</option>
+                    <option value="casino">🎰 赌场主题 - 一掷千金</option>
+                    <option value="doomsday">☢️ 末日主题 - 世界末日</option>
                     <option value="dark">🌙 暗黑主题 - 即将推出</option>
                 </select>
             </div>
@@ -246,10 +260,10 @@
             <div style="margin-top: 20px; padding: 15px; background: #fff3cd; border: 1px solid #ffc107; border-radius: 6px;">
                 <strong style="color: #856404;"><i class="fas fa-info-circle"></i> 提示：</strong>
                 <ul style="margin: 10px 0; padding-left: 20px; color: #856404;">
-                    <li><strong>"仅自己使用"</strong>：只在你的浏览器生效</li>
-                    <li><strong>"应用到全局"</strong>：所有访问者都会看到此主题（需要重新构建和部署）</li>
-                    <li>全局主题会覆盖默认主题，但用户可以自己切换</li>
-                    <li>修改全局主题后需要运行 <code>npm run build</code> 并重新部署</li>
+                    <li><strong>"仅自己使用"</strong>：只在你的浏览器生效，其他人看不到</li>
+                    <li><strong>"应用到全局"</strong>：通过 API 实时生效，所有访问者都会看到此主题</li>
+                    <li>全局主题会覆盖默认主题，但用户可以在浏览器中自己切换</li>
+                    <li>修改全局主题后，访问者刷新页面即可看到新主题</li>
                 </ul>
             </div>
         </div>

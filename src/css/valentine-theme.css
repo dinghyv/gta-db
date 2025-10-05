@@ -1,0 +1,80 @@
+/* 💝 GTA 情人节主题 - Valentine's Day Theme */
+
+:root {
+    --valentine-pink: #ff69b4;      /* 粉红 */
+    --valentine-red: #ff1493;       /* 深粉 */
+    --valentine-purple: #da70d6;    /* 紫色 */
+}
+
+/* 💝 导航栏 */
+.gta-nav,
+nav,
+header {
+    background: linear-gradient(90deg, 
+        rgba(255, 105, 180, 0.15) 0%, 
+        rgba(218, 112, 214, 0.15) 100%) !important;
+    border-bottom: none !important;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2) !important;
+}
+
+.gta-nav {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding: 10px 20px !important;
+}
+
+.gta-nav .nav-left,
+.gta-nav .nav-right {
+    display: flex !important;
+    gap: 15px !important;
+    align-items: center !important;
+}
+
+.gta-nav .nav-left {
+    flex-grow: 1 !important;
+}
+
+.nav-links {
+    display: flex !important;
+    gap: 15px !important;
+    align-items: center !important;
+}
+
+/* 💝 按钮 */
+button,
+.btn,
+.nav-button,
+a.nav-button {
+    background: linear-gradient(135deg, 
+        #ff69b4 0%, 
+        #ff1493 100%) !important;
+    border: 1px solid rgba(218, 112, 214, 0.3) !important;
+    color: #fff !important;
+    text-shadow: none;
+    box-shadow: none !important;
+    font-weight: bold;
+    transition: all 0.2s ease;
+    text-decoration: none;
+}
+
+button:hover,
+.btn:hover,
+.nav-button:hover,
+a.nav-button:hover {
+    background: linear-gradient(135deg, 
+        #ff85c1 0%, 
+        #da70d6 100%) !important;
+    border-color: rgba(218, 112, 214, 0.5) !important;
+    box-shadow: none !important;
+    transform: translateY(-1px);
+}
+
+/* 💝 标题 */
+h1, h2, h3, h4, h5, h6 {
+    color: var(--valentine-pink) !important;
+    text-shadow: 
+        0 0 10px rgba(255, 105, 180, 0.5),
+        0 0 20px rgba(218, 112, 214, 0.3);
+    font-weight: bold;
+}

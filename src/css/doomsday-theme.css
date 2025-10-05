@@ -1,0 +1,80 @@
+/* ☢️ GTA 末日主题 - Doomsday Theme */
+
+:root {
+    --doom-red: #8b0000;            /* 暗红 */
+    --doom-orange: #ff4500;         /* 橙红 */
+    --doom-gray: #696969;           /* 灰色 */
+}
+
+/* ☢️ 导航栏 */
+.gta-nav,
+nav,
+header {
+    background: linear-gradient(90deg, 
+        rgba(139, 0, 0, 0.15) 0%, 
+        rgba(255, 69, 0, 0.15) 100%) !important;
+    border-bottom: none !important;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2) !important;
+}
+
+.gta-nav {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding: 10px 20px !important;
+}
+
+.gta-nav .nav-left,
+.gta-nav .nav-right {
+    display: flex !important;
+    gap: 15px !important;
+    align-items: center !important;
+}
+
+.gta-nav .nav-left {
+    flex-grow: 1 !important;
+}
+
+.nav-links {
+    display: flex !important;
+    gap: 15px !important;
+    align-items: center !important;
+}
+
+/* ☢️ 按钮 */
+button,
+.btn,
+.nav-button,
+a.nav-button {
+    background: linear-gradient(135deg, 
+        #8b0000 0%, 
+        #696969 100%) !important;
+    border: 1px solid rgba(255, 69, 0, 0.3) !important;
+    color: #fff !important;
+    text-shadow: none;
+    box-shadow: none !important;
+    font-weight: bold;
+    transition: all 0.2s ease;
+    text-decoration: none;
+}
+
+button:hover,
+.btn:hover,
+.nav-button:hover,
+a.nav-button:hover {
+    background: linear-gradient(135deg, 
+        #b22222 0%, 
+        #ff4500 100%) !important;
+    border-color: rgba(255, 69, 0, 0.5) !important;
+    box-shadow: none !important;
+    transform: translateY(-1px);
+}
+
+/* ☢️ 标题 */
+h1, h2, h3, h4, h5, h6 {
+    color: var(--doom-orange) !important;
+    text-shadow: 
+        0 0 10px rgba(255, 69, 0, 0.8),
+        0 0 20px rgba(139, 0, 0, 0.5);
+    font-weight: bold;
+}

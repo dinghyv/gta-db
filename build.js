@@ -52,21 +52,35 @@ async function buildProject() {
         if (!fs.existsSync(outputDir)) {
             fs.mkdirSync(outputDir, { recursive: true });
         }
-        
         fs.writeFileSync(outputPath, result.code);
         console.log(`✅ 已混淆: ${file}`);
     }
 
     // 复制其他 JS 文件（不混淆）
-    const otherJsFiles = [
+    const jsFilesToCopy = [
         'gta-map/ls/js/mobile-controls.js',
         'gta-map/ls/js/protection.js',
         'vehicles/decrypt.js',
         'src/js/halloween-effects.js',
+        'src/js/heist-effects.js',
+        'src/js/christmas-effects.js',
+        'src/js/national-day-effects.js',
+        'src/js/mid-autumn-effects.js',
+        'src/js/spring-festival-effects.js',
+        'src/js/dragon-boat-effects.js',
+        'src/js/labor-day-effects.js',
+        'src/js/qingming-effects.js',
+        'src/js/lantern-festival-effects.js',
+        'src/js/valentine-effects.js',
+        'src/js/independence-day-effects.js',
+        'src/js/oktoberfest-effects.js',
+        'src/js/cayo-perico-effects.js',
+        'src/js/casino-effects.js',
+        'src/js/doomsday-effects.js',
         'src/js/theme-manager.js',
     ];
 
-    for (const file of otherJsFiles) {
+    for (const file of jsFilesToCopy) {
         const srcPath = path.join(__dirname, file);
         const destPath = path.join(distDir, file);
         const destDir = path.dirname(destPath);

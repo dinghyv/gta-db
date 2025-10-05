@@ -28,5 +28,4 @@ function decryptVehicleData(encryptedData, key) {
     }
 }
 
-// 密钥（混淆后）
-const SECRET_KEY = '5202-newtna-selcihev-atg'.split('').reverse().join('');
+// 密钥已移除，在使用时动态生成

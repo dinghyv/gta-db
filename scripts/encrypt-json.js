@@ -84,10 +84,9 @@ async function encryptVehicleDatabase() {
     console.log(`✅ 已加密: ${outputFile}`);
     console.log(`📦 加密后大小: ${(JSON.stringify(encryptedJson).length / 1024 / 1024).toFixed(2)} MB`);
     
-    // 生成解密脚本
+    // 生成解密脚本（不包含密钥）
     const decryptScript = `${generateDecryptFunction()}
-// 密钥（混淆后）
-const SECRET_KEY = '${SECRET_KEY.split('').reverse().join('')}'.split('').reverse().join('');
+// 密钥已移除，在使用时动态生成
 `;
     
     fs.writeFileSync(decryptScriptFile, decryptScript);

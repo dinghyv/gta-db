@@ -86,6 +86,7 @@ async function buildProject() {
         'blank.html',
         'admin/index.html',
         'gta-map/ls/index.html',
+        'vehicles/index.html',
         // 添加其他需要复制的文件
     ];
 
@@ -132,7 +133,7 @@ async function buildProject() {
         }
     }
 
-    // 复制必要的目录
+    // 复制必要的目录（在复制单个文件之前）
     console.log('📁 复制资源文件...');
     const dirsToC = [
         { src: 'src', dest: 'src' }, // 根目录的 src（静态资源）
@@ -142,7 +143,7 @@ async function buildProject() {
         { src: 'gta-map/ls/src', dest: 'gta-map/ls/src' },
         { src: 'gta-map/ls/images', dest: 'gta-map/ls/images' },
         { src: 'rdr-map', dest: 'rdr-map' }, // rdr-map 目录
-        { src: 'vehicles', dest: 'vehicles' }, // vehicles 目录
+        // vehicles 目录不在这里复制，因为我们需要单独处理 index.html
     ];
 
     for (const dir of dirsToC) {

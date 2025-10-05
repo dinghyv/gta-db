@@ -2324,23 +2324,24 @@ let browseState = {
                     console.log('✅ 使用缓存的车辆数据');
                     allVehicles = JSON.parse(cachedData);
                 } else {
-                    // 下载加密的数据
-                    console.log('📥 下载车辆数据...');
                     const response = await fetch(`../src/data/vehicles_database_encrypted.json?v=${CACHE_VERSION}`);
                     if (!response.ok) {
                         throw new Error(`HTTP error! status: ${response.status}`);
                     }
                     const encryptedData = await response.json();
                     
-                    // 解密数据
+
                     if (encryptedData.encrypted && typeof decryptVehicleData === 'function') {
-                        console.log('🔓 解密车辆数据...');
-                        const SECRET_KEY = 'gta-vehicles-antwen-2025';
+                        const k1 = atob('Z3Rh'); 
+                        const k2 = atob('dmVoaWNsZXM='); 
+                        const k3 = atob('YW50d2Vu'); 
+                        const k4 = atob('MjAyNQ=='); 
+                        const SECRET_KEY = `${k1}-${k2}-${k3}-${k4}`;
+                        
                         allVehicles = decryptVehicleData(encryptedData.data, SECRET_KEY);
                         if (!allVehicles) {
                             throw new Error('解密失败');
                         }
-                        console.log('✅ 解密成功');
                     } else {
                         // 兼容未加密的数据
                         allVehicles = encryptedData;

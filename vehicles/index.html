@@ -2330,21 +2330,32 @@ let browseState = {
                     }
                     const encryptedData = await response.json();
                     
-
-                    if (encryptedData.encrypted && typeof decryptVehicleData === 'function') {
-                        const k1 = atob('Z3Rh'); 
-                        const k2 = atob('dmVoaWNsZXM='); 
-                        const k3 = atob('YW50d2Vu'); 
-                        const k4 = atob('MjAyNQ=='); 
-                        const SECRET_KEY = `${k1}-${k2}-${k3}-${k4}`;
-                        
-                        allVehicles = decryptVehicleData(encryptedData.data, SECRET_KEY);
-                        if (!allVehicles) {
-                            throw new Error('解密失败');
+                    // 检查是否为加密数据
+                    if (encryptedData.encrypted && encryptedData.data) {
+                        // 检查解密函数是否可用
+                        if (typeof decryptVehicleData !== 'function') {
+                            console.error('❌ 解密函数未加载，尝试使用未加密数据');
+                            // 降级：尝试加载未加密的数据
+                            const fallbackResponse = await fetch(`../src/data/vehicles_database_antwen.json?v=${CACHE_VERSION}`);
+                            allVehicles = await fallbackResponse.json();
+                        } else {
+                            // 解密数据
+                            const k1 = atob('Z3Rh'); 
+                            const k2 = atob('dmVoaWNsZXM='); 
+                            const k3 = atob('YW50d2Vu'); 
+                            const k4 = atob('MjAyNQ=='); 
+                            const SECRET_KEY = `${k1}-${k2}-${k3}-${k4}`;
+                            
+                            allVehicles = decryptVehicleData(encryptedData.data, SECRET_KEY);
+                            if (!allVehicles || !Array.isArray(allVehicles)) {
+                                console.error('❌ 解密失败，尝试使用未加密数据');
+                                const fallbackResponse = await fetch(`../src/data/vehicles_database_antwen.json?v=${CACHE_VERSION}`);
+                                allVehicles = await fallbackResponse.json();
+                            }
                         }
                     } else {
-                        // 兼容未加密的数据
-                        allVehicles = encryptedData;
+                        // 未加密的数据
+                        allVehicles = Array.isArray(encryptedData) ? encryptedData : encryptedData.data || [];
                     }
                     
                     // 保存解密后的数据到 localStorage

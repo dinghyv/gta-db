@@ -1106,9 +1106,9 @@ let browseState = {
 
                                 <!-- 独立筛选条件 -->
                                 <select id="hasFreeLiveryFilter" class="w-full p-3 bg-gray-700 text-white rounded-lg border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300 hover:border-blue-400">
-                                    <option value="all">免费涂装</option>
-                                    <option value="true">有免费涂装</option>
-                                    <option value="false">无免费涂装</option>
+                                    <option value="all">隐藏涂装</option>
+                                    <option value="true">有隐藏涂装</option>
+                                    <option value="false">无隐藏涂装</option>
                                 </select>
 
                                 <select id="hasHaoUpgradeFilter" class="w-full p-3 bg-gray-700 text-white rounded-lg border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300 hover:border-blue-400">
@@ -1267,14 +1267,27 @@ let browseState = {
             }
 
             const processImageUrl = (url) => {
-                if (url && !url.startsWith('http')) {
-                    const originalUrl = 'https://gta-images.antwen.com/' + url;
-                    return {
-                        webp: `https://5.421666.cn/api/image?url=${encodeURIComponent(originalUrl)}&quality=75`,
-                        original: originalUrl
-                    };
+                if (!url) return { webp: url, original: url };
+                
+                let originalUrl = url;
+                // 如果不是完整链接，添加域名前缀
+                if (!url.startsWith('http')) {
+                    originalUrl = 'https://gta-images.antwen.com/' + url;
                 }
-                return { webp: url, original: url };
+                // 如果已经是WebP API链接，提取原始URL
+                else if (url.includes('5.421666.cn/api/image?url=')) {
+                    try {
+                        const urlParams = new URLSearchParams(url.split('?')[1]);
+                        originalUrl = decodeURIComponent(urlParams.get('url'));
+                    } catch (e) {
+                        originalUrl = url;
+                    }
+                }
+                
+                return {
+                    webp: `https://5.421666.cn/api/image?url=${encodeURIComponent(originalUrl)}&quality=75`,
+                    original: originalUrl
+                };
             };
             const mainImageData = processImageUrl(vehicle.ImageUrl);
             const mainImage = mainImageData.webp || 'https://placehold.co/1280x720/1f2937/FFF?text=No+Image';

@@ -945,8 +945,23 @@ let browseState = {
         // 简单的哈希路由
         async function router() {
             const hash = window.location.hash || '#/';
+            
+            // 如果从详情页返回列表页，保存当前滚动位置
+            const isGoingToDetail = hash.startsWith('#/vehicle/');
+            const isComingFromDetail = app.querySelector('.bg-gray-800.p-4') !== null; // 检查是否在详情页
+            
+            if (isGoingToDetail && !isComingFromDetail) {
+                // 进入详情页前保存滚动位置和当前页码
+                sessionStorage.setItem('listScrollPosition', window.scrollY.toString());
+                sessionStorage.setItem('listCurrentPage', currentPage.toString());
+            }
+            
             app.innerHTML = ''; // 清空页面
-            window.scrollTo(0, 0); // 每次路由变化时滚动到顶部
+            
+            // 只在进入详情页时滚动到顶部，返回列表时不滚动
+            if (isGoingToDetail) {
+                window.scrollTo(0, 0);
+            }
 
             // 移除滚动监听器，防止在详情页触发
             window.removeEventListener('scroll', handleScroll);
@@ -978,6 +993,22 @@ let browseState = {
 
         // 渲染主页
         function renderHomePage() {
+            // 恢复页码（如果有保存的话）
+            const savedPage = sessionStorage.getItem('listCurrentPage');
+            if (savedPage) {
+                currentPage = parseInt(savedPage);
+                sessionStorage.removeItem('listCurrentPage');
+            }
+            
+            // 恢复滚动位置（如果有保存的话）
+            const savedScrollPosition = sessionStorage.getItem('listScrollPosition');
+            if (savedScrollPosition) {
+                // 延迟恢复滚动位置，确保页面已渲染
+                setTimeout(() => {
+                    window.scrollTo(0, parseInt(savedScrollPosition));
+                    sessionStorage.removeItem('listScrollPosition');
+                }, 100);
+            }
             app.innerHTML = `
 
                 
@@ -1186,8 +1217,9 @@ let browseState = {
             if (allVehicles.length > 0) {
                 setupEventListeners();
                 populateFilters();
-                restoreBrowseState();
-                // 使用恢复的状态进行筛选和显示，不重置页码
+                // 移除恢复状态功能，刷新时不保留筛选条件
+                // restoreBrowseState();
+                // 使用默认状态进行筛选和显示
                 performInitialDisplay();
             }
         }
@@ -1697,9 +1729,10 @@ let browseState = {
 
                 displayVehicles();
 
-                if (!isRestoringState) {
-                    saveBrowseState();
-                }
+                // 移除保存状态功能，刷新时不保留筛选条件
+                // if (!isRestoringState) {
+                //     saveBrowseState();
+                // }
 
                 if (grid) {
                     grid.classList.remove('searching');
@@ -1831,7 +1864,8 @@ let browseState = {
                     btn.onclick = () => {
                         currentPage = page;
                         displayVehicles();
-                        saveBrowseState();
+                        // 移除保存状态功能
+                        // saveBrowseState();
                         window.scrollTo({ top: 0, behavior: 'smooth' });
                     };
                 }
@@ -2115,103 +2149,104 @@ let browseState = {
             }
         }
 
-        function saveBrowseState() {
-            browseState = {
-                page: currentPage,
-                searchTerm: document.getElementById('searchInput')?.value || '',
-                classFilter: document.getElementById('classFilter')?.value || 'all',
-                manufacturerFilter: document.getElementById('manufacturerFilter')?.value || 'all',
-                sortOrder: document.getElementById('sortSelect')?.value || 'date',
-                hasFreeLivery: document.getElementById('hasFreeLiveryFilter')?.value || 'all',
-                hasHaoUpgrade: document.getElementById('hasHaoUpgradeFilter')?.value || 'all',
-                hasDriftTune: document.getElementById('hasDriftTuneFilter')?.value || 'all',
-                hasImaniUpgrade: document.getElementById('hasImaniUpgradeFilter')?.value || 'all',
-                hasMissileProtection: document.getElementById('hasMissileProtectionFilter')?.value || 'all',
-                isRemovedByRockstar: document.getElementById('isRemovedByRockstarFilter')?.value || 'all',
-                dlcFilter: document.getElementById('dlcFilter')?.value || 'all',
-                topSpeedFilter: document.getElementById('topSpeedFilter')?.value || 'all',
-                seatsFilter: document.getElementById('seatsFilter')?.value || 'all',
-                drivetrainFilter: document.getElementById('drivetrainFilter')?.value || 'all',
-                priceMin: parseInt(document.getElementById('priceMin')?.value) || 0,
-                priceMax: parseInt(document.getElementById('priceMax')?.value) || 10000000,
-                speedMin: parseInt(document.getElementById('speedMin')?.value) || 0,
-                speedMax: parseInt(document.getElementById('speedMax')?.value) || 200
-            };
-            localStorage.setItem('gtaVehiclesBrowseState', JSON.stringify(browseState));
-        }
+        // 移除保存浏览状态功能，刷新时不保留筛选条件
+        // function saveBrowseState() {
+        //     browseState = {
+        //         page: currentPage,
+        //         searchTerm: document.getElementById('searchInput')?.value || '',
+        //         classFilter: document.getElementById('classFilter')?.value || 'all',
+        //         manufacturerFilter: document.getElementById('manufacturerFilter')?.value || 'all',
+        //         sortOrder: document.getElementById('sortSelect')?.value || 'date',
+        //         hasFreeLivery: document.getElementById('hasFreeLiveryFilter')?.value || 'all',
+        //         hasHaoUpgrade: document.getElementById('hasHaoUpgradeFilter')?.value || 'all',
+        //         hasDriftTune: document.getElementById('hasDriftTuneFilter')?.value || 'all',
+        //         hasImaniUpgrade: document.getElementById('hasImaniUpgradeFilter')?.value || 'all',
+        //         hasMissileProtection: document.getElementById('hasMissileProtectionFilter')?.value || 'all',
+        //         isRemovedByRockstar: document.getElementById('isRemovedByRockstarFilter')?.value || 'all',
+        //         dlcFilter: document.getElementById('dlcFilter')?.value || 'all',
+        //         topSpeedFilter: document.getElementById('topSpeedFilter')?.value || 'all',
+        //         seatsFilter: document.getElementById('seatsFilter')?.value || 'all',
+        //         drivetrainFilter: document.getElementById('drivetrainFilter')?.value || 'all',
+        //         priceMin: parseInt(document.getElementById('priceMin')?.value) || 0,
+        //         priceMax: parseInt(document.getElementById('priceMax')?.value) || 10000000,
+        //         speedMin: parseInt(document.getElementById('speedMin')?.value) || 0,
+        //         speedMax: parseInt(document.getElementById('speedMax')?.value) || 200
+        //     };
+        //     localStorage.setItem('gtaVehiclesBrowseState', JSON.stringify(browseState));
+        // }
 
         let isRestoringState = false;
 
-        // 恢复浏览状态
-        function restoreBrowseState() {
-            const savedState = localStorage.getItem('gtaVehiclesBrowseState');
-            if (savedState) {
-                try {
-                    browseState = JSON.parse(savedState);
-
-                    // 恢复输入框和选择器的状态
-                    const searchInput = document.getElementById('searchInput');
-                    const classFilter = document.getElementById('classFilter');
-                    const manufacturerFilter = document.getElementById('manufacturerFilter');
-                    const sortSelect = document.getElementById('sortSelect');
-                    const hasFreeLiveryFilter = document.getElementById('hasFreeLiveryFilter');
-                    const hasHaoUpgradeFilter = document.getElementById('hasHaoUpgradeFilter');
-                    const hasDriftTuneFilter = document.getElementById('hasDriftTuneFilter');
-                    const hasImaniUpgradeFilter = document.getElementById('hasImaniUpgradeFilter');
-                    const hasMissileProtectionFilter = document.getElementById('hasMissileProtectionFilter');
-                    const isRemovedByRockstarFilter = document.getElementById('isRemovedByRockstarFilter');
-                    const dlcFilter = document.getElementById('dlcFilter');
-                    const topSpeedFilter = document.getElementById('topSpeedFilter');
-                    const seatsFilter = document.getElementById('seatsFilter');
-                    const drivetrainFilter = document.getElementById('drivetrainFilter');
-                    const priceMin = document.getElementById('priceMin');
-                    const priceMax = document.getElementById('priceMax');
-                    const speedMin = document.getElementById('speedMin');
-                    const speedMax = document.getElementById('speedMax');
-
-                    if (searchInput) searchInput.value = browseState.searchTerm || '';
-                    if (classFilter) classFilter.value = browseState.classFilter || 'all';
-                    if (manufacturerFilter) manufacturerFilter.value = browseState.manufacturerFilter || 'all';
-                    if (sortSelect) sortSelect.value = browseState.sortOrder || 'date';
-                    if (hasFreeLiveryFilter) hasFreeLiveryFilter.value = browseState.hasFreeLivery || 'all';
-                    if (hasHaoUpgradeFilter) hasHaoUpgradeFilter.value = browseState.hasHaoUpgrade || 'all';
-                    if (hasDriftTuneFilter) hasDriftTuneFilter.value = browseState.hasDriftTune || 'all';
-                    if (hasImaniUpgradeFilter) hasImaniUpgradeFilter.value = browseState.hasImaniUpgrade || 'all';
-                    if (hasMissileProtectionFilter) hasMissileProtectionFilter.value = browseState.hasMissileProtection || 'all';
-                    if (isRemovedByRockstarFilter) isRemovedByRockstarFilter.value = browseState.isRemovedByRockstar || 'all';
-                    if (dlcFilter) dlcFilter.value = browseState.dlcFilter || 'all';
-                    if (topSpeedFilter) topSpeedFilter.value = browseState.topSpeedFilter || 'all';
-                    if (seatsFilter) seatsFilter.value = browseState.seatsFilter || 'all';
-                    if (drivetrainFilter) drivetrainFilter.value = browseState.drivetrainFilter || 'all';
-
-                    // 恢复滑动条状态
-                    if (priceMin) {
-                        priceMin.value = browseState.priceMin || 0;
-                        document.getElementById('priceMinDisplay').textContent = formatPrice(priceMin.value);
-                    }
-                    if (priceMax) {
-                        priceMax.value = browseState.priceMax || 10000000;
-                        document.getElementById('priceMaxDisplay').textContent = formatPrice(priceMax.value);
-                    }
-                    if (speedMin) {
-                        speedMin.value = browseState.speedMin || 0;
-                        document.getElementById('speedMinDisplay').textContent = speedMin.value;
-                    }
-                    if (speedMax) {
-                        speedMax.value = browseState.speedMax || 200;
-                        document.getElementById('speedMaxDisplay').textContent = speedMax.value;
-                    }
-
-                    currentPage = browseState.page || 1;
-
-                    // 标记为恢复状态，避免触发保存，延迟更长确保状态恢复完成
-                    isRestoringState = true;
-
-                } catch (e) {
-                    console.warn('无法恢复浏览状态:', e);
-                }
-            }
-        }
+        // 移除恢复浏览状态功能，刷新时不保留筛选条件
+        // function restoreBrowseState() {
+        //     const savedState = localStorage.getItem('gtaVehiclesBrowseState');
+        //     if (savedState) {
+        //         try {
+        //             browseState = JSON.parse(savedState);
+        //
+        //             // 恢复输入框和选择器的状态
+        //             const searchInput = document.getElementById('searchInput');
+        //             const classFilter = document.getElementById('classFilter');
+        //             const manufacturerFilter = document.getElementById('manufacturerFilter');
+        //             const sortSelect = document.getElementById('sortSelect');
+        //             const hasFreeLiveryFilter = document.getElementById('hasFreeLiveryFilter');
+        //             const hasHaoUpgradeFilter = document.getElementById('hasHaoUpgradeFilter');
+        //             const hasDriftTuneFilter = document.getElementById('hasDriftTuneFilter');
+        //             const hasImaniUpgradeFilter = document.getElementById('hasImaniUpgradeFilter');
+        //             const hasMissileProtectionFilter = document.getElementById('hasMissileProtectionFilter');
+        //             const isRemovedByRockstarFilter = document.getElementById('isRemovedByRockstarFilter');
+        //             const dlcFilter = document.getElementById('dlcFilter');
+        //             const topSpeedFilter = document.getElementById('topSpeedFilter');
+        //             const seatsFilter = document.getElementById('seatsFilter');
+        //             const drivetrainFilter = document.getElementById('drivetrainFilter');
+        //             const priceMin = document.getElementById('priceMin');
+        //             const priceMax = document.getElementById('priceMax');
+        //             const speedMin = document.getElementById('speedMin');
+        //             const speedMax = document.getElementById('speedMax');
+        //
+        //             if (searchInput) searchInput.value = browseState.searchTerm || '';
+        //             if (classFilter) classFilter.value = browseState.classFilter || 'all';
+        //             if (manufacturerFilter) manufacturerFilter.value = browseState.manufacturerFilter || 'all';
+        //             if (sortSelect) sortSelect.value = browseState.sortOrder || 'date';
+        //             if (hasFreeLiveryFilter) hasFreeLiveryFilter.value = browseState.hasFreeLivery || 'all';
+        //             if (hasHaoUpgradeFilter) hasHaoUpgradeFilter.value = browseState.hasHaoUpgrade || 'all';
+        //             if (hasDriftTuneFilter) hasDriftTuneFilter.value = browseState.hasDriftTune || 'all';
+        //             if (hasImaniUpgradeFilter) hasImaniUpgradeFilter.value = browseState.hasImaniUpgrade || 'all';
+        //             if (hasMissileProtectionFilter) hasMissileProtectionFilter.value = browseState.hasMissileProtection || 'all';
+        //             if (isRemovedByRockstarFilter) isRemovedByRockstarFilter.value = browseState.isRemovedByRockstar || 'all';
+        //             if (dlcFilter) dlcFilter.value = browseState.dlcFilter || 'all';
+        //             if (topSpeedFilter) topSpeedFilter.value = browseState.topSpeedFilter || 'all';
+        //             if (seatsFilter) seatsFilter.value = browseState.seatsFilter || 'all';
+        //             if (drivetrainFilter) drivetrainFilter.value = browseState.drivetrainFilter || 'all';
+        //
+        //             // 恢复滑动条状态
+        //             if (priceMin) {
+        //                 priceMin.value = browseState.priceMin || 0;
+        //                 document.getElementById('priceMinDisplay').textContent = formatPrice(priceMin.value);
+        //             }
+        //             if (priceMax) {
+        //                 priceMax.value = browseState.priceMax || 10000000;
+        //                 document.getElementById('priceMaxDisplay').textContent = formatPrice(priceMax.value);
+        //             }
+        //             if (speedMin) {
+        //                 speedMin.value = browseState.speedMin || 0;
+        //                 document.getElementById('speedMinDisplay').textContent = speedMin.value;
+        //             }
+        //             if (speedMax) {
+        //                 speedMax.value = browseState.speedMax || 200;
+        //                 document.getElementById('speedMaxDisplay').textContent = speedMax.value;
+        //             }
+        //
+        //             currentPage = browseState.page || 1;
+        //
+        //             // 标记为恢复状态，避免触发保存，延迟更长确保状态恢复完成
+        //             isRestoringState = true;
+        //
+        //         } catch (e) {
+        //             console.warn('无法恢复浏览状态:', e);
+        //         }
+        //     }
+        // }
 
         function updateSearchSuggestions(event) {
             const searchTerm = event.target.value.toLowerCase();

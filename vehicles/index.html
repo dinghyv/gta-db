@@ -879,6 +879,13 @@
         #livery-gallery-container.expanded {
            grid-template-rows: 1fr;
         }
+        /* 懒加载图片样式 */
+        .lazy-load, .lazy-load-livery {
+            transition: opacity 0.3s ease-in-out;
+        }
+        .lazy-load[data-loaded="true"], .lazy-load-livery[data-loaded="true"] {
+            animation: fadeIn 0.3s ease-in-out;
+        }
         #livery-chevron {
             transition: transform 0.3s ease;
         }
@@ -1489,7 +1496,7 @@ let browseState = {
 
                         return `
                         <div class="livery-card rounded-lg overflow-hidden shadow-md flex flex-col">
-                            <img src="${localLiveryPath}" data-original="${originalLiveryUrl}" alt="${livery.livery_name}" class="w-full h-40 object-cover" onclick="openLightbox(this.src, this.getAttribute('data-original'))" onerror="this.onerror=null;this.src='https://placehold.co/600x400/2a374a/FFF?text=Image+Not+Found';">
+                            <img data-src="${localLiveryPath}" data-original="${originalLiveryUrl}" alt="${livery.livery_name}" class="w-full h-40 object-cover lazy-load-livery" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300'%3E%3Crect fill='%232a374a' width='400' height='300'/%3E%3C/svg%3E" onclick="openLightbox(this.getAttribute('data-src') || this.src, this.getAttribute('data-original'))" onerror="this.onerror=null;this.src='https://placehold.co/600x400/2a374a/FFF?text=Image+Not+Found';">
                             <div class="p-3 flex flex-col flex-grow">
                                 <p class="text-base ${nameClass} text-center flex-grow">${livery.livery_name}</p>
                                 <div class="flex justify-between items-center text-sm mt-2 pt-2 border-t border-gray-700">
@@ -1596,8 +1603,59 @@ let browseState = {
         function toggleLiveries() {
             const gallery = document.getElementById('livery-gallery-container');
             const chevron = document.getElementById('livery-chevron');
+            const isExpanding = !gallery.classList.contains('expanded');
             gallery.classList.toggle('expanded');
             chevron.classList.toggle('rotate-180');
+            
+            // 展开时加载涂装图片
+            if (isExpanding) {
+                setTimeout(() => {
+                    loadLiveryImages();
+                }, 100);
+            }
+        }
+
+        // 加载涂装图片
+        function loadLiveryImages() {
+            const liveryImages = document.querySelectorAll('.lazy-load-livery');
+            liveryImages.forEach(img => {
+                if (img.dataset.src && !img.dataset.loaded) {
+                    img.src = img.dataset.src;
+                    img.dataset.loaded = 'true';
+                }
+            });
+        }
+
+        // 懒加载功能 - 使用 Intersection Observer
+        let lazyLoadObserver = null;
+
+        function initLazyLoad() {
+            // 如果已经存在观察器，先断开
+            if (lazyLoadObserver) {
+                lazyLoadObserver.disconnect();
+            }
+
+            // 创建 Intersection Observer
+            lazyLoadObserver = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const img = entry.target;
+                        if (img.dataset.src) {
+                            img.src = img.dataset.src;
+                            img.dataset.loaded = 'true';
+                            observer.unobserve(img);
+                        }
+                    }
+                });
+            }, {
+                rootMargin: '50px' // 提前50px开始加载
+            });
+
+            // 观察所有懒加载图片
+            const lazyImages = document.querySelectorAll('.lazy-load');
+            lazyImages.forEach(img => {
+                lazyLoadObserver.observe(img);
+            });
         }
 
         // 动态平衡详情页的列
@@ -1924,8 +1982,9 @@ let browseState = {
 
                 card.innerHTML = `
                     <div class="relative overflow-hidden">
-                        <img src="${cardImageUrl}" alt="${vehicle.DisplayName.English}"
-                             class="w-full h-48 object-cover transition-transform duration-300 hover:scale-110"
+                        <img data-src="${cardImageUrl}" alt="${vehicle.DisplayName.English}"
+                             class="w-full h-48 object-cover transition-transform duration-300 hover:scale-110 lazy-load"
+                             src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300'%3E%3Crect fill='%231f2937' width='400' height='300'/%3E%3C/svg%3E"
                              onerror="this.onerror=null;this.src='https://placehold.co/600x400/1f2937/FFF?text=Image+Not+Found';">
                         ${hasFreeLivery ? '<div class="absolute top-3 right-3 badge badge-free text-xs">隐藏涂装</div>' : ''}
                         <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent h-16"></div>
@@ -1960,6 +2019,9 @@ let browseState = {
 
                 grid.appendChild(fragment);
                 renderPagination();
+                
+                // 初始化懒加载
+                initLazyLoad();
 
                 // 滚动到顶部，带有平滑动画
                 if (!isRestoringState) {

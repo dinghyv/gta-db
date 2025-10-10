@@ -1000,15 +1000,6 @@ let browseState = {
                 sessionStorage.removeItem('listCurrentPage');
             }
             
-            // 恢复滚动位置（如果有保存的话）
-            const savedScrollPosition = sessionStorage.getItem('listScrollPosition');
-            if (savedScrollPosition) {
-                // 延迟恢复滚动位置，确保页面已渲染
-                setTimeout(() => {
-                    window.scrollTo(0, parseInt(savedScrollPosition));
-                    sessionStorage.removeItem('listScrollPosition');
-                }, 100);
-            }
             app.innerHTML = `
 
                 
@@ -1569,6 +1560,16 @@ let browseState = {
 
             // 初始显示时不重置页码，直接使用恢复的状态
             displayVehicles();
+
+            // 恢复滚动位置（如果有保存的话），需要等待车辆卡片渲染完成
+            const savedScrollPosition = sessionStorage.getItem('listScrollPosition');
+            if (savedScrollPosition) {
+                // 延迟足够长的时间，确保卡片动画完成后再恢复滚动位置
+                setTimeout(() => {
+                    window.scrollTo(0, parseInt(savedScrollPosition));
+                    sessionStorage.removeItem('listScrollPosition');
+                }, 500);
+            }
 
             // 状态恢复完成后重置标记
             setTimeout(() => {

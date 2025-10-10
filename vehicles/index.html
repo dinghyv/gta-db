@@ -948,7 +948,7 @@
     <!-- Lightbox Modal -->
     <div id="lightbox" class="hidden fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50" onclick="closeLightbox()">
         <button class="absolute top-4 right-6 text-white text-5xl font-bold hover:text-gray-300 transition-colors">&times;</button>
-        <img id="lightbox-image" src="" class="max-w-[95vw] max-h-[90vh] object-contain" onclick="event.stopPropagation()">
+        <img id="lightbox-image" src="" data-original="" class="max-w-[95vw] max-h-[90vh] object-contain" onclick="event.stopPropagation()">
     </div>
 
     <!-- 右键菜单 -->
@@ -1313,11 +1313,11 @@ let browseState = {
                                 <h2 class="text-xl text-gray-400">${vehicle.DisplayName.English}</h2>
                             </div>
                             <h3 class="text-xl md:text-2xl font-bold text-white mb-4">车辆图</h3>
-                            <img id="main-image" src="${mainImage}" data-original="${mainImageOriginal}" alt="${vehicle.DisplayName.English}" class="w-full rounded-lg shadow-lg gallery-main-image vehicle-image" onclick="openLightbox(this.src)" onerror="this.onerror=null;this.src='https://placehold.co/1280x720/1f2937/FFF?text=Image+Not+Found';">
+                            <img id="main-image" src="${mainImage}" data-original="${mainImageOriginal}" alt="${vehicle.DisplayName.English}" class="w-full rounded-lg shadow-lg gallery-main-image" onclick="openLightbox(this.src, this.getAttribute('data-original'))" onerror="this.onerror=null;this.src='https://placehold.co/1280x720/1f2937/FFF?text=Image+Not+Found';">
                             ${screenshots.length > 0 ? `
                                 <div id="thumbnail-gallery" class="grid grid-cols-4 sm:grid-cols-5 gap-2 mt-4">
-                                    <img src="${mainImage}" data-original="${mainImageOriginal}" class="w-full h-auto rounded gallery-thumbnail active vehicle-image" onclick="changeMainImage('${mainImage}', '${mainImageOriginal}')">
-                                    ${screenshots.map(ss => `<img src="${ss.webp}" data-original="${ss.original}" class="w-full h-auto rounded gallery-thumbnail vehicle-image" onclick="changeMainImage('${ss.webp}', '${ss.original}')" onerror="this.style.display='none'">`).join('')}
+                                    <img src="${mainImage}" data-original="${mainImageOriginal}" class="w-full h-auto rounded gallery-thumbnail active" onclick="changeMainImage('${mainImage}', '${mainImageOriginal}')">
+                                    ${screenshots.map(ss => `<img src="${ss.webp}" data-original="${ss.original}" class="w-full h-auto rounded gallery-thumbnail" onclick="changeMainImage('${ss.webp}', '${ss.original}')" onerror="this.style.display='none'">`).join('')}
                                 </div>
                             ` : ''}
                             <div class="mt-8">
@@ -1489,7 +1489,7 @@ let browseState = {
 
                         return `
                         <div class="livery-card rounded-lg overflow-hidden shadow-md flex flex-col">
-                            <img src="${localLiveryPath}" data-original="${originalLiveryUrl}" alt="${livery.livery_name}" class="w-full h-40 object-cover livery-image" onclick="openLightbox(this.src)" onerror="this.onerror=null;this.src='https://placehold.co/600x400/2a374a/FFF?text=Image+Not+Found';">
+                            <img src="${localLiveryPath}" data-original="${originalLiveryUrl}" alt="${livery.livery_name}" class="w-full h-40 object-cover" onclick="openLightbox(this.src, '${originalLiveryUrl}')" onerror="this.onerror=null;this.src='https://placehold.co/600x400/2a374a/FFF?text=Image+Not+Found';">
                             <div class="p-3 flex flex-col flex-grow">
                                 <p class="text-base ${nameClass} text-center flex-grow">${livery.livery_name}</p>
                                 <div class="flex justify-between items-center text-sm mt-2 pt-2 border-t border-gray-700">
@@ -1528,10 +1528,11 @@ let browseState = {
         }
 
         // Lightbox functions
-        function openLightbox(src) {
+        function openLightbox(src, originalSrc) {
             const lightbox = document.getElementById('lightbox');
             const lightboxImage = document.getElementById('lightbox-image');
             lightboxImage.src = src;
+            lightboxImage.setAttribute('data-original', originalSrc || src);
             lightbox.classList.remove('hidden');
         }
 
@@ -1545,8 +1546,8 @@ let browseState = {
         // 显示右键菜单
         document.addEventListener('contextmenu', function(e) {
             const target = e.target;
-            // 检查是否是车辆图片
-            if (target.classList.contains('vehicle-image') || target.classList.contains('livery-image')) {
+            // 只在Lightbox预览图片时显示右键菜单
+            if (target.id === 'lightbox-image' && !document.getElementById('lightbox').classList.contains('hidden')) {
                 e.preventDefault();
                 contextMenuTarget = target;
                 const contextMenu = document.getElementById('context-menu');

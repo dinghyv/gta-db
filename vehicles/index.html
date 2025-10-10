@@ -831,6 +831,35 @@
         #lightbox.hidden #lightbox-image {
             transform: scale(0.95);
         }
+        /* 右键菜单样式 */
+        #context-menu {
+            position: fixed;
+            background: rgba(30, 30, 30, 0.98);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            padding: 8px 0;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            z-index: 9999;
+            min-width: 180px;
+        }
+        #context-menu .menu-item {
+            padding: 10px 16px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #fff;
+            font-size: 14px;
+        }
+        #context-menu .menu-item:hover {
+            background: rgba(0, 212, 255, 0.2);
+        }
+        #context-menu .menu-item i {
+            width: 16px;
+            text-align: center;
+        }
         /* 筛选栏滚动隐藏样式 */
         .filter-bar {
             transition: transform 0.3s ease-in-out;
@@ -920,6 +949,14 @@
     <div id="lightbox" class="hidden fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50" onclick="closeLightbox()">
         <button class="absolute top-4 right-6 text-white text-5xl font-bold hover:text-gray-300 transition-colors">&times;</button>
         <img id="lightbox-image" src="" class="max-w-[95vw] max-h-[90vh] object-contain" onclick="event.stopPropagation()">
+    </div>
+
+    <!-- 右键菜单 -->
+    <div id="context-menu" class="hidden">
+        <div class="menu-item" onclick="downloadOriginalImage()">
+            <i class="fas fa-download"></i>
+            <span>下载原图</span>
+        </div>
     </div>
 
     <script>
@@ -1232,11 +1269,16 @@ let browseState = {
             const processImageUrl = (url) => {
                 if (url && !url.startsWith('http')) {
                     const originalUrl = 'https://gta-images.antwen.com/' + url;
-                    return `https://5.421666.cn/api/image?url=${encodeURIComponent(originalUrl)}&quality=75`;
+                    return {
+                        webp: `https://5.421666.cn/api/image?url=${encodeURIComponent(originalUrl)}&quality=75`,
+                        original: originalUrl
+                    };
                 }
-                return url;
+                return { webp: url, original: url };
             };
-            const mainImage = processImageUrl(vehicle.ImageUrl) || 'https://placehold.co/1280x720/1f2937/FFF?text=No+Image';
+            const mainImageData = processImageUrl(vehicle.ImageUrl);
+            const mainImage = mainImageData.webp || 'https://placehold.co/1280x720/1f2937/FFF?text=No+Image';
+            const mainImageOriginal = mainImageData.original;
             const screenshots = (vehicle.ScreenShots || vehicle['截图'] || []).map(processImageUrl);
 
             app.innerHTML = `
@@ -1252,12 +1294,12 @@ let browseState = {
                                 <h1 class="text-3xl font-bold text-white">${vehicle.DisplayName.SimplifiedChinese}</h1>
                                 <h2 class="text-xl text-gray-400">${vehicle.DisplayName.English}</h2>
                             </div>
-                            <h3 class="text-xl md:text-2xl font-bold text-white mb-4">车辆截图</h3>
-                            <img id="main-image" src="${mainImage}" alt="${vehicle.DisplayName.English}" class="w-full rounded-lg shadow-lg gallery-main-image" onclick="openLightbox(this.src)" onerror="this.onerror=null;this.src='https://placehold.co/1280x720/1f2937/FFF?text=Image+Not+Found';">
+                            <h3 class="text-xl md:text-2xl font-bold text-white mb-4">车辆图</h3>
+                            <img id="main-image" src="${mainImage}" data-original="${mainImageOriginal}" alt="${vehicle.DisplayName.English}" class="w-full rounded-lg shadow-lg gallery-main-image vehicle-image" onclick="openLightbox(this.src)" onerror="this.onerror=null;this.src='https://placehold.co/1280x720/1f2937/FFF?text=Image+Not+Found';">
                             ${screenshots.length > 0 ? `
                                 <div id="thumbnail-gallery" class="grid grid-cols-4 sm:grid-cols-5 gap-2 mt-4">
-                                    <img src="${mainImage}" class="w-full h-auto rounded gallery-thumbnail active" onclick="changeMainImage('${mainImage}')">
-                                    ${screenshots.map(ss => `<img src="${ss}" class="w-full h-auto rounded gallery-thumbnail" onclick="changeMainImage('${ss}')" onerror="this.style.display='none'">`).join('')}
+                                    <img src="${mainImage}" data-original="${mainImageOriginal}" class="w-full h-auto rounded gallery-thumbnail active vehicle-image" onclick="changeMainImage('${mainImage}', '${mainImageOriginal}')">
+                                    ${screenshots.map(ss => `<img src="${ss.webp}" data-original="${ss.original}" class="w-full h-auto rounded gallery-thumbnail vehicle-image" onclick="changeMainImage('${ss.webp}', '${ss.original}')" onerror="this.style.display='none'">`).join('')}
                                 </div>
                             ` : ''}
                             <div class="mt-8">
@@ -1331,15 +1373,24 @@ let browseState = {
             const keyTranslations = {
                 ModelName: '模型名称', Class: '车辆类型', Price: '价格', SellPrice: '出售价格', Dealer: '经销商',
                 ManufacturerDisplayName: '制造商', ReleaseDate: '发布日期', DlcName: 'DLC', TopSpeedTested: '实测最高速度',
-                LapTime: '圈速', Seats: '座位数', Weight: '重量', Drivetrain: '驱动方式', Gears: '档位', Armor: '装甲',
+                LapTime: 'CCGP圈速', Seats: '座位数', Weight: '重量', Drivetrain: '驱动方式', Gears: '档位', Armor: '装甲',
                 hasDriftTune: '漂移改装', hasHaoUpgrade: '阿浩升级', hasImaniUpgrade: '伊玛尼技术', hasMissileProtection: '导弹锁定干扰',
-                isRemovedByRockstar: '已被R星移除', Storage: '存放地点', DeliveryMethod: '运送方式', ModificationShop: '改装店',
-                SellMethod: '出售方式', RaceAvailability: '竞速可用', BasedOn: '基于现实'
+                isRemovedByRockstar: '是否被R星移除', Storage: '存放地点', DeliveryMethod: '运送方式', ModificationShop: '改装店',
+                SellMethod: '出售方式', RaceAvailability: '竞速可用性', BasedOn: '现实原型'
             };
 
             let displayValue = value;
             if (key === 'ManufacturerDisplayName' && typeof value === 'object') {
                 displayValue = value.SimplifiedChinese || value.English;
+            } else if (key === 'ReleaseDate') {
+                // 将日期转换为中文格式：2024年12月19日
+                const date = new Date(value);
+                if (!isNaN(date.getTime())) {
+                    const year = date.getFullYear();
+                    const month = date.getMonth() + 1;
+                    const day = date.getDate();
+                    displayValue = `${year}年${month}月${day}日`;
+                }
             } else if (typeof value === 'boolean' || [0, 1].includes(value)) {
                 displayValue = value ? '<span class="text-green-400">是</span>' : '<span class="text-red-400">否</span>';
             }
@@ -1412,14 +1463,15 @@ let browseState = {
                         const nameClass = isFree ? 'text-red-400 font-bold' : 'text-gray-300';
                         const priceClass = isFree ? 'text-red-400' : 'text-green-400';
                         let localLiveryPath = `images/${vehicle.ModelName}/${vehicle.ModelName}_livery_${livery.id}.jpg`;
+                        let originalLiveryUrl = localLiveryPath;
                         if (!localLiveryPath.startsWith('http')) {
-                            const originalUrl = 'https://gta-images.antwen.com/' + localLiveryPath;
-                            localLiveryPath = `https://5.421666.cn/api/image?url=${encodeURIComponent(originalUrl)}&quality=25`;
+                            originalLiveryUrl = 'https://gta-images.antwen.com/' + localLiveryPath;
+                            localLiveryPath = `https://5.421666.cn/api/image?url=${encodeURIComponent(originalLiveryUrl)}&quality=25`;
                         }
 
                         return `
                         <div class="livery-card rounded-lg overflow-hidden shadow-md flex flex-col">
-                            <img src="${localLiveryPath}" alt="${livery.livery_name}" class="w-full h-40 object-cover" onclick="openLightbox(this.src)" onerror="this.onerror=null;this.src='https://placehold.co/600x400/2a374a/FFF?text=Image+Not+Found';">
+                            <img src="${localLiveryPath}" data-original="${originalLiveryUrl}" alt="${livery.livery_name}" class="w-full h-40 object-cover livery-image" onclick="openLightbox(this.src)" onerror="this.onerror=null;this.src='https://placehold.co/600x400/2a374a/FFF?text=Image+Not+Found';">
                             <div class="p-3 flex flex-col flex-grow">
                                 <p class="text-base ${nameClass} text-center flex-grow">${livery.livery_name}</p>
                                 <div class="flex justify-between items-center text-sm mt-2 pt-2 border-t border-gray-700">
@@ -1447,8 +1499,10 @@ let browseState = {
         }
 
         // 切换详情页主图
-        function changeMainImage(src) {
-            document.getElementById('main-image').src = src;
+        function changeMainImage(src, originalSrc) {
+            const mainImage = document.getElementById('main-image');
+            mainImage.src = src;
+            mainImage.setAttribute('data-original', originalSrc);
             const thumbnails = document.querySelectorAll('.gallery-thumbnail');
             thumbnails.forEach(thumb => {
                 thumb.classList.toggle('active', thumb.src === src);
@@ -1465,6 +1519,47 @@ let browseState = {
 
         function closeLightbox() {
             document.getElementById('lightbox').classList.add('hidden');
+        }
+
+        // 右键菜单功能
+        let contextMenuTarget = null;
+
+        // 显示右键菜单
+        document.addEventListener('contextmenu', function(e) {
+            const target = e.target;
+            // 检查是否是车辆图片
+            if (target.classList.contains('vehicle-image') || target.classList.contains('livery-image')) {
+                e.preventDefault();
+                contextMenuTarget = target;
+                const contextMenu = document.getElementById('context-menu');
+                contextMenu.classList.remove('hidden');
+                contextMenu.style.left = e.pageX + 'px';
+                contextMenu.style.top = e.pageY + 'px';
+            }
+        });
+
+        // 点击其他地方隐藏菜单
+        document.addEventListener('click', function() {
+            document.getElementById('context-menu').classList.add('hidden');
+        });
+
+        // 下载原图
+        function downloadOriginalImage() {
+            if (!contextMenuTarget) return;
+            
+            const originalUrl = contextMenuTarget.getAttribute('data-original');
+            if (!originalUrl) return;
+
+            // 创建一个临时链接并触发下载
+            const link = document.createElement('a');
+            link.href = originalUrl;
+            link.download = originalUrl.split('/').pop() || 'image.jpg';
+            link.target = '_blank';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            document.getElementById('context-menu').classList.add('hidden');
         }
 
         // 涂装折叠功能

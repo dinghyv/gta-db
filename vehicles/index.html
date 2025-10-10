@@ -1208,7 +1208,8 @@ let browseState = {
 
             const processImageUrl = (url) => {
                 if (url && !url.startsWith('http')) {
-                    return 'https://eo-gta-images.antwen.com/' + url;
+                    const originalUrl = 'https://gta-images.antwen.com/' + url;
+                    return `https://5.421666.cn/api/image?url=${encodeURIComponent(originalUrl)}&quality=75`;
                 }
                 return url;
             };
@@ -1389,7 +1390,8 @@ let browseState = {
                         const priceClass = isFree ? 'text-red-400' : 'text-green-400';
                         let localLiveryPath = `images/${vehicle.ModelName}/${vehicle.ModelName}_livery_${livery.id}.jpg`;
                         if (!localLiveryPath.startsWith('http')) {
-                            localLiveryPath = 'https://eo-gta-images.antwen.com/' + localLiveryPath;
+                            const originalUrl = 'https://gta-images.antwen.com/' + localLiveryPath;
+                            localLiveryPath = `https://5.421666.cn/api/image?url=${encodeURIComponent(originalUrl)}&quality=25`;
                         }
 
                         return `
@@ -1755,7 +1757,8 @@ let browseState = {
                 const screenshots = vehicle.ScreenShots || vehicle['截图'] || [];
                 const processImageUrl = (url) => {
                     if (url && !url.startsWith('http')) {
-                        return 'https://eo-gta-images.antwen.com/' + url;
+                        const originalUrl = 'https://gta-images.antwen.com/' + url;
+                        return `https://5.421666.cn/api/image?url=${encodeURIComponent(originalUrl)}&quality=75`;
                     }
                     return url;
                 };
@@ -2373,25 +2376,30 @@ let browseState = {
                 console.log('开始处理图片URL...', allVehicles.length, '辆车');
                 allVehicles.forEach(vehicle => {
                     if (vehicle.ImageUrl && !vehicle.ImageUrl.startsWith('http')) {
-                        vehicle.ImageUrl = 'https://eo-gta-images.antwen.com/' + vehicle.ImageUrl;
+                        const originalUrl = 'https://gta-images.antwen.com/' + vehicle.ImageUrl;
+                        vehicle.ImageUrl = `https://5.421666.cn/api/image?url=${encodeURIComponent(originalUrl)}&quality=75`;
                     }
                     if (vehicle.bakImageUrl && !vehicle.bakImageUrl.startsWith('http')) {
-                        vehicle.bakImageUrl = 'https://eo-gta-images.antwen.com/' + vehicle.bakImageUrl;
+                        const originalUrl = 'https://gta-images.antwen.com/' + vehicle.bakImageUrl;
+                        vehicle.bakImageUrl = `https://5.421666.cn/api/image?url=${encodeURIComponent(originalUrl)}&quality=75`;
                     }
                     if (vehicle.liveries && Array.isArray(vehicle.liveries)) {
                         vehicle.liveries.forEach(livery => {
                             if (livery.link && !livery.link.startsWith('http')) {
-                                livery.link = 'https://eo-gta-images.antwen.com/' + livery.link;
+                                const originalUrl = 'https://gta-images.antwen.com/' + livery.link;
+                                livery.link = `https://5.421666.cn/api/image?url=${encodeURIComponent(originalUrl)}&quality=25`;
                             }
                             if (livery.baklink && !livery.baklink.startsWith('http')) {
-                                livery.baklink = 'https://eo-gta-images.antwen.com/' + livery.baklink;
+                                const originalUrl = 'https://gta-images.antwen.com/' + livery.baklink;
+                                livery.baklink = `https://5.421666.cn/api/image?url=${encodeURIComponent(originalUrl)}&quality=25`;
                             }
                         });
                     }
                     if (vehicle.Screenshots && Array.isArray(vehicle.Screenshots)) {
                         vehicle.Screenshots.forEach((screenshot, index) => {
                             if (screenshot && !screenshot.startsWith('http')) {
-                                vehicle.Screenshots[index] = 'https://eo-gta-images.antwen.com/' + screenshot;
+                                const originalUrl = 'https://gta-images.antwen.com/' + screenshot;
+                                vehicle.Screenshots[index] = `https://5.421666.cn/api/image?url=${encodeURIComponent(originalUrl)}&quality=75`;
                             }
                         });
                     }

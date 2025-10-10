@@ -1549,17 +1549,28 @@ let browseState = {
             // 只在Lightbox预览图片时显示右键菜单
             if (target.id === 'lightbox-image' && !document.getElementById('lightbox').classList.contains('hidden')) {
                 e.preventDefault();
+                e.stopPropagation();
                 contextMenuTarget = target;
                 const contextMenu = document.getElementById('context-menu');
                 contextMenu.classList.remove('hidden');
-                contextMenu.style.left = e.pageX + 'px';
-                contextMenu.style.top = e.pageY + 'px';
+                // 使用clientX/clientY获取相对于视口的坐标
+                contextMenu.style.left = e.clientX + 'px';
+                contextMenu.style.top = e.clientY + 'px';
             }
         });
 
-        // 点击其他地方隐藏菜单
-        document.addEventListener('click', function() {
-            document.getElementById('context-menu').classList.add('hidden');
+        // 点击其他地方隐藏菜单（包括左键点击）
+        document.addEventListener('click', function(e) {
+            const contextMenu = document.getElementById('context-menu');
+            // 如果点击的不是菜单本身，则隐藏菜单
+            if (!contextMenu.contains(e.target)) {
+                contextMenu.classList.add('hidden');
+            }
+        });
+
+        // 阻止右键菜单上的点击事件冒泡
+        document.getElementById('context-menu').addEventListener('click', function(e) {
+            e.stopPropagation();
         });
 
         // 下载原图
